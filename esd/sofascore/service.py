@@ -127,7 +127,7 @@ class SofascoreService:
         Returns:
             dict: The scheduled events.
         """
-        if date is 'today':
+        if date == 'today':
             date = get_today()
         try:
             url = self.endpoints.events_endpoint.format(date=date)
