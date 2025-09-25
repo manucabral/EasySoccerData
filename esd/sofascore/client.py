@@ -31,7 +31,7 @@ class SofascoreClient:
     This class provides methods to access and retrieve data from Sofascore.
     """
 
-    def __init__(self, browser_path: str = None):
+    def __init__(self, browser_path: str = 'chrome') -> None:
         """
         Initializes a new instance of the SofascoreClient.
 
@@ -49,12 +49,12 @@ class SofascoreClient:
         """
         self.__service.close()
 
-    def get_events(self, date: str = None, live: bool = False) -> list[Event]:
+    def get_events(self, date: str = 'today', live: bool = False) -> list[Event]:
         """
         Get the scheduled events.
 
         Args:
-            date (str): The date of the events in the format "YYYY-MM-DD".
+            date (str): The date of the events in the format "YYYY-MM-DD" or "today".
             live (bool): Whether to get the live events (more precise).
 
         Returns:

@@ -53,7 +53,7 @@ class SofascoreService:
     A class to represent the SofaScore service.
     """
 
-    def __init__(self, browser_path: str = None):
+    def __init__(self, browser_path: str):
         """
         Initializes the SofaScore service.
         """
@@ -75,7 +75,10 @@ class SofascoreService:
             )
             self.page = self.browser.new_page()
         except Exception as exc:
-            raise RuntimeError("Failed to initialize browser") from exc
+            message = (
+                f'{self.browser_path} is not a valid browser path. Is installed?'
+            )
+            raise RuntimeError(message) from exc
 
     def close(self):
         """
@@ -114,7 +117,7 @@ class SofascoreService:
         except Exception as exc:
             raise exc
 
-    def get_events(self, date: str = None) -> list[Event]:
+    def get_events(self, date: str = 'today') -> list[Event]:
         """
         Get the scheduled events.
 
@@ -124,7 +127,7 @@ class SofascoreService:
         Returns:
             dict: The scheduled events.
         """
-        if not date:
+        if date is 'today':
             date = get_today()
         try:
             url = self.endpoints.events_endpoint.format(date=date)
