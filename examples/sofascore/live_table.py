@@ -5,7 +5,9 @@ def clear_screen() -> None:
     print("\033[H\033[J")
 
 
-def shorten(text: str, max_length: int) -> str:
+def shorten(text: str | None, max_length: int) -> str:
+    if not text:
+        return "?"
     return text if len(text) <= max_length else text[: max_length - 3] + "..."
 
 
