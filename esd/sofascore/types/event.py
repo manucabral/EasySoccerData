@@ -3,12 +3,13 @@ Contains the event data types and parsers (also known as matches).
 """
 
 import time
-from datetime import datetime
 from dataclasses import dataclass, field
+from datetime import datetime
+
+from .status import Status, parse_status
 from .team import Team, parse_team
 from .team_score import TeamScore, parse_team_score
 from .tournament import Tournament, parse_tournament
-from .status import Status, parse_status
 
 
 @dataclass

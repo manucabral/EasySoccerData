@@ -3,9 +3,11 @@ FBref service module.
 """
 
 from __future__ import annotations
+
 import time
 from collections import deque
 from functools import wraps
+
 from .exceptions import RateLimitExceeded
 
 

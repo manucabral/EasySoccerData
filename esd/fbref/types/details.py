@@ -3,6 +3,7 @@ This module contains the data types and functions for parsing match details.
 """
 
 from dataclasses import dataclass, field
+
 import lxml.html
 
 

@@ -3,6 +3,7 @@ Transfer history data classes.
 """
 
 from dataclasses import dataclass, field
+
 from .team import Team, parse_team
 
 

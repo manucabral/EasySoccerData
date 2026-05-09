@@ -1,8 +1,8 @@
 """
 # EasySoccerData
 
-A Python easy-to-use library for for fetching live
-football/soccer statsfrom multiple online sources/apis.
+A Python easy-to-use library for fetching live
+football/soccer stats from multiple online sources/APIs.
 
 Note! This package is not affiliated with
 any of the sources used to extract data.
@@ -11,10 +11,20 @@ any of the sources used to extract data.
    :start-line: 17
 """
 
-from .sofascore import SofascoreClient, types as SofascoreTypes
-from .promiedos import PromiedosClient, types as PromiedosTypes
-from .fbref import FBrefClient, types as FBrefTypes
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _version
 
+from .fbref import FBrefClient
+from .fbref import types as FBrefTypes
+from .promiedos import PromiedosClient
+from .promiedos import types as PromiedosTypes
+from .sofascore import SofascoreClient
+from .sofascore import types as SofascoreTypes
+
+try:
+    __version__ = _version(__package__ or "EasySoccerData")
+except PackageNotFoundError:
+    __version__ = "0.0.0"
 
 __all__ = [
     "SofascoreClient",
@@ -24,12 +34,3 @@ __all__ = [
     "FBrefClient",
     "FBrefTypes",
 ]
-
-__version__ = "0.0.8"
-__description__ = (
-    "A simple python package for extracting real-time soccer data "
-    "from diverse online sources, providing essential statistics and insights."
-)
-__author__ = "Manuel Cabral"
-__title__ = "EasySoccerData"
-__license__ = "GPL-3.0"

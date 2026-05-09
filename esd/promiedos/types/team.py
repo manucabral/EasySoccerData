@@ -3,6 +3,7 @@ This module contains the Team class and its parser.
 """
 
 from dataclasses import dataclass, field
+
 from .color import Color, parse_color
 
 

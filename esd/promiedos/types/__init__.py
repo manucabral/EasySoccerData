@@ -2,25 +2,25 @@
 Contains the types for the Sofascore service.
 """
 
-from .event import Event, parse_events, parse_event
-from .league import League, parse_league
 from .color import Color
-from .status import Status, MatchStatus
-from .team import Team
-from .odds import MainOdds, OddsOption
-from .tvnetwork import TVNetwork
-from .scores import Scores, Penalties, GlobalScores
+from .event import Event, parse_event, parse_events
+from .league import League, parse_league
 from .match import Match, parse_match
-from .players import Player, Players, Lineups, LineupTeam, parse_players, parse_player
-from .match_stats import MatchStats, parse_match_stats
 from .match_events import (
-    MatchEvents,
-    parse_match_events,
     EventItem,
     EventType,
+    MatchEvents,
     Substitution,
+    parse_match_events,
 )
-from .tournament import Tournament, Stage, parse_tournament
+from .match_stats import MatchStats, parse_match_stats
+from .odds import MainOdds, OddsOption
+from .players import Lineups, LineupTeam, Player, Players, parse_player, parse_players
+from .scores import GlobalScores, Penalties, Scores
+from .status import MatchStatus, Status
+from .team import Team
+from .tournament import Stage, Tournament, parse_tournament
+from .tvnetwork import TVNetwork
 
 __all__ = [
     "Event",

@@ -3,6 +3,7 @@ Shot dataclass and parser.
 """
 
 from dataclasses import dataclass, field
+
 from .player import Player, parse_player
 
 

@@ -3,6 +3,7 @@ This module contains the client class for interacting with the FBref website.
 """
 
 from __future__ import annotations
+
 from .service import FBrefService
 from .types import Match, MatchDetails
 

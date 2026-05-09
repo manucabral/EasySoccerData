@@ -3,7 +3,8 @@ This module contains the dataclasses for the Lineups object.
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, Any
+from typing import Any, Optional
+
 from .player import Player, parse_player
 
 

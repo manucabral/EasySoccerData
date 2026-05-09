@@ -2,8 +2,9 @@
 This module contains the dataclass for the comment object.
 """
 
-from enum import Enum
 from dataclasses import dataclass, field
+from enum import Enum
+
 from .player import Player, parse_player
 
 

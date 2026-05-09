@@ -3,6 +3,7 @@ Promiedos service module.
 """
 
 from __future__ import annotations
+
 from ..utils import get_json, is_available_date
 from .endpoints import PromiedosEndpoints
 from .exceptions import InvalidDate
@@ -11,10 +12,10 @@ from .types import (
     Match,
     Tournament,
     parse_events,
-    parse_match,
     parse_league,
-    parse_players,
+    parse_match,
     parse_match_stats,
+    parse_players,
     parse_tournament,
 )
 

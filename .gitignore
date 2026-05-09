@@ -169,3 +169,12 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Ruff
+.ruff_cache/
+
+# Build artifacts
+dist/
+*.egg-info/
+build/
+

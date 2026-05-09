@@ -2,7 +2,7 @@
 FBref client module.
 """
 
-from .client import FBrefClient
 from . import types
+from .client import FBrefClient
 
 __all__ = ["FBrefClient", "types"]

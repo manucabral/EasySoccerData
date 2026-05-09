@@ -3,8 +3,9 @@ SofaScore Standing dataclass.
 """
 
 from dataclasses import dataclass, field
-from .tournament import Tournament, parse_tournament
+
 from .team import Team, parse_team
+from .tournament import Tournament, parse_tournament
 
 
 @dataclass

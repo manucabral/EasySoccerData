@@ -2,10 +2,11 @@
 This module contains utility functions that are used in the project.
 """
 
+import json
 import re
 import time
-import json
 from datetime import datetime
+
 import httpx
 from lxml import html
 from playwright.sync_api import Page

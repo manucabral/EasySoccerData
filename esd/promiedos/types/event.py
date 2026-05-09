@@ -3,6 +3,7 @@ This module contains the Event class for Promiedos.
 """
 
 from dataclasses import dataclass, field
+
 from .league import League, parse_league
 from .match import Match, parse_match
 

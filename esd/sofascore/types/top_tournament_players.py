@@ -2,8 +2,8 @@
 SofaScore top tournament players data types.
 """
 
-from typing import Union
 from dataclasses import dataclass, field
+
 from .player import Player, parse_player
 from .team import Team, parse_team
 
@@ -14,7 +14,7 @@ class TopPlayerStat:
     Top player statistics.
     """
 
-    value: Union[float, int] = field(default=0)
+    value: float | int = field(default=0)
     id: int = field(default=0)
     type: str = field(default="")
     appearances: int = field(default=0)

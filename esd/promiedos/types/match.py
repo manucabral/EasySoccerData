@@ -4,22 +4,23 @@ This module contains the Match dataclass and its parser.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from .team import Team, parse_team
-from .status import Status, parse_status
-from .scores import (
-    Scores,
-    parse_scores,
-    Penalties,
-    parse_penalties,
-    GlobalScores,
-    parse_global_scores,
-)
-from .tvnetwork import TVNetwork, parse_tv_network
-from .odds import MainOdds, parse_main_odds
+
 from .league import League
-from .players import Players
-from .match_stats import MatchStats
 from .match_events import MatchEvents, parse_match_events
+from .match_stats import MatchStats
+from .odds import MainOdds, parse_main_odds
+from .players import Players
+from .scores import (
+    GlobalScores,
+    Penalties,
+    Scores,
+    parse_global_scores,
+    parse_penalties,
+    parse_scores,
+)
+from .status import Status, parse_status
+from .team import Team, parse_team
+from .tvnetwork import TVNetwork, parse_tv_network
 
 
 @dataclass

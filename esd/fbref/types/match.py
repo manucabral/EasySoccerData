@@ -4,6 +4,7 @@ This module contains the Match dataclass which is used to store information abou
 
 import re
 from dataclasses import dataclass, field
+
 import lxml
 
 

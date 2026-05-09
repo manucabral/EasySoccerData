@@ -2,7 +2,7 @@
 Sofascore client module.
 """
 
-from .client import SofascoreClient
 from . import types
+from .client import SofascoreClient
 
 __all__ = ["SofascoreClient", "types"]

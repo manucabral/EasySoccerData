@@ -2,7 +2,7 @@
 Promiedos module.
 """
 
-from .client import PromiedosClient
 from . import types
+from .client import PromiedosClient
 
 __all__ = ["PromiedosClient", "types"]

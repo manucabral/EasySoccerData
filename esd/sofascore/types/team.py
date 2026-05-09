@@ -4,8 +4,9 @@ This module contains the Team related data classes.
 
 from dataclasses import dataclass, field
 from typing import Optional
-from .country import Country, parse_country
+
 from .color import Color, parse_color
+from .country import Country, parse_country
 from .manager import Manager, parse_manager
 
 

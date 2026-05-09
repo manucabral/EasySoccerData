@@ -1,0 +1,95 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "EasySoccerData"
+version = "0.0.8"
+description = "A simple python package for extracting real-time soccer data from diverse online sources, providing essential statistics and insights."
+readme = "README.md"
+license = "GPL-3.0"
+authors = [{name = "Manuel Cabral"}]
+requires-python = ">=3.9"
+keywords = [
+    "fifa",
+    "ranking",
+    "soccer",
+    "data",
+    "soccerdata",
+    "football",
+    "worldcup",
+    "fifaranking",
+    "footballdata",
+    "europaleague",
+    "championsleague",
+    "scraper",
+    "webscraper",
+    "soccerstats",
+    "soccerstatistics",
+    "socceranalysis",
+    "footballstats",
+    "footballstatistics",
+    "footballanalysis",
+    "soccerapi",
+    "footballapi",
+    "soccerdatabase",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "httpx>=0.28.1",
+    "lxml>=6.0",
+    "playwright>=1.58.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/manucabral/EasySoccerData"
+"Bug Tracker" = "https://github.com/manucabral/EasySoccerData/issues"
+Documentation = "https://github.com/manucabral/EasySoccerData/blob/main/README.md"
+"Source Code" = "https://github.com/manucabral/EasySoccerData"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.11",
+    "build>=1.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["esd*"]
+exclude = ["examples*", "tests*", "venv*"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["esd"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]

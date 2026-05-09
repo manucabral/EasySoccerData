@@ -1,15 +1,10 @@
-name: website
+name: Docs
 
-# build the documentation whenever there are new commits on main
 on:
   push:
     branches:
       - main
-    # Alternative: only build for tags.
-    # tags:
-    #   - '*'
 
-# security: restrict permissions for CI jobs.
 permissions:
   contents: read
 
@@ -18,23 +13,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: "3.13"
 
-      # ADJUST THIS: install all dependencies (including pdoc)
-      - run: |
+      - name: Install dependencies
+        run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install httpx playwright pdoc 
-      - run: pdoc esd -o ./docs
+          pip install .[dev] pdoc
+
+      - name: Build docs
+        run: pdoc esd -o ./docs
 
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs/
 
-  # Deploy the artifact to GitHub pages.
-  # This is a separate job so that only actions/deploy-pages has the necessary permissions.
   deploy:
     needs: build
     runs-on: ubuntu-latest

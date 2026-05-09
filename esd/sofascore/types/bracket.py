@@ -4,8 +4,9 @@ This module contains the dataclasses for the UEFA Champions League cupTree.
 
 from dataclasses import dataclass, field
 from typing import Optional
-from .tournament import Tournament, parse_tournament
+
 from .team import Team, parse_team
+from .tournament import Tournament, parse_tournament
 
 
 @dataclass

@@ -3,6 +3,7 @@ SofaScore top players types.
 """
 
 from dataclasses import dataclass, field
+
 from .player import Player, parse_player
 
 

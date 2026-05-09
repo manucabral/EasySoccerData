@@ -3,11 +3,12 @@ FBref service module.
 """
 
 from __future__ import annotations
-from ..utils import get_today, get_document
+
+from ..utils import get_document, get_today
 from .endpoints import FBrefEndpoints
 from .exceptions import InvalidMatchId
+from .types import Match, MatchDetails, parse_match_details, parse_matchs
 from .utils import rate_limit
-from .types import Match, parse_matchs, MatchDetails, parse_match_details
 
 
 class FBrefService:

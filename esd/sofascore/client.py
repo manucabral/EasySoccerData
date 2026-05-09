@@ -3,25 +3,26 @@ This module contains the client class for interacting with the Sofascore API.
 """
 
 from __future__ import annotations
+
 from .service import SofascoreService
 from .types import (
+    Bracket,
+    Category,
+    Comment,
     EntityType,
     Event,
-    Team,
-    Player,
-    MatchStats,
-    Lineups,
-    Shot,
-    Category,
-    Tournament,
-    Season,
-    Bracket,
-    Standing,
     Incident,
+    Lineups,
+    MatchStats,
+    Player,
+    Season,
+    Shot,
+    Standing,
+    Team,
     TopPlayersMatch,
-    Comment,
-    TopTournamentTeams,
     TopTournamentPlayers,
+    TopTournamentTeams,
+    Tournament,
 )
 
 

@@ -3,6 +3,7 @@ Player attributes dataclass and parser.
 """
 
 from dataclasses import dataclass, field
+
 from ...utils import current_year
 
 

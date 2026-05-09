@@ -2,8 +2,8 @@
 Contains top tournament teams data.
 """
 
-from typing import Union
 from dataclasses import dataclass, field
+
 from .team import Team, parse_team
 
 
@@ -13,7 +13,7 @@ class TopTeamStat:
     Top team statistics.
     """
 
-    value: Union[float, int] = field(default=0)
+    value: float | int = field(default=0)
     matches: int = field(default=0)
 
 

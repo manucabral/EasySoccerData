@@ -3,6 +3,7 @@ The manager type. Used in the team type.
 """
 
 from dataclasses import dataclass, field
+
 from .country import Country, parse_country
 
 

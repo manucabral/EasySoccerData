@@ -3,7 +3,6 @@ Contains the country dataclass and the function to parse the country data.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict
 
 
 @dataclass
@@ -18,7 +17,7 @@ class Country:
     slug: str = field(default="")
 
 
-def parse_country(data: Dict) -> Country:
+def parse_country(data: dict) -> Country:
     """
     Parse the country data.
 

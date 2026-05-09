@@ -3,9 +3,10 @@ Player dataclass and parser.
 """
 
 from dataclasses import dataclass, field
+
+from .country import Country, parse_country
 from .player_attributes import PlayerAttributes
 from .team import Team, parse_team
-from .country import Country, parse_country
 from .transfer import TransferHistory
 
 

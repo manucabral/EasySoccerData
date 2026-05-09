@@ -4,6 +4,7 @@ This module contains functions to parse match statistics data.
 
 from dataclasses import dataclass, field
 from typing import Optional
+
 from .lineup import Lineups
 
 
