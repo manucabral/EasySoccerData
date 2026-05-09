@@ -12,12 +12,16 @@ A simple python package for extracting real-time soccer/football data from diver
 </p>
 
 
-> [!IMPORTANT]  
-> Currently in the early development phase. Please take this into consideration.
-
 # Installation
 ```
 pip install EasySoccerData
+```
+
+## Development
+```
+git clone https://github.com/manucabral/EasySoccerData.git
+cd EasySoccerData
+pip install -e .[dev]
 ```
 
 # Usage

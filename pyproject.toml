@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "EasySoccerData"
-version = "0.0.8"
+version = "0.0.9"
 description = "A simple python package for extracting real-time soccer data from diverse online sources, providing essential statistics and insights."
 readme = "README.md"
 license = "GPL-3.0"
@@ -51,7 +51,7 @@ classifiers = [
 dependencies = [
     "httpx>=0.28.1",
     "lxml>=6.0",
-    "playwright>=1.58.0",
+    "curl-cffi>=0.7",
 ]
 
 [project.urls]

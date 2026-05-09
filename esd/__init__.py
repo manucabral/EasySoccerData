@@ -22,7 +22,7 @@ from .sofascore import SofascoreClient
 from .sofascore import types as SofascoreTypes
 
 try:
-    __version__ = _version(__package__ or "EasySoccerData")
+    __version__ = _version("EasySoccerData")
 except PackageNotFoundError:
     __version__ = "0.0.0"
 

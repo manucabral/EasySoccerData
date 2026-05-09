@@ -32,23 +32,8 @@ class SofascoreClient:
     This class provides methods to access and retrieve data from Sofascore.
     """
 
-    def __init__(self, browser_path: str = 'chrome') -> None:
-        """
-        Initializes a new instance of the SofascoreClient.
-
-        Required for interacting with the Sofascore website.
-
-        Args:
-            browser_path (str): The path to the browser executable.
-                If None, uses Google Chrome by default.
-        """
-        self.__service = SofascoreService(browser_path)
-
-    def close(self) -> None:
-        """
-        Close the browser and release resources.
-        """
-        self.__service.close()
+    def __init__(self) -> None:
+        self.__service = SofascoreService()
 
     def get_events(self, date: str = 'today', live: bool = False) -> list[Event]:
         """

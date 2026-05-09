@@ -16,11 +16,11 @@ class Team:
     A class to represent a team.
     """
 
-    name: str = field(default=None)
-    short_name: str = field(default=None)
-    slug: str = field(default=None)
-    name_code: str = field(default=None)
-    entity_type: str = field(default=None)
+    name: str = field(default="")
+    short_name: str = field(default="")
+    slug: str = field(default="")
+    name_code: str = field(default="")
+    entity_type: str = field(default="")
     id: int = field(default=0)
     country: Country = field(default_factory=Country)
     color: Color = field(default_factory=Color)
@@ -42,12 +42,12 @@ def parse_common_team_fields(data: dict) -> dict:
         dict: Common team fields.
     """
     return {
-        "name": data.get("name"),
-        "short_name": data.get("shortName"),
-        "slug": data.get("slug"),
-        "name_code": data.get("nameCode"),
+        "name": data.get("name", ""),
+        "short_name": data.get("shortName", ""),
+        "slug": data.get("slug", ""),
+        "name_code": data.get("nameCode", ""),
         "id": data.get("id", 0),
-        "entity_type": data.get("entityType"),
+        "entity_type": data.get("entityType", ""),
         "country": parse_country(data.get("country", {})),
         "color": parse_color(data.get("teamColors", {})),
     }

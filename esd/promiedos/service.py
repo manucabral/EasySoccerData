@@ -4,7 +4,7 @@ Promiedos service module.
 
 from __future__ import annotations
 
-from ..utils import get_json, is_available_date
+from ..utils import get_api_json, is_available_date
 from .endpoints import PromiedosEndpoints
 from .exceptions import InvalidDate
 from .types import (
@@ -18,6 +18,8 @@ from .types import (
     parse_players,
     parse_tournament,
 )
+
+_PROMIEDOS_HEADERS = {"X-VER": "1.11.7.5"}
 
 
 class PromiedosService:
@@ -51,7 +53,7 @@ class PromiedosService:
                 ) from exc
         try:
             url = self.endpoints.events_endpoint.format(date=date)
-            data = get_json(None, url)["leagues"]
+            data = get_api_json(url, headers=_PROMIEDOS_HEADERS)["leagues"]
             return parse_events(date, data)
         except Exception as exc:
             raise exc
@@ -68,7 +70,7 @@ class PromiedosService:
         """
         try:
             url = self.endpoints.match_endpoint.format(id=match_id)
-            data = get_json(None, url)["game"]
+            data = get_api_json(url, headers=_PROMIEDOS_HEADERS)["game"]
             match = parse_match(data)
             match.league = parse_league(data["league"])
             if data.get("statistics"):
@@ -90,7 +92,7 @@ class PromiedosService:
         """
         try:
             url = self.endpoints.tournament_endpoint.format(id=tournament_id)
-            data = get_json(None, url)
+            data = get_api_json(url, headers=_PROMIEDOS_HEADERS)
             return parse_tournament(data)
         except Exception as exc:
             raise exc
@@ -112,7 +114,7 @@ class PromiedosService:
             url = self.endpoints.tournament_matchs_endpoint.format(
                 id=tournament_id, stage_id=stage_id
             )
-            data = get_json(None, url)["games"]
+            data = get_api_json(url, headers=_PROMIEDOS_HEADERS)["games"]
             return [parse_match(match) for match in data]
         except Exception as exc:
             raise exc
