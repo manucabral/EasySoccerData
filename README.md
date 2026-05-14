@@ -46,16 +46,12 @@ for event in events:
 Check out [Sofascore module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/sofascore/)
 
 ## FBRef
-```py
-import esd
-
-client = esd.FBrefClient()
-matchs = client.get_matchs()
-for match in matchs:
-    print(match)
-```
-
-Check out [FBref module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/fbref/)
+> [!WARNING]
+> FBRef is not available in the latest PyPI release yet.
+> 
+> It is currently available only in the development version from the repository.
+> 
+> Check out [FBref module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/fbref/)
 
 ## Promiedos
 ```py
@@ -81,12 +77,13 @@ For the full documentation, please visit the [Documentation Page](https://manuca
 If you have any questions or need further assistance, feel free to open an issue.
 
 ## Supported modules
+| Name | PyPI version | Repository version |
+| :--- | :---: | :---: |
+| Sofascore | ✅ | ✅ |
+| Promiedos | ✅ | ✅ |
+| FBRef | ❌ | 🚧 In development |
+| Goaloo | ❌ | 🚧 In development |
 
-| Name | Implemented |
-| :---  | :---: |
-| Sofascore   | 90% |
-| FBref    | 10% |
-| Promiedos    | 70% |
 > Keep in mind that it is still under active development.
 
 # Disclaimer
@@ -95,5 +92,5 @@ The data provided in this repository is gathered from various external sources a
 The developers of this project assume no liability for any misuse, legal issues, or damages arising from the use of the data or software.
 
 
-# Constributions
-All constributions, bug reports or fixes and ideas are welcome.
+# Contributions
+All contributions, bug reports, fixes, and ideas are welcome.
