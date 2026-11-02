@@ -5,7 +5,7 @@ client = GoalooClient()
 
 # 36 = English Premier League on Goaloo
 league = client.get_league(36)
-print(f"{league.name} {league.season} — {len(league.teams)} teams")
+print(f"{league.name} {league.season}: {len(league.teams)} teams")
 
 standings = client.get_standings(36)
 print("\nStandings (top 5):")

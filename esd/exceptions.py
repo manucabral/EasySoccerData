@@ -2,7 +2,7 @@
 Shared exceptions raised by EasySoccerData sources.
 
 These wrap HTTP-level failures from the underlying sources so callers
-get a typed, actionable error instead of a bare ``KeyError`` or a silent
+get a typed error instead of a bare ``KeyError`` or a silent
 empty dict. Source-specific exceptions (``FBrefException``,
 ``PromiedosException``, ...) remain in their own submodules.
 """

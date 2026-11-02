@@ -42,7 +42,7 @@ class FBrefClient:
                 to bypass Cloudflare. Defaults to True.
             impersonate: Browser fingerprint for curl_cffi (default "chrome").
             delay: Minimum seconds between requests (default 3.0).
-            headless: Run Playwright headless. Defaults to False — headful
+            headless: Run Playwright headless. Defaults to False. Headful
                 Chrome is required to pass Cloudflare's challenge.
         """
         self.__service = FBrefService(

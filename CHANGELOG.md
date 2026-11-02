@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.0.9] — 2026-05-09
+## [0.0.9] - 2026-05-09
 
 ### Changed
 
@@ -14,7 +14,7 @@
 
 ### Added
 
-- `esd.utils.get_api_json(url, headers)` — shared helper for curl_cffi API calls.
+- `esd.utils.get_api_json(url, headers)`: shared helper for curl_cffi API calls.
 - `esd.sofascore.*`, `esd.fbref.*`, `esd.promiedos.*` now re-export all types directly (e.g. `esd.sofascore.EntityType`).
 - `[project.optional-dependencies] dev` with `pytest`, `ruff`, `build`.
 - `tests/` directory placeholder.
