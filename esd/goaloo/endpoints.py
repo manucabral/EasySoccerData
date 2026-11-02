@@ -55,3 +55,31 @@ class GoalooEndpoints:
             str: The H2H page URL.
         """
         return f"https://www.goaloo.com/football/match/h2h-{match_id}"
+
+    def match_score_endpoint(self, match_id: int) -> str:
+        """
+        Returns the URL of the live score payload for a match.
+
+        Args:
+            match_id (int): The Goaloo match id.
+
+        Returns:
+            str: The live score URL.
+        """
+        return f"https://www.goaloo.com/ajax/soccerajax?type=11&id={match_id}"
+
+    def live_odds_endpoint(self, match_id: int, company_id: int = 0) -> str:
+        """
+        Returns the URL of the live odds payload for a match.
+
+        Args:
+            match_id (int): The Goaloo match id.
+            company_id (int): The bookmaker id (default 0).
+
+        Returns:
+            str: The live odds URL.
+        """
+        return (
+            f"https://www.goaloo.com/ajax/soccerajax?type=14&id={match_id}"
+            f"&t=10&cid={company_id}"
+        )

@@ -8,6 +8,7 @@ core, stable fields and resolve team names through ``TeamInfo``.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 
@@ -446,3 +447,98 @@ def parse_goal_timings(data: list, team_map: dict[int, Team]) -> list[GoalTiming
             )
         )
     return rows
+
+
+@dataclass
+class MatchScore:
+    """
+    The live score and status of a match.
+    """
+
+    state: int = field(default=0)
+    time: str = field(default="")
+    home_score: int = field(default=0)
+    away_score: int = field(default=0)
+    half_home: int = field(default=0)
+    half_away: int = field(default=0)
+    injury_time: str = field(default="")
+    status_text: str = field(default="")
+
+
+def parse_match_score(data: dict) -> MatchScore:
+    """
+    Parse the live match score payload (``soccerajax?type=11``).
+
+    The score values live inside an HTML fragment in the ``html`` field.
+    """
+    if not data or data.get("ErrCode", 0) != 0:
+        return MatchScore()
+    inner = data.get("Data", {}) or {}
+    raw_html = inner.get("html", "") or ""
+
+    scores = re.findall(r"class='score'>(\d+)<", raw_html)
+    halves = re.findall(r"title='Score 1st Half'>(\d+)-(\d+)<", raw_html)
+    status = re.findall(r"state[^>]*>([^<]+)<", raw_html)
+
+    return MatchScore(
+        state=_to_int(inner.get("state", 0)),
+        time=inner.get("time", "") or "",
+        home_score=_to_int(scores[0]) if len(scores) > 0 else 0,
+        away_score=_to_int(scores[1]) if len(scores) > 1 else 0,
+        half_home=_to_int(halves[0][0]) if halves else 0,
+        half_away=_to_int(halves[0][1]) if halves else 0,
+        injury_time=inner.get("injuryTime", "") or "",
+        status_text=status[0].strip() if status else "",
+    )
+
+
+@dataclass
+class OddsLine:
+    """
+    A single odds line: home/over odds, the line, and away/under odds.
+    """
+
+    home: float = field(default=0.0)
+    line: str = field(default="")
+    away: float = field(default=0.0)
+
+
+@dataclass
+class LiveOdds:
+    """
+    The live odds of a match for a given bookmaker.
+    """
+
+    asian_handicap: OddsLine = field(default_factory=OddsLine)
+    over_under: OddsLine = field(default_factory=OddsLine)
+    euro: OddsLine = field(default_factory=OddsLine)
+    corners: OddsLine = field(default_factory=OddsLine)
+
+
+def _parse_odds_line(data: dict) -> OddsLine:
+    if not data:
+        return OddsLine()
+    return OddsLine(
+        home=_to_float(data.get("u")),
+        line=str(data.get("g", "")) or "",
+        away=_to_float(data.get("d")),
+    )
+
+
+def parse_live_odds(data: dict) -> LiveOdds:
+    """
+    Parse the live odds payload (``soccerajax?type=14&t=10``).
+
+    The response carries one line per market under ``ah``, ``ou``, ``op``
+    and ``corner`` keys, each with ``u`` (up/over), ``g`` (line) and
+    ``d`` (down/under).
+    """
+    if not data or data.get("ErrCode", 0) != 0:
+        return LiveOdds()
+    inner = data.get("Data", {}) or {}
+    return LiveOdds(
+        asian_handicap=_parse_odds_line(inner.get("ah")),
+        over_under=_parse_odds_line(inner.get("ou")),
+        euro=_parse_odds_line(inner.get("op")),
+        corners=_parse_odds_line(inner.get("corner")),
+    )

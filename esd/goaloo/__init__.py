@@ -9,7 +9,9 @@ from .types import (
     GoalTiming,
     HeadToHead,
     League,
+    LiveOdds,
     Match,
+    MatchScore,
     OverUnder,
     RecentForm,
     Standing,
@@ -28,4 +30,6 @@ __all__ = [
     "OverUnder",
     "AsianHandicap",
     "GoalTiming",
+    "MatchScore",
+    "LiveOdds",
 ]

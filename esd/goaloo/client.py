@@ -10,7 +10,9 @@ from .types import (
     GoalTiming,
     HeadToHead,
     League,
+    LiveOdds,
     Match,
+    MatchScore,
     OverUnder,
     RecentForm,
     Standing,
@@ -175,3 +177,30 @@ class GoalooClient:
             list[GoalTiming]: The goals per ten-minute block for each team.
         """
         return self.__service.get_goal_timings(league_id, season)
+
+    def get_match_score(self, match_id: int) -> MatchScore:
+        """
+        Get the live score and status of a match.
+
+        Args:
+            match_id (int): The Goaloo match id.
+
+        Returns:
+            MatchScore: The current score, state and time.
+        """
+        return self.__service.get_match_score(match_id)
+
+    def get_live_odds(self, match_id: int, company_id: int = 0) -> LiveOdds:
+        """
+        Get the live odds of a match for a bookmaker.
+
+        Only available for matches that are upcoming or in play.
+
+        Args:
+            match_id (int): The Goaloo match id.
+            company_id (int): The bookmaker id (default 0).
+
+        Returns:
+            LiveOdds: The Asian handicap, over/under, 1x2 and corner odds.
+        """
+        return self.__service.get_live_odds(match_id, company_id)

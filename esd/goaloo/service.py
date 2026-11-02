@@ -15,7 +15,9 @@ from .types import (
     GoalTiming,
     HeadToHead,
     League,
+    LiveOdds,
     Match,
+    MatchScore,
     OverUnder,
     RecentForm,
     Standing,
@@ -23,6 +25,8 @@ from .types import (
     parse_goal_timings,
     parse_head_to_head,
     parse_league,
+    parse_live_odds,
+    parse_match_score,
     parse_matches,
     parse_over_under,
     parse_recent_form,
@@ -183,3 +187,23 @@ class GoalooService:
             raise LeagueNotFound(league_id)
         team_map = parse_teams(data.get("TeamInfo", []))
         return parse_goal_timings(data.get("GoalInTimeList", []), team_map)
+
+    def get_match_score(self, match_id: int) -> MatchScore:
+        """
+        Get the live score and status of a match.
+        """
+        url = self.endpoints.match_score_endpoint(match_id)
+        _logger.debug("fetching goaloo match score: %s", url)
+        data = get_api_json(url, proxies=self.proxies)
+        return parse_match_score(data)
+
+    def get_live_odds(self, match_id: int, company_id: int = 0) -> LiveOdds:
+        """
+        Get the live odds of a match for a bookmaker.
+
+        Only available for matches that are upcoming or in play.
+        """
+        url = self.endpoints.live_odds_endpoint(match_id, company_id)
+        _logger.debug("fetching goaloo live odds: %s", url)
+        data = get_api_json(url, proxies=self.proxies)
+        return parse_live_odds(data)
