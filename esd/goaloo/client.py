@@ -5,7 +5,16 @@ This module contains the client class for interacting with Goaloo.
 from __future__ import annotations
 
 from .service import GoalooService
-from .types import AsianHandicap, HeadToHead, League, Match, OverUnder, RecentForm, Standing
+from .types import (
+    AsianHandicap,
+    GoalTiming,
+    HeadToHead,
+    League,
+    Match,
+    OverUnder,
+    RecentForm,
+    Standing,
+)
 
 
 class GoalooClient:
@@ -127,3 +136,42 @@ class GoalooClient:
             list[AsianHandicap]: The Asian handicap distribution per team.
         """
         return self.__service.get_asian_handicap(league_id, season)
+
+    def get_home_standings(self, league_id: int, season: str = None) -> list[Standing]:
+        """
+        Get the home-only standings of a competition for a season.
+
+        Args:
+            league_id (int): The Goaloo competition id.
+            season (str): The season (e.g. "2026-2027"). Defaults to current.
+
+        Returns:
+            list[Standing]: The home-only standings.
+        """
+        return self.__service.get_home_standings(league_id, season)
+
+    def get_away_standings(self, league_id: int, season: str = None) -> list[Standing]:
+        """
+        Get the away-only standings of a competition for a season.
+
+        Args:
+            league_id (int): The Goaloo competition id.
+            season (str): The season (e.g. "2026-2027"). Defaults to current.
+
+        Returns:
+            list[Standing]: The away-only standings.
+        """
+        return self.__service.get_away_standings(league_id, season)
+
+    def get_goal_timings(self, league_id: int, season: str = None) -> list[GoalTiming]:
+        """
+        Get the goal timing distribution for each team of a competition.
+
+        Args:
+            league_id (int): The Goaloo competition id.
+            season (str): The season (e.g. "2026-2027"). Defaults to current.
+
+        Returns:
+            list[GoalTiming]: The goals per ten-minute block for each team.
+        """
+        return self.__service.get_goal_timings(league_id, season)

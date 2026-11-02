@@ -12,6 +12,7 @@ from .endpoints import GoalooEndpoints
 from .exceptions import LeagueNotFound
 from .types import (
     AsianHandicap,
+    GoalTiming,
     HeadToHead,
     League,
     Match,
@@ -19,12 +20,14 @@ from .types import (
     RecentForm,
     Standing,
     parse_asian_handicap,
+    parse_goal_timings,
     parse_head_to_head,
     parse_league,
     parse_matches,
     parse_over_under,
     parse_recent_form,
     parse_standings,
+    parse_standings_compact,
     parse_teams,
 )
 
@@ -147,3 +150,36 @@ class GoalooService:
         team_map = parse_teams(data.get("TeamInfo", []))
         pan = data.get("LetgoalPan", {}) or {}
         return parse_asian_handicap(pan.get("TotalPanLu", []), team_map)
+
+    def get_home_standings(self, league_id: int, season: str = None) -> list[Standing]:
+        """
+        Get the home-only standings of a competition for a season.
+        """
+        season = self._resolve_season(league_id, season)
+        data = self._fetch_data(league_id, season)
+        if not data or "HomeScore" not in data:
+            raise LeagueNotFound(league_id)
+        team_map = parse_teams(data.get("TeamInfo", []))
+        return parse_standings_compact(data.get("HomeScore", []), team_map)
+
+    def get_away_standings(self, league_id: int, season: str = None) -> list[Standing]:
+        """
+        Get the away-only standings of a competition for a season.
+        """
+        season = self._resolve_season(league_id, season)
+        data = self._fetch_data(league_id, season)
+        if not data or "GuestScore" not in data:
+            raise LeagueNotFound(league_id)
+        team_map = parse_teams(data.get("TeamInfo", []))
+        return parse_standings_compact(data.get("GuestScore", []), team_map)
+
+    def get_goal_timings(self, league_id: int, season: str = None) -> list[GoalTiming]:
+        """
+        Get the goal timing distribution for each team of a competition.
+        """
+        season = self._resolve_season(league_id, season)
+        data = self._fetch_data(league_id, season)
+        if not data:
+            raise LeagueNotFound(league_id)
+        team_map = parse_teams(data.get("TeamInfo", []))
+        return parse_goal_timings(data.get("GoalInTimeList", []), team_map)

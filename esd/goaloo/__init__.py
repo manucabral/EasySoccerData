@@ -6,6 +6,7 @@ from . import types
 from .client import GoalooClient
 from .types import (
     AsianHandicap,
+    GoalTiming,
     HeadToHead,
     League,
     Match,
@@ -26,4 +27,5 @@ __all__ = [
     "RecentForm",
     "OverUnder",
     "AsianHandicap",
+    "GoalTiming",
 ]

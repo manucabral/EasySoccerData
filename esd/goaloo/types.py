@@ -178,6 +178,33 @@ def parse_standings(data: list, team_map: dict[int, Team]) -> list[Standing]:
     return standings
 
 
+def parse_standings_compact(data: list, team_map: dict[int, Team]) -> list[Standing]:
+    """
+    Parse a compact standings payload (home, away or half-time tables).
+
+    Row layout: ``[rank, team_id, played, win, draw, loss, gf, ga, gd, ...,
+    points]``.
+    """
+    standings: list[Standing] = []
+    for raw in data:
+        team_id = _to_int(_get(raw, 1))
+        standings.append(
+            Standing(
+                rank=_to_int(_get(raw, 0)),
+                team=team_map.get(team_id, Team(id=team_id, name=str(team_id))),
+                played=_to_int(_get(raw, 2)),
+                win=_to_int(_get(raw, 3)),
+                draw=_to_int(_get(raw, 4)),
+                loss=_to_int(_get(raw, 5)),
+                goals_for=_to_int(_get(raw, 6)),
+                goals_against=_to_int(_get(raw, 7)),
+                goal_diff=_to_int(_get(raw, 8)),
+                points=_to_int(_get(raw, 14)),
+            )
+        )
+    return standings
+
+
 def _to_float(value: any, default: float = 0.0) -> float:
     try:
         return float(value)
@@ -387,6 +414,35 @@ def parse_asian_handicap(data: list, team_map: dict[int, Team]) -> list[AsianHan
                 win_rate=_to_float(_get(raw, 10)),
                 walk_rate=_to_float(_get(raw, 11)),
                 lose_rate=_to_float(_get(raw, 12)),
+            )
+        )
+    return rows
+
+
+@dataclass
+class GoalTiming:
+    """
+    Goals scored by a team across ten-minute blocks of the match.
+    """
+
+    team: Team = field(default_factory=Team)
+    intervals: list[int] = field(default_factory=list)
+
+
+def parse_goal_timings(data: list, team_map: dict[int, Team]) -> list[GoalTiming]:
+    """
+    Parse the ``GoalInTimeList`` payload.
+
+    Row layout: ``[team_id, g1..g9]`` where each ``g`` is the number of goals
+    scored in a ten-minute block (0-10 through 81-90).
+    """
+    rows: list[GoalTiming] = []
+    for raw in data:
+        team_id = _to_int(_get(raw, 0))
+        rows.append(
+            GoalTiming(
+                team=team_map.get(team_id, Team(id=team_id, name=str(team_id))),
+                intervals=[_to_int(_get(raw, i)) for i in range(1, 10)],
             )
         )
     return rows
