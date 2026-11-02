@@ -176,3 +176,217 @@ def parse_standings(data: list, team_map: dict[int, Team]) -> list[Standing]:
             )
         )
     return standings
+
+
+def _to_float(value: any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+@dataclass
+class Meeting:
+    """
+    A single head-to-head meeting between two teams.
+    """
+
+    is_home: bool = field(default=False)
+    home_goals: int = field(default=0)
+    away_goals: int = field(default=0)
+
+
+@dataclass
+class HeadToHead:
+    """
+    Head-to-head history between two teams.
+
+    ``home_wins``/``draws``/``away_wins`` are counted from the home team side.
+    """
+
+    meetings: list[Meeting] = field(default_factory=list)
+    home_wins: int = field(default=0)
+    draws: int = field(default=0)
+    away_wins: int = field(default=0)
+
+
+@dataclass
+class TeamMatch:
+    """
+    A single recent match for one team.
+    """
+
+    is_home: bool = field(default=False)
+    goals_for: int = field(default=0)
+    goals_against: int = field(default=0)
+
+
+@dataclass
+class RecentRound:
+    """
+    One round of recent form: the home team match and the away team match.
+    """
+
+    home: TeamMatch = field(default_factory=TeamMatch)
+    away: TeamMatch = field(default_factory=TeamMatch)
+
+
+@dataclass
+class RecentForm:
+    """
+    Recent match results for both teams, aligned by round.
+    """
+
+    rounds: list[RecentRound] = field(default_factory=list)
+
+
+@dataclass
+class OverUnder:
+    """
+    Over/under result distribution for a team.
+    """
+
+    rank: int = field(default=0)
+    team: Team = field(default_factory=Team)
+    played: int = field(default=0)
+    over: int = field(default=0)
+    push: int = field(default=0)
+    under: int = field(default=0)
+    over_pct: float = field(default=0.0)
+    push_pct: float = field(default=0.0)
+    under_pct: float = field(default=0.0)
+
+
+@dataclass
+class AsianHandicap:
+    """
+    Asian handicap result distribution for a team.
+    """
+
+    rank: int = field(default=0)
+    team: Team = field(default_factory=Team)
+    played: int = field(default=0)
+    win: int = field(default=0)
+    walk: int = field(default=0)
+    lose: int = field(default=0)
+    half_win: int = field(default=0)
+    half_walk: int = field(default=0)
+    half_lose: int = field(default=0)
+    win_rate: float = field(default=0.0)
+    walk_rate: float = field(default=0.0)
+    lose_rate: float = field(default=0.0)
+
+
+def parse_head_to_head(battle_raw: str) -> HeadToHead:
+    """
+    Parse the H2H ``battleData`` payload.
+
+    Each meeting is ``is_home,home_goals,away_goals`` separated by ``|``.
+    """
+    meetings: list[Meeting] = []
+    if not battle_raw:
+        return HeadToHead()
+    for part in battle_raw.split("|"):
+        values = part.split(",")
+        if len(values) < 3:
+            continue
+        meetings.append(
+            Meeting(
+                is_home=_to_int(values[0]) == 1,
+                home_goals=_to_int(values[1]),
+                away_goals=_to_int(values[2]),
+            )
+        )
+    home_wins = sum(1 for m in meetings if m.home_goals > m.away_goals)
+    draws = sum(1 for m in meetings if m.home_goals == m.away_goals)
+    away_wins = sum(1 for m in meetings if m.home_goals < m.away_goals)
+    return HeadToHead(
+        meetings=meetings, home_wins=home_wins, draws=draws, away_wins=away_wins
+    )
+
+
+def _parse_team_match(raw: str) -> TeamMatch:
+    values = raw.split(",")
+    return TeamMatch(
+        is_home=_to_int(_get(values, 0)) == 1,
+        goals_for=_to_int(_get(values, 1)),
+        goals_against=_to_int(_get(values, 2)),
+    )
+
+
+def parse_recent_form(last_raw: str) -> RecentForm:
+    """
+    Parse the recent-form ``lastMatchData`` payload.
+
+    Rounds are separated by ``|``. Within each round the home team match is
+    separated from the away team match by ``#``.
+    """
+    rounds: list[RecentRound] = []
+    if not last_raw:
+        return RecentForm()
+    for part in last_raw.split("|"):
+        halves = part.split("#")
+        if len(halves) < 2:
+            continue
+        rounds.append(
+            RecentRound(
+                home=_parse_team_match(halves[0]),
+                away=_parse_team_match(halves[1]),
+            )
+        )
+    return RecentForm(rounds=rounds)
+
+
+def parse_over_under(data: list, team_map: dict[int, Team]) -> list[OverUnder]:
+    """
+    Parse the ``BigSmallPan`` payload (over/under distribution).
+
+    Row layout: ``[rank, team_id, played, over, push, under, over_pct,
+    push_pct, under_pct]``.
+    """
+    rows: list[OverUnder] = []
+    for raw in data:
+        team_id = _to_int(_get(raw, 1))
+        rows.append(
+            OverUnder(
+                rank=_to_int(_get(raw, 0)),
+                team=team_map.get(team_id, Team(id=team_id, name=str(team_id))),
+                played=_to_int(_get(raw, 2)),
+                over=_to_int(_get(raw, 3)),
+                push=_to_int(_get(raw, 4)),
+                under=_to_int(_get(raw, 5)),
+                over_pct=_to_float(_get(raw, 6)),
+                push_pct=_to_float(_get(raw, 7)),
+                under_pct=_to_float(_get(raw, 8)),
+            )
+        )
+    return rows
+
+
+def parse_asian_handicap(data: list, team_map: dict[int, Team]) -> list[AsianHandicap]:
+    """
+    Parse the ``LetgoalPan`` payload (Asian handicap distribution).
+
+    Row layout: ``[rank, team_id, played, win, walk, lose, half_win,
+    half_walk, half_lose, _, win_rate, walk_rate, lose_rate]``.
+    """
+    rows: list[AsianHandicap] = []
+    for raw in data:
+        team_id = _to_int(_get(raw, 1))
+        rows.append(
+            AsianHandicap(
+                rank=_to_int(_get(raw, 0)),
+                team=team_map.get(team_id, Team(id=team_id, name=str(team_id))),
+                played=_to_int(_get(raw, 2)),
+                win=_to_int(_get(raw, 3)),
+                walk=_to_int(_get(raw, 4)),
+                lose=_to_int(_get(raw, 5)),
+                half_win=_to_int(_get(raw, 6)),
+                half_walk=_to_int(_get(raw, 7)),
+                half_lose=_to_int(_get(raw, 8)),
+                win_rate=_to_float(_get(raw, 10)),
+                walk_rate=_to_float(_get(raw, 11)),
+                lose_rate=_to_float(_get(raw, 12)),
+            )
+        )
+    return rows

@@ -5,7 +5,7 @@ This module contains the client class for interacting with Goaloo.
 from __future__ import annotations
 
 from .service import GoalooService
-from .types import League, Match, Standing
+from .types import AsianHandicap, HeadToHead, League, Match, OverUnder, RecentForm, Standing
 
 
 class GoalooClient:
@@ -75,3 +75,55 @@ class GoalooClient:
             list[str]: The available seasons.
         """
         return self.__service.get_seasons(league_id)
+
+    def get_h2h(self, match_id: int) -> HeadToHead:
+        """
+        Get the head-to-head history between the two teams of a match.
+
+        Args:
+            match_id (int): The Goaloo match id.
+
+        Returns:
+            HeadToHead: The H2H meetings and aggregate record.
+        """
+        return self.__service.get_h2h(match_id)
+
+    def get_last_matches(self, match_id: int) -> RecentForm:
+        """
+        Get the recent match results for both teams of a match.
+
+        Args:
+            match_id (int): The Goaloo match id.
+
+        Returns:
+            RecentForm: The recent results for both teams.
+        """
+        return self.__service.get_last_matches(match_id)
+
+    def get_over_under(self, league_id: int, season: str = None) -> list[OverUnder]:
+        """
+        Get the over/under result distribution for a competition.
+
+        Args:
+            league_id (int): The Goaloo competition id.
+            season (str): The season (e.g. "2026-2027"). Defaults to current.
+
+        Returns:
+            list[OverUnder]: The over/under distribution per team.
+        """
+        return self.__service.get_over_under(league_id, season)
+
+    def get_asian_handicap(
+        self, league_id: int, season: str = None
+    ) -> list[AsianHandicap]:
+        """
+        Get the Asian handicap result distribution for a competition.
+
+        Args:
+            league_id (int): The Goaloo competition id.
+            season (str): The season (e.g. "2026-2027"). Defaults to current.
+
+        Returns:
+            list[AsianHandicap]: The Asian handicap distribution per team.
+        """
+        return self.__service.get_asian_handicap(league_id, season)

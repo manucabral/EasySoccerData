@@ -4,7 +4,16 @@ Goaloo module.
 
 from . import types
 from .client import GoalooClient
-from .types import League, Match, Standing, Team
+from .types import (
+    AsianHandicap,
+    HeadToHead,
+    League,
+    Match,
+    OverUnder,
+    RecentForm,
+    Standing,
+    Team,
+)
 
 __all__ = [
     "GoalooClient",
@@ -13,4 +22,8 @@ __all__ = [
     "Match",
     "Standing",
     "Team",
+    "HeadToHead",
+    "RecentForm",
+    "OverUnder",
+    "AsianHandicap",
 ]

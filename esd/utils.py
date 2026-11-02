@@ -159,7 +159,7 @@ def get_document_playwright(
     Get the HTML document using Playwright with an existing Chrome installation.
 
     Unlike get_document() which uses httpx, this uses Playwright to launch
-    a real browser. It requires no 'playwright install' step — it uses your
+    a real browser. It requires no 'playwright install' step. It uses your
     system's Google Chrome (or a custom path you provide).
 
     Args:
@@ -171,7 +171,7 @@ def get_document_playwright(
         timeout (int): Page navigation timeout in milliseconds (default 30000).
         wait_until (str): Navigation wait condition.
             Use "load" for Cloudflare-protected sites (default "load").
-        headless (bool): Whether to run headless. Default False — headful is
+        headless (bool): Whether to run headless. Default False. Headful is
             required to pass Cloudflare's browser challenge. Headless is
             faster but frequently detected.
 
@@ -249,6 +249,41 @@ def get_api_json(url: str, headers: dict | None = None, proxies: dict | None = N
     return get_json(url, impersonate="chrome", headers=headers, proxies=proxies)
 
 
+def get_text(
+    url: str,
+    proxies: dict | None = None,
+    timeout: float = 30.0,
+) -> str:
+    """
+    Get the raw text (HTML) response from a URL via curl_cffi.
+
+    Used for pages that embed data in inline scripts, such as Goaloo's H2H page.
+
+    Args:
+        url (str): The URL to fetch.
+        proxies (dict | None): Optional proxy dict.
+        timeout (float): Request timeout in seconds (default 30).
+
+    Returns:
+        str: The raw response text.
+
+    Raises:
+        SourceBlocked: If the source blocks the request (HTTP 403).
+        SourceError: If the source returns any other unexpected HTTP status.
+    """
+    _logger.debug("fetching text via curl_cffi: %s", url)
+    response = requests.get(url, impersonate="chrome", proxies=proxies, timeout=timeout)
+    status = response.status_code
+    if status == 403:
+        raise SourceBlocked(
+            "Access denied (403). The source is blocking this IP. "
+            "Retry from a residential connection or pass a proxy to the client."
+        )
+    if status >= 400:
+        raise SourceError(f"HTTP {status} from {url}")
+    return response.text
+
+
 def get_document_impersonate(
     proxies: dict = None,
     url: str = None,
@@ -261,7 +296,7 @@ def get_document_impersonate(
 
     This bypasses Cloudflare anti-bot protection that blocks httpx.
     Intended for sites like fbref.com. Requests are sequential-only
-    (never parallelize — temporary bans are likely).
+    (never parallelize because temporary bans are likely).
 
     Returns None if Cloudflare challenge is detected (caller should fall back).
 

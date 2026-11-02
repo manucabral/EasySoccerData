@@ -4,21 +4,34 @@ Goaloo service module.
 
 from __future__ import annotations
 
+import re
+
 from ..logger import get_logger
-from ..utils import get_api_json
+from ..utils import get_api_json, get_text
 from .endpoints import GoalooEndpoints
 from .exceptions import LeagueNotFound
 from .types import (
+    AsianHandicap,
+    HeadToHead,
     League,
     Match,
+    OverUnder,
+    RecentForm,
     Standing,
+    parse_asian_handicap,
+    parse_head_to_head,
     parse_league,
     parse_matches,
+    parse_over_under,
+    parse_recent_form,
     parse_standings,
     parse_teams,
 )
 
 _logger = get_logger("goaloo.service")
+
+_BATTLE_RE = re.compile(r'var\s+battleData\s*=\s*"([^"]*)"')
+_LAST_MATCH_RE = re.compile(r'var\s+lastMatchData\s*=\s*"([^"]*)"')
 
 
 class GoalooService:
@@ -89,3 +102,48 @@ class GoalooService:
             raise LeagueNotFound(league_id)
         team_map = parse_teams(data.get("TeamInfo", []))
         return parse_standings(data.get("TotalScore", []), team_map)
+
+    def get_h2h(self, match_id: int) -> HeadToHead:
+        """
+        Get the head-to-head history between the two teams of a match.
+        """
+        url = self.endpoints.h2h_endpoint(match_id)
+        _logger.debug("fetching goaloo h2h: %s", url)
+        page = get_text(url, proxies=self.proxies)
+        battle = _BATTLE_RE.search(page)
+        return parse_head_to_head(battle.group(1) if battle else "")
+
+    def get_last_matches(self, match_id: int) -> RecentForm:
+        """
+        Get the recent match results for both teams of a match.
+        """
+        url = self.endpoints.h2h_endpoint(match_id)
+        page = get_text(url, proxies=self.proxies)
+        last = _LAST_MATCH_RE.search(page)
+        return parse_recent_form(last.group(1) if last else "")
+
+    def get_over_under(self, league_id: int, season: str = None) -> list[OverUnder]:
+        """
+        Get the over/under result distribution for a competition.
+        """
+        season = self._resolve_season(league_id, season)
+        data = self._fetch_data(league_id, season)
+        if not data:
+            raise LeagueNotFound(league_id)
+        team_map = parse_teams(data.get("TeamInfo", []))
+        pan = data.get("BigSmallPan", {}) or {}
+        return parse_over_under(pan.get("TotalBs", []), team_map)
+
+    def get_asian_handicap(
+        self, league_id: int, season: str = None
+    ) -> list[AsianHandicap]:
+        """
+        Get the Asian handicap result distribution for a competition.
+        """
+        season = self._resolve_season(league_id, season)
+        data = self._fetch_data(league_id, season)
+        if not data:
+            raise LeagueNotFound(league_id)
+        team_map = parse_teams(data.get("TeamInfo", []))
+        pan = data.get("LetgoalPan", {}) or {}
+        return parse_asian_handicap(pan.get("TotalPanLu", []), team_map)

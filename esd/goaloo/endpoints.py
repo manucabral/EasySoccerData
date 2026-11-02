@@ -40,3 +40,18 @@ class GoalooEndpoints:
             str: The seasons JSON URL.
         """
         return f"{self.base_url}/jsData/leagueSeason/sea{league_id}.json"
+
+    def h2h_endpoint(self, match_id: int) -> str:
+        """
+        Returns the URL of the head-to-head page for a match.
+
+        The path segment before ``h2h-{id}`` is a placeholder: Goaloo resolves
+        the page by match id only.
+
+        Args:
+            match_id (int): The Goaloo match id.
+
+        Returns:
+            str: The H2H page URL.
+        """
+        return f"https://www.goaloo.com/football/match/h2h-{match_id}"
