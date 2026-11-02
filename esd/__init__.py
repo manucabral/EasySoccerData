@@ -16,6 +16,8 @@ from importlib.metadata import version as _version
 
 from .fbref import FBrefClient
 from .fbref import types as FBrefTypes
+from .goaloo import GoalooClient
+from .goaloo import types as GoalooTypes
 from .promiedos import PromiedosClient
 from .promiedos import types as PromiedosTypes
 from .sofascore import SofascoreClient
@@ -33,4 +35,6 @@ __all__ = [
     "PromiedosTypes",
     "FBrefClient",
     "FBrefTypes",
+    "GoalooClient",
+    "GoalooTypes",
 ]

@@ -23,15 +23,15 @@ class MatchStats:
     The match stats data.
     """
 
-    total_shots: StatsItem = field(default=StatsItem)
-    shots_on_target: StatsItem = field(default=StatsItem)
-    possession: StatsItem = field(default=StatsItem)
-    free_kicks: StatsItem = field(default=StatsItem)
-    corners: StatsItem = field(default=StatsItem)
-    offsides: StatsItem = field(default=StatsItem)
-    yellow_cards: StatsItem = field(default=StatsItem)
-    red_cards: StatsItem = field(default=StatsItem)
-    fouls: StatsItem = field(default=StatsItem)
+    total_shots: StatsItem = field(default_factory=StatsItem)
+    shots_on_target: StatsItem = field(default_factory=StatsItem)
+    possession: StatsItem = field(default_factory=StatsItem)
+    free_kicks: StatsItem = field(default_factory=StatsItem)
+    corners: StatsItem = field(default_factory=StatsItem)
+    offsides: StatsItem = field(default_factory=StatsItem)
+    yellow_cards: StatsItem = field(default_factory=StatsItem)
+    red_cards: StatsItem = field(default_factory=StatsItem)
+    fouls: StatsItem = field(default_factory=StatsItem)
 
 
 def parse_stats(stat: dict[str, any]) -> StatsItem:

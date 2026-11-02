@@ -121,12 +121,10 @@ def parse_lineups(data: dict) -> Lineups:
     """
     Parse the lineups data.
     """
-    teams = data.get("teams", [])
-    return Lineups(
-        # support_visual_lineups=data.get("support_visual_lineups", False),
-        home_team=parse_lineup_team(teams[0]),
-        away_team=parse_lineup_team(teams[1]),
-    )
+    teams = data.get("teams", []) or []
+    home = parse_lineup_team(teams[0]) if len(teams) > 0 else LineupTeam()
+    away = parse_lineup_team(teams[1]) if len(teams) > 1 else LineupTeam()
+    return Lineups(home_team=home, away_team=away)
 
 
 def parse_player(data: dict) -> Player:

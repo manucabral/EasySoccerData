@@ -25,3 +25,12 @@ class RateLimitExceeded(FBrefException):
 
     def __init__(self, message: str = "Rate limit exceeded.") -> None:
         super().__init__(message)
+
+
+class CloudflareBlock(FBrefException):
+    """
+    Exception raised when Cloudflare blocks the request (challenge page).
+    """
+
+    def __init__(self, message: str = "Cloudflare challenge detected.") -> None:
+        super().__init__(message)

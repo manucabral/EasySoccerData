@@ -233,9 +233,8 @@ class TableDetails:
     Base class for table details.
     """
 
-    id: str
-    name: str
-    # data: list[lxml.html.HtmlElement] = field(default_factory=list)
+    id: str = field(default="")
+    name: str = field(default="")
 
 
 @dataclass
@@ -264,11 +263,19 @@ class MatchDetails:
     """
 
     is_table_wrapper: bool = False  # maybe the name changes
-    content: list[TableDetails] = field(default_factory=dict)
-    home_players: PlayerStatsTableDetails = field(default_factory=dict)
-    home_keeper: PlayerStatsTableDetails = field(default_factory=dict)
-    away_players: PlayerStatsTableDetails = field(default_factory=dict)
-    away_keeper: PlayerStatsTableDetails = field(default_factory=dict)
+    content: list[TableDetails] = field(default_factory=list)
+    home_players: PlayerStatsTableDetails = field(
+        default_factory=PlayerStatsTableDetails
+    )
+    home_keeper: PlayerStatsTableDetails = field(
+        default_factory=PlayerStatsTableDetails
+    )
+    away_players: PlayerStatsTableDetails = field(
+        default_factory=PlayerStatsTableDetails
+    )
+    away_keeper: PlayerStatsTableDetails = field(
+        default_factory=PlayerStatsTableDetails
+    )
 
 
 def get_all_tables(data: lxml.html.HtmlElement) -> list[lxml.html.HtmlElement]:
@@ -359,12 +366,16 @@ def parse_table(data: list[lxml.html.HtmlElement], index: int, instance: type) -
     """
     Parse a table from the HTML data.
     """
+    if index >= len(data):
+        return []
     table = data[index]
     # caption = table.xpath(".//caption")
     # table_id = table.get("id", "unknown")
     # table_name = caption[0].text_content().strip() if caption else "unknown"
     rows = []
     tbody = table.xpath(".//tbody")
+    if not tbody:
+        return rows
     for tr in tbody[0].xpath(".//tr"):
         player = instance()
         for cell in tr.xpath(".//th | .//td"):
@@ -382,12 +393,16 @@ def parse_table_wrapped(
     """
     Parse a wrapped table from the HTML data.
     """
+    if index >= len(data):
+        return PlayerStatsTableDetails(id="unknown", name="unknown")
     table = data[index]
     table_id = table.get("id", "unknown")
     caption = table.xpath(".//caption")
     table_name = caption[0].text_content().strip() if caption else "unknown"
     rows = []
     tbody = table.xpath(".//tbody")
+    if not tbody:
+        return PlayerStatsTableDetails(id=table_id, name=table_name)
     for tr in tbody[0].xpath(".//tr"):
         player = PlayerStatsRow() if "keeper" not in table_id else KeeperStatsRow()
         for cell in tr.xpath(".//th | .//td"):

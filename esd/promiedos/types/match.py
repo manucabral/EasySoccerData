@@ -55,9 +55,9 @@ def parse_match(data: dict) -> Match:
     """
     Parse the match data.
     """
-    teams_data = data.get("teams", [])
-    home_team = parse_team(teams_data[0])
-    away_team = parse_team(teams_data[1])
+    teams_data = data.get("teams", []) or []
+    home_team = parse_team(teams_data[0]) if len(teams_data) > 0 else Team()
+    away_team = parse_team(teams_data[1]) if len(teams_data) > 1 else Team()
     winner_team = (
         home_team
         if data.get("winner") == 1

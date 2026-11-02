@@ -31,9 +31,9 @@ class RoundInfo:
     Round info data class.
     """
 
-    round: int
-    name: str
-    cup_round_type: int
+    round: int = 0
+    name: str = "n/a"
+    cup_round_type: int = 0
 
 
 @dataclass

@@ -24,7 +24,7 @@ class Tournament:
     The tournament class.
     """
 
-    league: League = field(default_factory=None)
+    league: League = field(default_factory=League)
     stages: list[Stage] = field(default_factory=list)
 
     def current_stage(self) -> Stage:

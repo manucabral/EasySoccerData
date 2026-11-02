@@ -4,6 +4,7 @@ This module contains the client class for interacting with the Sofascore API.
 
 from __future__ import annotations
 
+from ..logger import get_logger
 from .service import SofascoreService
 from .types import (
     Bracket,
@@ -25,6 +26,8 @@ from .types import (
     Tournament,
 )
 
+_logger = get_logger("sofascore.client")
+
 
 class SofascoreClient:
     """
@@ -32,8 +35,9 @@ class SofascoreClient:
     This class provides methods to access and retrieve data from Sofascore.
     """
 
-    def __init__(self) -> None:
-        self.__service = SofascoreService()
+    def __init__(self, proxies: dict = None) -> None:
+        self.__service = SofascoreService(proxies=proxies)
+        _logger.debug("SofascoreClient initialized")
 
     def get_events(self, date: str = 'today', live: bool = False) -> list[Event]:
         """

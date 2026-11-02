@@ -4,6 +4,7 @@ Sofascore service module
 
 from __future__ import annotations
 
+from ..logger import get_logger
 from ..utils import get_api_json, get_today
 from .endpoints import SofascoreEndpoints
 from .types import (
@@ -47,43 +48,54 @@ from .types import (
     parse_transfer_history,
 )
 
+_logger = get_logger("sofascore.service")
+
 
 class SofascoreService:
     """
     A class to represent the SofaScore service.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, proxies: dict = None) -> None:
+        self.proxies = proxies
         self.endpoints = SofascoreEndpoints()
 
+    def _get_json(self, url: str) -> dict:
+        """Fetch JSON from a Sofascore endpoint, honoring optional proxies."""
+        return get_api_json(url, proxies=self.proxies)
+
     def get_event(self, event_id: int) -> Event:
+        _logger.debug("get_event(event_id=%s)", event_id)
         try:
             url = self.endpoints.event_endpoint(event_id)
-            data = get_api_json(url)["event"]
+            data = self._get_json(url)["event"]
             return parse_event(data)
         except Exception as exc:
             raise exc
 
     def get_events(self, date: str = "today") -> list[Event]:
+        _logger.debug("get_events(date=%s)", date)
         if date == "today":
             date = get_today()
         try:
             url = self.endpoints.events_endpoint.format(date=date)
-            return parse_events(get_api_json(url)["events"])
+            return parse_events(self._get_json(url)["events"])
         except Exception as exc:
             raise exc
 
     def get_live_events(self) -> list[Event]:
+        _logger.debug("get_live_events()")
         try:
             url = self.endpoints.live_events_endpoint
-            return parse_events(get_api_json(url)["events"])
+            return parse_events(self._get_json(url)["events"])
         except Exception as exc:
             raise exc
 
     def get_player(self, player_id: int) -> Player:
+        _logger.debug("get_player(player_id=%s)", player_id)
         try:
             url = self.endpoints.player_endpoint(player_id)
-            data = get_api_json(url)
+            data = self._get_json(url)
             if "player" in data:
                 player = parse_player(data["player"])
                 player.attributes = self.get_player_attributes(player_id)
@@ -96,7 +108,7 @@ class SofascoreService:
     def get_player_attributes(self, player_id: int) -> PlayerAttributes:
         try:
             url = self.endpoints.player_attributes_endpoint(player_id)
-            data = get_api_json(url)
+            data = self._get_json(url)
             if "playerAttributes" in data:
                 return parse_player_attributes(data["playerAttributes"])
             return PlayerAttributes()
@@ -106,7 +118,7 @@ class SofascoreService:
     def get_player_transfer_history(self, player_id: int) -> TransferHistory:
         try:
             url = self.endpoints.player_transfer_history_endpoint(player_id)
-            data = get_api_json(url)
+            data = self._get_json(url)
             if data is not None:
                 return parse_transfer_history(data)
             return TransferHistory()
@@ -116,21 +128,21 @@ class SofascoreService:
     def get_player_stats(self, player_id: int) -> dict:
         try:
             url = self.endpoints.player_stats_endpoint(player_id)
-            return get_api_json(url)
+            return self._get_json(url)
         except Exception as exc:
             raise exc
 
     def get_match_lineups(self, event_id: int) -> Lineups:
         try:
             url = self.endpoints.match_lineups_endpoint(event_id)
-            return parse_lineups(get_api_json(url))
+            return parse_lineups(self._get_json(url))
         except Exception as exc:
             raise exc
 
     def get_match_incidents(self, event_id: int) -> list[Incident]:
         try:
             url = self.endpoints.match_events_endpoint(event_id)
-            data = get_api_json(url)["incidents"]
+            data = self._get_json(url)["incidents"]
             return parse_incidents(data)
         except Exception as exc:
             raise exc
@@ -138,14 +150,14 @@ class SofascoreService:
     def get_match_top_players(self, event_id: int) -> TopPlayersMatch:
         try:
             url = self.endpoints.match_top_players_endpoint(event_id)
-            return parse_top_players_match(get_api_json(url))
+            return parse_top_players_match(self._get_json(url))
         except Exception as exc:
             raise exc
 
     def get_match_comments(self, event_id: int) -> list[Comment]:
         try:
             url = self.endpoints.match_comments_endpoint(event_id)
-            data = get_api_json(url)["comments"]
+            data = self._get_json(url)["comments"]
             return parse_comments(data)
         except Exception as exc:
             raise exc
@@ -153,27 +165,28 @@ class SofascoreService:
     def get_match_stats(self, event_id: int) -> MatchStats:
         try:
             url = self.endpoints.match_stats_endpoint(event_id)
-            data = get_api_json(url).get("statistics", {})
+            data = self._get_json(url).get("statistics", {})
             url = self.endpoints.match_probabilities_endpoint(event_id)
-            win_probabilities = get_api_json(url).get("winProbability", {})
+            win_probabilities = self._get_json(url).get("winProbability", {})
             return parse_match_stats(data, win_probabilities)
         except Exception as exc:
             raise exc
 
-    def get_match_shots(self, event_id: int) -> dict:
+    def get_match_shots(self, event_id: int) -> list[Shot]:
         try:
             url = self.endpoints.match_shots_endpoint(event_id)
-            data = get_api_json(url)
+            data = self._get_json(url)
             if "shotmap" in data:
                 return parse_shots(data["shotmap"])
-            return Shot()
+            return []
         except Exception as exc:
             raise exc
 
     def get_team(self, team_id: int) -> Team:
+        _logger.debug("get_team(team_id=%s)", team_id)
         try:
             url = self.endpoints.team_endpoint(team_id)
-            data = get_api_json(url)["team"]
+            data = self._get_json(url)["team"]
             return parse_team(data)
         except Exception as exc:
             raise exc
@@ -183,7 +196,7 @@ class SofascoreService:
             url = self.endpoints.team_players_endpoint(team_id)
             return [
                 parse_player(player["player"])
-                for player in get_api_json(url)["players"]
+                for player in self._get_json(url)["players"]
             ]
         except Exception as exc:
             raise exc
@@ -191,7 +204,7 @@ class SofascoreService:
     def get_team_events(self, team_id: int, upcoming: bool, page: int) -> list[Event]:
         try:
             url = self.endpoints.team_events_endpoint(team_id, upcoming, page)
-            data = get_api_json(url)
+            data = self._get_json(url)
             if "events" in data:
                 return parse_events(data["events"])
             return []
@@ -203,7 +216,7 @@ class SofascoreService:
             raise ValueError("category_id must be an instance of Category Enum")
         try:
             url = self.endpoints.tournaments_endpoint(category_id.value)
-            data = get_api_json(url)["groups"][0].get("uniqueTournaments", [])
+            data = self._get_json(url)["groups"][0].get("uniqueTournaments", [])
             return parse_tournaments(data)
         except Exception as exc:
             raise exc
@@ -211,7 +224,7 @@ class SofascoreService:
     def get_tournament_seasons(self, tournament_id: int) -> list[Season]:
         try:
             url = self.endpoints.tournament_seasons_endpoint(tournament_id)
-            data = get_api_json(url)["seasons"]
+            data = self._get_json(url)["seasons"]
             return parse_seasons(data)
         except Exception as exc:
             raise exc
@@ -225,7 +238,7 @@ class SofascoreService:
             if isinstance(season_id, Season):
                 season_id = season_id.id
             url = self.endpoints.tournament_bracket_endpoint(tournament_id, season_id)
-            data = get_api_json(url)["cupTrees"]
+            data = self._get_json(url)["cupTrees"]
             return parse_brackets(data)
         except Exception as exc:
             raise exc
@@ -239,7 +252,7 @@ class SofascoreService:
             if isinstance(season_id, Season):
                 season_id = season_id.id
             url = self.endpoints.tournament_standings_endpoint(tournament_id, season_id)
-            data = get_api_json(url)["standings"]
+            data = self._get_json(url)["standings"]
             return parse_standings(data)
         except Exception as exc:
             raise exc
@@ -253,7 +266,7 @@ class SofascoreService:
             if isinstance(season_id, Season):
                 season_id = season_id.id
             url = self.endpoints.tournament_topteams_endpoint(tournament_id, season_id)
-            response = get_api_json(url)
+            response = self._get_json(url)
             if "topTeams" in response:
                 return parse_top_tournament_teams(response["topTeams"])
             return TopTournamentTeams()
@@ -271,7 +284,7 @@ class SofascoreService:
             url = self.endpoints.tournament_topplayers_endpoint(
                 tournament_id, season_id
             )
-            data = get_api_json(url)
+            data = self._get_json(url)
             if "topPlayers" in data:
                 return parse_top_tournament_players(data["topPlayers"])
             return TopTournamentPlayers()
@@ -285,7 +298,7 @@ class SofascoreService:
             url = self.endpoints.tournament_events_endpoint(
                 tournament_id, season_id, upcoming, page
             )
-            data = get_api_json(url)
+            data = self._get_json(url)
             if "events" in data:
                 return parse_events(data["events"])
             return []
@@ -295,10 +308,11 @@ class SofascoreService:
     def search(
         self, query: str, entity: EntityType = EntityType.ALL
     ) -> list[Event | Team | Player | Tournament]:
+        _logger.debug("search(query=%s, entity=%s)", query, entity)
         try:
             entity_type = entity.value
             url = self.endpoints.search_endpoint(query=query, entity_type=entity_type)
-            results = get_api_json(url)["results"]
+            results = self._get_json(url)["results"]
 
             specific_parsers = {
                 EntityType.TEAM: parse_team,
@@ -311,7 +325,7 @@ class SofascoreService:
                 type_parsers = {
                     "team": parse_team,
                     "player": parse_player,
-                    "event": parse_events,
+                    "event": parse_event,
                     "uniqueTournament": parse_tournament,
                 }
                 entities = []

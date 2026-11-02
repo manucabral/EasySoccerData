@@ -65,6 +65,19 @@ for event in events:
 
 Check out [Promiedos module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/promiedos/)
 
+## Goaloo
+```py
+import esd
+
+client = esd.GoalooClient()
+league = client.get_league(36)          # 36 = English Premier League
+standings = client.get_standings(36)
+for row in standings[:5]:
+    print(row.rank, row.team.name, row.points)
+```
+
+Check out [Goaloo module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/goaloo/)
+
 ## Demo
 Simple demonstration of a live table using Sofascore module (see [source code](https://github.com/manucabral/EasySoccerData/blob/main/examples/sofascore/live_table.py))
 <p align="center">
@@ -81,8 +94,8 @@ If you have any questions or need further assistance, feel free to open an issue
 | :--- | :---: | :---: |
 | Sofascore | ✅ | ✅ |
 | Promiedos | ✅ | ✅ |
-| FBRef | ❌ | 🚧 In development |
-| Goaloo | ❌ | 🚧 In development |
+| FBRef | ❌ | ✅ |
+| Goaloo | ❌ | ✅ |
 
 > Keep in mind that it is still under active development.
 

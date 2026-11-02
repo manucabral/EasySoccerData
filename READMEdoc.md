@@ -73,7 +73,7 @@ Check out [Promiedos module examples](https://github.com/manucabral/EasySoccerDa
 | Sofascore   | ✔️ |
 | FBref    | ✔️ |
 | Promiedos    | ✔️ |
-| Understat | ❌ |
+| Goaloo    | ✔️ |
 ...
 > Keep in mind that it is still under active development.
 

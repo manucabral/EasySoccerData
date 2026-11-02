@@ -77,16 +77,17 @@ def parse_event_data(event_data: dict) -> EventItem:
     """
     event_type_value = event_data.get("type")
     event_type = get_event_type_by_id(event_type_value)
+    texts = event_data.get("texts") or []
 
     if event_type is None:
-        value = event_data.get("texts", [None])[0]
+        value = texts[0] if texts else None
     elif event_type == EventType.SUBSTITUTION:
         value = Substitution(
-            player_in=event_data.get("texts", [None, None])[0],
-            player_out=event_data.get("texts", [None, None])[1],
+            player_in=texts[0] if len(texts) > 0 else None,
+            player_out=texts[1] if len(texts) > 1 else None,
         )
     else:
-        value = event_data.get("texts", [None])[0]
+        value = texts[0] if texts else None
 
     return EventItem(
         time=event_data.get("time"),

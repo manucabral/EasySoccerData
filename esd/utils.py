@@ -10,6 +10,11 @@ import httpx
 from curl_cffi import requests
 from lxml import html
 
+from .exceptions import SourceBlocked, SourceError
+from .logger import get_logger
+
+_logger = get_logger("utils")
+
 
 def get_today() -> str:
     """
@@ -49,7 +54,13 @@ def camel_to_snake(name: str) -> str:
     ).lower()
 
 
-def get_json(url: str, impersonate: str | None = None, headers: dict | None = None) -> dict:
+def get_json(
+    url: str,
+    impersonate: str | None = None,
+    headers: dict | None = None,
+    proxies: dict | None = None,
+    timeout: float = 30.0,
+) -> dict:
     """
     Get the JSON response from the given URL.
 
@@ -58,34 +69,59 @@ def get_json(url: str, impersonate: str | None = None, headers: dict | None = No
         impersonate (str | None): Browser impersonation for curl_cffi.
             Use "chrome" for Sofascore/Promiedos APIs. Defaults to None (uses httpx).
         headers (dict | None): Extra headers to include in the request.
+        proxies (dict | None): Optional proxy dict (e.g. ``{"https": "http://..."}``).
+        timeout (float): Request timeout in seconds (default 30).
 
     Returns:
         dict: The JSON response.
+
+    Raises:
+        SourceBlocked: If the source blocks the request (HTTP 403 / anti-bot).
+        SourceError: If the source returns any other unexpected HTTP status
+            or a non-JSON body.
     """
+    if impersonate:
+        _logger.debug(
+            "fetching JSON via curl_cffi (impersonate=%s): %s", impersonate, url
+        )
+        response = requests.get(
+            url,
+            impersonate=impersonate,
+            headers=headers,
+            proxies=proxies,
+            timeout=timeout,
+        )
+    else:
+        _logger.debug("fetching JSON via httpx: %s", url)
+        with httpx.Client(proxies=proxies, timeout=timeout, headers=headers) as client:
+            response = client.get(url)
+
+    status = response.status_code
+    if status == 403:
+        raise SourceBlocked(
+            "Access denied (403). The source is blocking this IP. "
+            "Retry from a residential connection or pass a proxy to the client."
+        )
+    if status == 404:
+        return {}
+    if status >= 400:
+        raise SourceError(f"HTTP {status} from {url}")
 
     try:
-        if impersonate:
-            response = requests.get(url, impersonate=impersonate, headers=headers)
-            response.raise_for_status()
-            data = response.json()
-            if "error" in data and "code" in data["error"]:
-                code = data["error"]["code"]
-                if code == 403:
-                    print(
-                        "Access denied. Please use a proxy, VPN or renew your ip address."
-                    )
-                if code == 404:
-                    print("No found.")
-                return {}
-            return data
-        with httpx.Client() as client:
-            response = client.get(url, headers=headers)
-            response.raise_for_status()
-            return response.json()
-    except httpx.HTTPStatusError as exc:
-        if exc.response.status_code == 404:
+        data = response.json()
+    except ValueError as exc:
+        raise SourceError(f"Non-JSON response from {url}") from exc
+
+    if "error" in data and "code" in data["error"]:
+        code = data["error"]["code"]
+        if code == 403:
+            raise SourceBlocked(
+                "Access denied (403). The source is blocking this IP. "
+                "Retry from a residential connection or pass a proxy to the client."
+            )
+        if code == 404:
             return {}
-        raise exc
+    return data
 
 
 def get_document(proxies: dict = None, url: str = None) -> html.HtmlElement:
@@ -100,7 +136,8 @@ def get_document(proxies: dict = None, url: str = None) -> html.HtmlElement:
         html.HtmlElement: The HTML document.
     """
     try:
-        with httpx.Client(proxy=proxies) as client:
+        _logger.debug("fetching document via httpx: %s", url)
+        with httpx.Client(proxies=proxies, timeout=30.0) as client:
             response = client.get(url)
             response.raise_for_status()
             return html.fromstring(response.content)
@@ -108,6 +145,73 @@ def get_document(proxies: dict = None, url: str = None) -> html.HtmlElement:
         if exc.response.status_code == 404:
             return html.fromstring("")
         raise exc
+
+
+def get_document_playwright(
+    url: str,
+    chrome_path: str = None,
+    proxies: dict = None,
+    timeout: int = 30000,
+    wait_until: str = "load",
+    headless: bool = False,
+) -> html.HtmlElement:
+    """
+    Get the HTML document using Playwright with an existing Chrome installation.
+
+    Unlike get_document() which uses httpx, this uses Playwright to launch
+    a real browser. It requires no 'playwright install' step — it uses your
+    system's Google Chrome (or a custom path you provide).
+
+    Args:
+        url (str): The URL to fetch.
+        chrome_path (str | None): Path to Chrome executable, e.g.
+            'C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe'.
+            If None, Playwright auto-detects Chrome via channel='chrome'.
+        proxies (dict | None): Proxy settings as {'server': 'http://proxy:port'}.
+        timeout (int): Page navigation timeout in milliseconds (default 30000).
+        wait_until (str): Navigation wait condition.
+            Use "load" for Cloudflare-protected sites (default "load").
+        headless (bool): Whether to run headless. Default False — headful is
+            required to pass Cloudflare's browser challenge. Headless is
+            faster but frequently detected.
+
+    Returns:
+        html.HtmlElement: The parsed HTML document.
+    """
+
+    from playwright.sync_api import sync_playwright
+
+    launch_options = {"headless": headless}
+    if chrome_path:
+        launch_options["executable_path"] = chrome_path
+    else:
+        launch_options["channel"] = "chrome"
+    if proxies:
+        launch_options["proxy"] = proxies
+
+    _logger.debug("launching browser with options: %s", launch_options)
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(**launch_options)
+            try:
+                page = browser.new_page()
+                _logger.debug("navigating to %s", url)
+                page.goto(url, wait_until=wait_until, timeout=timeout)
+                # Give Cloudflare's JS challenge a moment to clear before reading.
+                page.wait_for_timeout(2500)
+                content = page.content()
+                _logger.debug("received %d bytes from %s", len(content), url)
+
+                if "Just a moment" in content or "challenges.cloudflare.com" in content:
+                    _logger.warning("Cloudflare challenge still active for %s", url)
+                    return None
+
+                return html.fromstring(content)
+            finally:
+                browser.close()
+    except Exception as exc:
+        _logger.warning("playwright failed for %s: %s", url, exc)
+        return None
 
 
 def is_available_date(date: str, pattern: str) -> None:
@@ -122,21 +226,84 @@ def is_available_date(date: str, pattern: str) -> None:
         ValueError: If the date is invalid
     """
     date_pattern = re.compile(pattern)
-    if date_pattern.match(date):
-        datetime.strptime(date, "%d-%m-%Y")
-    else:
+    if not date_pattern.fullmatch(date):
         raise ValueError("Invalid date.") from None
+    try:
+        datetime.strptime(date, "%Y-%m-%d")
+    except ValueError as exc:
+        raise ValueError("Invalid date.") from exc
 
 
-def get_api_json(url: str, headers: dict | None = None) -> dict:
+def get_api_json(url: str, headers: dict | None = None, proxies: dict | None = None) -> dict:
     """
     Get JSON from an API endpoint using Chrome impersonation via curl_cffi.
 
     Args:
         url (str): The API URL.
         headers (dict | None): Extra headers for the request.
+        proxies (dict | None): Optional proxy dict.
 
     Returns:
         dict: The JSON response.
     """
-    return get_json(url, impersonate="chrome", headers=headers)
+    return get_json(url, impersonate="chrome", headers=headers, proxies=proxies)
+
+
+def get_document_impersonate(
+    proxies: dict = None,
+    url: str = None,
+    impersonate: str = "chrome",
+    delay: float = 3.0,
+    timeout: float = 30.0,
+) -> html.HtmlElement:
+    """
+    Get the HTML document from a URL using curl_cffi with browser impersonation.
+
+    This bypasses Cloudflare anti-bot protection that blocks httpx.
+    Intended for sites like fbref.com. Requests are sequential-only
+    (never parallelize — temporary bans are likely).
+
+    Returns None if Cloudflare challenge is detected (caller should fall back).
+
+    Args:
+        proxies: Optional proxy dict passed to curl_cffi.
+        url: The URL to fetch.
+        impersonate: Browser fingerprint to impersonate (default "chrome").
+        delay: Minimum seconds to sleep before the request (default 3.0).
+
+    Returns:
+        html.HtmlElement: The parsed HTML document, or None if blocked.
+    """
+    try:
+        _logger.debug(
+            "fetching document via curl_cffi (impersonate=%s, delay=%.1fs): %s",
+            impersonate, delay, url,
+        )
+        time.sleep(delay)
+        response = requests.get(
+            url,
+            impersonate=impersonate,
+            proxies=proxies,
+            timeout=timeout,
+            headers={
+                "Referer": "https://fbref.com/",
+            },
+        )
+        response.raise_for_status()
+        content = response.text if hasattr(response, "text") else response.content
+        if isinstance(content, str):
+            if "Just a moment" in content or "challenges.cloudflare.com" in content:
+                _logger.warning("Cloudflare challenge detected in curl_cffi response")
+                return None
+        if isinstance(content, bytes):
+            return html.fromstring(content)
+        return html.fromstring(content.encode("utf-8"))
+    except Exception as exc:
+        if hasattr(exc, "response") and getattr(exc.response, "status_code", 0) in (404, 403):
+            _logger.warning(
+                "curl_cffi got %d for %s",
+                exc.response.status_code if hasattr(exc, "response") else 0,
+                url,
+            )
+            return None
+        raise exc

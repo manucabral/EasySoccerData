@@ -30,3 +30,12 @@ class FBrefEndpoints:
         Returns the URL of the endpoint to get the match details.
         """
         return self.base_url + "/{match_id}"
+
+    @property
+    def league_players_endpoint(self) -> str:
+        """
+        Returns the URL of the endpoint to get league player stats.
+        Format args: comp_id, league_slug.
+        Example: /en/comps/9/Premier-League-Stats
+        """
+        return self.base_url + "/comps/{comp_id}/{league_slug}-Stats"

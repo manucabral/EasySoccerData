@@ -4,6 +4,7 @@ Promiedos service module.
 
 from __future__ import annotations
 
+from ..logger import get_logger
 from ..utils import get_api_json, is_available_date
 from .endpoints import PromiedosEndpoints
 from .exceptions import InvalidDate
@@ -18,6 +19,8 @@ from .types import (
     parse_players,
     parse_tournament,
 )
+
+_logger = get_logger("promiedos.service")
 
 _PROMIEDOS_HEADERS = {"X-VER": "1.11.7.5"}
 
@@ -36,20 +39,15 @@ class PromiedosService:
     def get_events(self, date: str = "today") -> list[Event]:
         """
         Get the events for the given date.
-
-        Args:
-            date (str): The date to get the events. Defaults to "today".
-
-        Returns:
-            list[Event]: The events for the given date.
         """
+        _logger.debug("get_events(date=%s)", date)
         available_dates = ["today", "yesterday", "tomorrow"]
         if date not in available_dates:
             try:
                 is_available_date(date, r"\d{4}-\d{2}-\d{2}")
             except Exception as exc:
                 raise InvalidDate(
-                    "Invalid date format. Use DD-MM-YYYY or today, yesterday, or tomorrow."
+                    "Invalid date format. Use YYYY-MM-DD or today, yesterday, or tomorrow."
                 ) from exc
         try:
             url = self.endpoints.events_endpoint.format(date=date)
@@ -68,6 +66,7 @@ class PromiedosService:
         Returns:
             Match: The match data.
         """
+        _logger.debug("get_match(match_id=%s)", match_id)
         try:
             url = self.endpoints.match_endpoint.format(id=match_id)
             data = get_api_json(url, headers=_PROMIEDOS_HEADERS)["game"]

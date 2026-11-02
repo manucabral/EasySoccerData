@@ -4,9 +4,12 @@ This module contains the client class for interacting with the Promiedos.
 
 from __future__ import annotations
 
+from ..logger import get_logger
 from .exceptions import NotMatchIdProvided
 from .service import PromiedosService
 from .types import Event, Match, Tournament
+
+_logger = get_logger("promiedos.client")
 
 
 class PromiedosClient:
