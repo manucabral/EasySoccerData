@@ -4,6 +4,8 @@ Sofascore service module
 
 from __future__ import annotations
 
+import time
+
 from ..logger import get_logger
 from ..utils import get_api_json, get_today
 from .endpoints import SofascoreEndpoints
@@ -50,6 +52,8 @@ from .types import (
 
 _logger = get_logger("sofascore.service")
 
+_CACHE_TTL = 30.0
+
 
 class SofascoreService:
     """
@@ -59,10 +63,16 @@ class SofascoreService:
     def __init__(self, proxies: dict = None) -> None:
         self.proxies = proxies
         self.endpoints = SofascoreEndpoints()
+        self._cache: dict[str, tuple[float, dict]] = {}
 
     def _get_json(self, url: str) -> dict:
         """Fetch JSON from a Sofascore endpoint, honoring optional proxies."""
-        return get_api_json(url, proxies=self.proxies)
+        cached = self._cache.get(url)
+        if cached is not None and time.monotonic() - cached[0] < _CACHE_TTL:
+            return cached[1]
+        data = get_api_json(url, proxies=self.proxies)
+        self._cache[url] = (time.monotonic(), data)
+        return data
 
     def get_event(self, event_id: int) -> Event:
         _logger.debug("get_event(event_id=%s)", event_id)

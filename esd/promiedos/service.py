@@ -4,6 +4,8 @@ Promiedos service module.
 
 from __future__ import annotations
 
+import time
+
 from ..logger import get_logger
 from ..utils import get_api_json, is_available_date
 from .endpoints import PromiedosEndpoints
@@ -24,6 +26,8 @@ _logger = get_logger("promiedos.service")
 
 _PROMIEDOS_HEADERS = {"X-VER": "1.11.7.5"}
 
+_CACHE_TTL = 30.0
+
 
 class PromiedosService:
     """
@@ -35,6 +39,18 @@ class PromiedosService:
         Initializes the Promiedos service.
         """
         self.endpoints = PromiedosEndpoints()
+        self._cache: dict[str, tuple[float, dict]] = {}
+
+    def _get_json(self, url: str) -> dict:
+        """
+        Fetch JSON from a Promiedos endpoint.
+        """
+        cached = self._cache.get(url)
+        if cached is not None and time.monotonic() - cached[0] < _CACHE_TTL:
+            return cached[1]
+        data = get_api_json(url, headers=_PROMIEDOS_HEADERS)
+        self._cache[url] = (time.monotonic(), data)
+        return data
 
     def get_events(self, date: str = "today") -> list[Event]:
         """
@@ -51,7 +67,7 @@ class PromiedosService:
                 ) from exc
         try:
             url = self.endpoints.events_endpoint.format(date=date)
-            data = get_api_json(url, headers=_PROMIEDOS_HEADERS)["leagues"]
+            data = self._get_json(url)["leagues"]
             return parse_events(date, data)
         except Exception as exc:
             raise exc
@@ -69,7 +85,7 @@ class PromiedosService:
         _logger.debug("get_match(match_id=%s)", match_id)
         try:
             url = self.endpoints.match_endpoint.format(id=match_id)
-            data = get_api_json(url, headers=_PROMIEDOS_HEADERS)["game"]
+            data = self._get_json(url)["game"]
             match = parse_match(data)
             match.league = parse_league(data["league"])
             if data.get("statistics"):
@@ -91,7 +107,7 @@ class PromiedosService:
         """
         try:
             url = self.endpoints.tournament_endpoint.format(id=tournament_id)
-            data = get_api_json(url, headers=_PROMIEDOS_HEADERS)
+            data = self._get_json(url)
             return parse_tournament(data)
         except Exception as exc:
             raise exc
@@ -113,7 +129,7 @@ class PromiedosService:
             url = self.endpoints.tournament_matchs_endpoint.format(
                 id=tournament_id, stage_id=stage_id
             )
-            data = get_api_json(url, headers=_PROMIEDOS_HEADERS)["games"]
+            data = self._get_json(url)["games"]
             return [parse_match(match) for match in data]
         except Exception as exc:
             raise exc

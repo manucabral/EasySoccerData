@@ -335,15 +335,19 @@ def get_document_impersonate(
             impersonate, delay, url,
         )
         time.sleep(delay)
-        response = requests.get(
-            url,
-            impersonate=impersonate,
-            proxies=proxies,
-            timeout=timeout,
-            headers={
-                "Referer": "https://fbref.com/",
-            },
-        )
+        headers = {"Referer": "https://fbref.com/"}
+        if impersonate == "chrome":
+            response = _get_session().get(
+                url, proxies=proxies, timeout=timeout, headers=headers
+            )
+        else:
+            response = requests.get(
+                url,
+                impersonate=impersonate,
+                proxies=proxies,
+                timeout=timeout,
+                headers=headers,
+            )
         response.raise_for_status()
         content = response.text if hasattr(response, "text") else response.content
         if isinstance(content, str):
