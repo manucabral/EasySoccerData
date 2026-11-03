@@ -86,7 +86,9 @@ def parse_matchs(data: lxml.html.HtmlElement) -> list[Match]:
         list[Match]: A list of Match instances with extracted data.
     """
     matches = []
-    rows = data.xpath("//tbody/tr")
+    # Only the schedule tables (id="sched_*") hold match rows; the page also
+    # contains standings/leaderboard tables without data-stat attributes.
+    rows = data.xpath("//table[starts-with(@id, 'sched')]//tbody/tr")
 
     for row in rows:
         data_stat = {}
