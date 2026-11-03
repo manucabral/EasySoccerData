@@ -395,10 +395,16 @@ def get_document(proxies: dict = None, url: str = None) -> html.HtmlElement:
 def _fetch_document_via_page(page, url: str, timeout: int, wait_until: str):
     _logger.debug("navigating to %s", url)
     page.goto(url, wait_until=wait_until, timeout=timeout)
-    content = page.content()
+    content = ""
     prev_len = 0
     stable = 0
     for _ in range(60):
+        try:
+            content = page.content()
+        except Exception:
+            # The page is mid-navigation (challenge redirect); wait and retry.
+            page.wait_for_timeout(1000)
+            continue
         has_challenge = (
             "Just a moment" in content
             or "challenges.cloudflare.com" in content
@@ -412,7 +418,6 @@ def _fetch_document_via_page(page, url: str, timeout: int, wait_until: str):
             stable = 0
         prev_len = cur_len
         page.wait_for_timeout(1000)
-        content = page.content()
     _logger.debug("received %d bytes from %s", len(content), url)
 
     if "Just a moment" in content or "challenges.cloudflare.com" in content:
