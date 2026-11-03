@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.1.0] - 2026-11-03
+
+### Added
+
+- **Goaloo module** (`esd.goaloo`): leagues, matches, standings and seasons.
+- Goaloo head-to-head history and recent form (`get_h2h`, `get_last_matches`).
+- Goaloo odds distributions: Asian handicap and over/under (`get_asian_handicap`, `get_over_under`).
+- Goaloo home/away standings and goal timings (`get_home_standings`, `get_away_standings`, `get_goal_timings`).
+- Goaloo live match score, live odds and match events (`get_match_score`, `get_live_odds`, `get_match_events`).
+- Shared typed source exceptions (`esd.exceptions`: `SourceBlocked`, `SourceNotFound`, `SourceError`).
+- Optional `proxies` argument across clients.
+
+### Changed
+
+- **HTTP layer**: unified timeout, proxy and typed error handling across `httpx` and `curl_cffi` paths.
+- FBref: headful Playwright fallback on system Chrome to pass Cloudflare, with a refreshed impersonation target.
+- Sofascore: `SourceBlocked` raised on 403 instead of a silent empty dict.
+
+### Fixed
+
+- Promiedos `MatchStats` fields defaulted to the class instead of an instance.
+- FBref `MatchDetails` and `TableDetails` dataclass `default_factory` bugs and unguarded table parsers.
+- `is_available_date` date-format mismatch.
+- Sofascore search with `EntityType.ALL` parsed events with the wrong parser.
+- Sofascore `get_match_shots` inconsistent return type.
+- Missing `beautifulsoup4` dependency declared.
+
+### Removed
+
+- AI-style punctuation (em dashes and semicolons) from code and docstrings.
+
 ## [0.0.9] - 2026-05-09
 
 ### Changed
