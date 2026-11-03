@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from ..logger import get_logger
 from ..utils import (
+    BrowserSession,
     get_document,
     get_document_impersonate,
     get_document_playwright,
@@ -61,6 +62,15 @@ class FBrefService:
         self.delay: float = delay
         self.headless: bool = headless
         self.endpoints: FBrefEndpoints = FBrefEndpoints(language=language)
+        self._browser = (
+            BrowserSession(chrome_path, proxies, headless) if use_playwright else None
+        )
+
+    def close(self) -> None:
+        """Close the reused browser, if any."""
+        if self._browser is not None:
+            self._browser.close()
+            self._browser = None
 
     def _fetch_document(self, url: str):
         """Fetch a document using configured backends with fallback."""
@@ -77,7 +87,7 @@ class FBrefService:
         if self.use_playwright:
             backends.append(("playwright", lambda: get_document_playwright(
                 url, self.chrome_path, self.proxies, wait_until="load",
-                headless=self.headless,
+                headless=self.headless, session=self._browser,
             )))
         if not backends:
             backends.append(("httpx", lambda: get_document(self.proxies, url)))

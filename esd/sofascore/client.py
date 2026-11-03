@@ -339,3 +339,7 @@ class SofascoreClient:
         if isinstance(entity, str):
             entity = EntityType(entity)
         return self.__service.search(query, entity)
+
+    def close(self) -> None:
+        """Close the reused browser, if any."""
+        self.__service.close()

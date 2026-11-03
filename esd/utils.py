@@ -114,6 +114,87 @@ def to_dataframe(objects: list):
     return pd.DataFrame([asdict(obj) for obj in objects])
 
 
+class BrowserSession:
+    """
+    A persistent Playwright browser, reused across requests.
+
+    Launching Chrome and passing the source's challenge is expensive, so one
+    browser is shared across requests in the same thread. Call ``close()`` to
+    release the browser and its Chrome process.
+    """
+
+    def __init__(
+        self,
+        chrome_path: str = None,
+        proxies: dict = None,
+        headless: bool = False,
+    ) -> None:
+        self.chrome_path = chrome_path
+        self.proxies = proxies
+        self.headless = headless
+        self._playwright = None
+        self._browser = None
+
+    def _launch(self) -> None:
+        from playwright.sync_api import sync_playwright
+
+        self._playwright = sync_playwright().start()
+        launch_options = {
+            "headless": self.headless,
+            "args": ["--disable-blink-features=AutomationControlled"],
+            "ignore_default_args": ["--enable-automation"],
+        }
+        if self.chrome_path:
+            launch_options["executable_path"] = self.chrome_path
+        else:
+            launch_options["channel"] = "chrome"
+        if self.proxies:
+            launch_options["proxy"] = self.proxies
+        self._browser = self._playwright.chromium.launch(**launch_options)
+
+    def new_page(self):
+        """Return a new page in the shared browser, with stealth applied."""
+        if self._browser is None:
+            self._launch()
+        page = self._browser.new_page()
+        page.add_init_script(
+            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+        )
+        return page
+
+    def close(self) -> None:
+        """Close the browser and release the Playwright driver."""
+        if self._browser is not None:
+            try:
+                self._browser.close()
+            except Exception:
+                pass
+            self._browser = None
+        if self._playwright is not None:
+            try:
+                self._playwright.stop()
+            except Exception:
+                pass
+            self._playwright = None
+
+    def __del__(self) -> None:
+        self.close()
+
+
+def _fetch_json_via_page(page, url: str, timeout: int, start_url: str) -> dict:
+    import json as _json
+
+    _logger.debug("playwright: opening %s", start_url)
+    page.goto(start_url, wait_until="load", timeout=timeout)
+    page.wait_for_timeout(3000)
+    _logger.debug("playwright: fetching JSON %s", url)
+    page.goto(url, wait_until="load", timeout=timeout)
+    page.wait_for_timeout(1000)
+    text = page.evaluate("() => document.body.innerText")
+    _logger.debug("playwright response (%d chars): %s", len(text), text[:200])
+    return _json.loads(text)
+
+
 def get_json_playwright(
     url: str,
     chrome_path: str = None,
@@ -121,6 +202,7 @@ def get_json_playwright(
     timeout: int = 30000,
     start_url: str = "https://www.sofascore.com/",
     headless: bool = False,
+    session: BrowserSession = None,
 ) -> dict:
     """
     Fetch JSON from a URL using a real browser (Playwright + system Chrome).
@@ -133,40 +215,29 @@ def get_json_playwright(
     Args:
         headless: Run Chrome headless (silent). Some challenges detect
             headless, so headful is the default.
+        session: Optional :class:`BrowserSession` to reuse an existing browser.
 
     Returns ``{}`` when the fetch fails or the challenge does not resolve.
     """
-    import json as _json
+    if session is not None:
+        page = session.new_page()
+        try:
+            return _fetch_json_via_page(page, url, timeout, start_url)
+        except Exception as exc:
+            _logger.warning("playwright JSON fetch failed for %s: %s", url, exc)
+            return {}
+        finally:
+            page.close()
 
-    from playwright.sync_api import sync_playwright
-
-    launch_options = {"headless": headless}
-    if chrome_path:
-        launch_options["executable_path"] = chrome_path
-    else:
-        launch_options["channel"] = "chrome"
-    if proxies:
-        launch_options["proxy"] = proxies
-
+    local = BrowserSession(chrome_path, proxies, headless)
     try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(**launch_options)
-            try:
-                page = browser.new_page()
-                _logger.debug("playwright: opening %s", start_url)
-                page.goto(start_url, wait_until="load", timeout=timeout)
-                page.wait_for_timeout(3000)
-                _logger.debug("playwright: fetching JSON %s", url)
-                page.goto(url, wait_until="load", timeout=timeout)
-                page.wait_for_timeout(1000)
-                text = page.evaluate("() => document.body.innerText")
-                _logger.debug("playwright response (%d chars): %s", len(text), text[:200])
-                return _json.loads(text)
-            finally:
-                browser.close()
+        page = local.new_page()
+        return _fetch_json_via_page(page, url, timeout, start_url)
     except Exception as exc:
         _logger.warning("playwright JSON fetch failed for %s: %s", url, exc)
         return {}
+    finally:
+        local.close()
 
 
 def get_today() -> str:
@@ -306,6 +377,32 @@ def get_document(proxies: dict = None, url: str = None) -> html.HtmlElement:
         raise exc
 
 
+def _fetch_document_via_page(page, url: str, timeout: int, wait_until: str):
+    _logger.debug("navigating to %s", url)
+    page.goto(url, wait_until=wait_until, timeout=timeout)
+    content = page.content()
+    for _ in range(40):
+        has_challenge = (
+            "Just a moment" in content
+            or "challenges.cloudflare.com" in content
+        )
+        try:
+            body_len = page.evaluate("() => document.body.innerText.length")
+        except Exception:
+            body_len = 0
+        if not has_challenge and body_len > 200:
+            break
+        page.wait_for_timeout(1000)
+        content = page.content()
+    _logger.debug("received %d bytes from %s", len(content), url)
+
+    if "Just a moment" in content or "challenges.cloudflare.com" in content:
+        _logger.warning("Cloudflare challenge still active for %s", url)
+        return None
+
+    return html.fromstring(content)
+
+
 def get_document_playwright(
     url: str,
     chrome_path: str = None,
@@ -313,6 +410,7 @@ def get_document_playwright(
     timeout: int = 30000,
     wait_until: str = "load",
     headless: bool = False,
+    session: BrowserSession = None,
 ) -> html.HtmlElement:
     """
     Get the HTML document using Playwright with an existing Chrome installation.
@@ -333,66 +431,31 @@ def get_document_playwright(
         headless (bool): Whether to run headless. Default False. Headful is
             required to pass Cloudflare's browser challenge. Headless is
             faster but frequently detected.
+        session (BrowserSession | None): Optional persistent browser to reuse
+            instead of launching a new Chrome per call.
 
     Returns:
         html.HtmlElement: The parsed HTML document.
     """
+    if session is not None:
+        page = session.new_page()
+        try:
+            return _fetch_document_via_page(page, url, timeout, wait_until)
+        except Exception as exc:
+            _logger.warning("playwright failed for %s: %s", url, exc)
+            return None
+        finally:
+            page.close()
 
-    from playwright.sync_api import sync_playwright
-
-    launch_options = {
-        "headless": headless,
-        "args": ["--disable-blink-features=AutomationControlled"],
-        "ignore_default_args": ["--enable-automation"],
-    }
-    if chrome_path:
-        launch_options["executable_path"] = chrome_path
-    else:
-        launch_options["channel"] = "chrome"
-    if proxies:
-        launch_options["proxy"] = proxies
-
-    _logger.debug("launching browser with options: %s", launch_options)
+    local = BrowserSession(chrome_path, proxies, headless)
     try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(**launch_options)
-            try:
-                page = browser.new_page()
-                # Hide the automation markers that Cloudflare checks.
-                page.add_init_script(
-                    "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
-                )
-                _logger.debug("navigating to %s", url)
-                page.goto(url, wait_until=wait_until, timeout=timeout)
-                # Poll until Cloudflare clears and the JS shell renders its content.
-                content = page.content()
-                for _ in range(40):
-                    has_challenge = (
-                        "Just a moment" in content
-                        or "challenges.cloudflare.com" in content
-                    )
-                    try:
-                        body_len = page.evaluate(
-                            "() => document.body.innerText.length"
-                        )
-                    except Exception:
-                        body_len = 0
-                    if not has_challenge and body_len > 200:
-                        break
-                    page.wait_for_timeout(1000)
-                    content = page.content()
-                _logger.debug("received %d bytes from %s", len(content), url)
-
-                if "Just a moment" in content or "challenges.cloudflare.com" in content:
-                    _logger.warning("Cloudflare challenge still active for %s", url)
-                    return None
-
-                return html.fromstring(content)
-            finally:
-                browser.close()
+        page = local.new_page()
+        return _fetch_document_via_page(page, url, timeout, wait_until)
     except Exception as exc:
         _logger.warning("playwright failed for %s: %s", url, exc)
         return None
+    finally:
+        local.close()
 
 
 def is_available_date(date: str, pattern: str) -> None:

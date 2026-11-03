@@ -8,7 +8,7 @@ import time
 
 from ..exceptions import SourceBlocked
 from ..logger import get_logger
-from ..utils import get_api_json, get_json_playwright, get_today
+from ..utils import BrowserSession, get_api_json, get_json_playwright, get_today
 from .endpoints import SofascoreEndpoints
 from .types import (
     Bracket,
@@ -74,6 +74,15 @@ class SofascoreService:
         self.headless = headless
         self.endpoints = SofascoreEndpoints()
         self._cache: dict[str, tuple[float, dict]] = {}
+        self._browser = (
+            BrowserSession(chrome_path, proxies, headless) if use_playwright else None
+        )
+
+    def close(self) -> None:
+        """Close the reused browser, if any."""
+        if self._browser is not None:
+            self._browser.close()
+            self._browser = None
 
     def _get_json(self, url: str) -> dict:
         """Fetch JSON from a Sofascore endpoint, falling back to Playwright."""
@@ -86,7 +95,11 @@ class SofascoreService:
             if not self.use_playwright:
                 raise
             data = get_json_playwright(
-                url, self.chrome_path, self.proxies, headless=self.headless
+                url,
+                self.chrome_path,
+                self.proxies,
+                headless=self.headless,
+                session=self._browser,
             )
         self._cache[url] = (time.monotonic(), data)
         return data

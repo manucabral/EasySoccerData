@@ -105,3 +105,7 @@ class FBrefClient:
             list[LeaguePlayerStandard]: Parsed player statistics rows.
         """
         return self.__service.get_league_players(comp_id, league_slug, table_id=table_id)
+
+    def close(self) -> None:
+        """Close the reused browser, if any."""
+        self.__service.close()
