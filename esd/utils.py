@@ -15,6 +15,21 @@ from .logger import get_logger
 
 _logger = get_logger("utils")
 
+_session: requests.Session | None = None
+
+
+def _get_session() -> requests.Session:
+    """
+    Return a persistent browser-impersonating session.
+
+    The session is created once and reused across requests so the connection
+    pool is shared and no TLS handshake is paid per call.
+    """
+    global _session
+    if _session is None:
+        _session = requests.Session(impersonate="chrome")
+    return _session
+
 
 def get_today() -> str:
     """
@@ -84,13 +99,18 @@ def get_json(
         _logger.debug(
             "fetching JSON via curl_cffi (impersonate=%s): %s", impersonate, url
         )
-        response = requests.get(
-            url,
-            impersonate=impersonate,
-            headers=headers,
-            proxies=proxies,
-            timeout=timeout,
-        )
+        if impersonate == "chrome":
+            response = _get_session().get(
+                url, headers=headers, proxies=proxies, timeout=timeout
+            )
+        else:
+            response = requests.get(
+                url,
+                impersonate=impersonate,
+                headers=headers,
+                proxies=proxies,
+                timeout=timeout,
+            )
     else:
         _logger.debug("fetching JSON via httpx: %s", url)
         with httpx.Client(proxies=proxies, timeout=timeout, headers=headers) as client:
@@ -272,7 +292,7 @@ def get_text(
         SourceError: If the source returns any other unexpected HTTP status.
     """
     _logger.debug("fetching text via curl_cffi: %s", url)
-    response = requests.get(url, impersonate="chrome", proxies=proxies, timeout=timeout)
+    response = _get_session().get(url, proxies=proxies, timeout=timeout)
     status = response.status_code
     if status == 403:
         raise SourceBlocked(

@@ -5,6 +5,7 @@ Goaloo service module.
 from __future__ import annotations
 
 import re
+import time
 
 from ..logger import get_logger
 from ..utils import get_api_json, get_text
@@ -42,6 +43,8 @@ _logger = get_logger("goaloo.service")
 _BATTLE_RE = re.compile(r'var\s+battleData\s*=\s*"([^"]*)"')
 _LAST_MATCH_RE = re.compile(r'var\s+lastMatchData\s*=\s*"([^"]*)"')
 
+_CACHE_TTL = 60.0
+
 
 class GoalooService:
     """
@@ -52,6 +55,7 @@ class GoalooService:
         self.proxies = proxies
         self.endpoints = GoalooEndpoints()
         self._seasons_cache: dict[int, list[str]] = {}
+        self._data_cache: dict[tuple[int, str], tuple[float, dict]] = {}
 
     def get_seasons(self, league_id: int) -> list[str]:
         """
@@ -74,9 +78,16 @@ class GoalooService:
         return self.get_seasons(league_id)[0]
 
     def _fetch_data(self, league_id: int, season: str) -> dict:
+        key = (league_id, season)
+        cached = self._data_cache.get(key)
+        if cached is not None and time.monotonic() - cached[0] < _CACHE_TTL:
+            _logger.debug("using cached goaloo data: %s", key)
+            return cached[1]
         url = self.endpoints.data_endpoint(league_id, season)
         _logger.debug("fetching goaloo data: %s", url)
-        return get_api_json(url, proxies=self.proxies)
+        data = get_api_json(url, proxies=self.proxies)
+        self._data_cache[key] = (time.monotonic(), data)
+        return data
 
     def get_league(self, league_id: int, season: str = None) -> League:
         """
