@@ -396,17 +396,21 @@ def _fetch_document_via_page(page, url: str, timeout: int, wait_until: str):
     _logger.debug("navigating to %s", url)
     page.goto(url, wait_until=wait_until, timeout=timeout)
     content = page.content()
-    for _ in range(40):
+    prev_len = 0
+    stable = 0
+    for _ in range(60):
         has_challenge = (
             "Just a moment" in content
             or "challenges.cloudflare.com" in content
         )
-        try:
-            body_len = page.evaluate("() => document.body.innerText.length")
-        except Exception:
-            body_len = 0
-        if not has_challenge and body_len > 200:
-            break
+        cur_len = len(content)
+        if not has_challenge and cur_len > 1000 and cur_len == prev_len:
+            stable += 1
+            if stable >= 3:
+                break
+        else:
+            stable = 0
+        prev_len = cur_len
         page.wait_for_timeout(1000)
         content = page.content()
     _logger.debug("received %d bytes from %s", len(content), url)
