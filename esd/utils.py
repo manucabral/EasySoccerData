@@ -372,6 +372,7 @@ def get_document_playwright(
                     page.wait_for_timeout(1000)
                     content = page.content()
                 _logger.debug("received %d bytes from %s", len(content), url)
+                _logger.debug("content preview: %s", content[:300])
 
                 if "Just a moment" in content or "challenges.cloudflare.com" in content:
                     _logger.warning("Cloudflare challenge still active for %s", url)
