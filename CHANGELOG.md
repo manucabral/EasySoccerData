@@ -27,6 +27,13 @@
 - Sofascore `get_match_shots` inconsistent return type.
 - Missing `beautifulsoup4` dependency declared.
 
+### Performance
+
+- Persistent HTTP session reuse across requests (connection pooling).
+- Per-service response cache with a short TTL.
+- `fetch_many` helper to fetch multiple entities in parallel.
+- Retry with exponential backoff and jitter on transient failures.
+
 ### Removed
 
 - AI-style punctuation (em dashes and semicolons) from code and docstrings.
