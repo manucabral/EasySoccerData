@@ -356,9 +356,13 @@ def get_document_playwright(
                 page = browser.new_page()
                 _logger.debug("navigating to %s", url)
                 page.goto(url, wait_until=wait_until, timeout=timeout)
-                # Give Cloudflare's JS challenge a moment to clear before reading.
-                page.wait_for_timeout(2500)
+                # Poll until Cloudflare's challenge clears (it redirects via JS).
                 content = page.content()
+                for _ in range(30):
+                    if "Just a moment" not in content and "challenges.cloudflare.com" not in content:
+                        break
+                    page.wait_for_timeout(1000)
+                    content = page.content()
                 _logger.debug("received %d bytes from %s", len(content), url)
 
                 if "Just a moment" in content or "challenges.cloudflare.com" in content:
