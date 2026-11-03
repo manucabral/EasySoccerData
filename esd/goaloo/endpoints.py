@@ -80,6 +80,19 @@ class GoalooEndpoints:
         """
         return f"https://www.goaloo.com/ajax/soccerajax?type=15&id={match_id}"
 
+    def team_endpoint(self, team_id: int, lang: str = "en") -> str:
+        """
+        Returns the URL of the team detail JSON payload.
+
+        Args:
+            team_id (int): The Goaloo team id.
+            lang (str): Language suffix (default "en").
+
+        Returns:
+            str: The team detail URL.
+        """
+        return f"{self.base_url}/jsdata/teamInfo/teamdetail/json/tdl{team_id}_{lang}.json"
+
     def live_odds_endpoint(self, match_id: int, company_id: int = 0) -> str:
         """
         Returns the URL of the live odds payload for a match.

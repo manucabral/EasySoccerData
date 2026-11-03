@@ -10,7 +10,7 @@ import time
 from ..logger import get_logger
 from ..utils import get_api_json, get_text
 from .endpoints import GoalooEndpoints
-from .exceptions import LeagueNotFound
+from .exceptions import LeagueNotFound, TeamNotFound
 from .types import (
     AsianHandicap,
     GoalTiming,
@@ -23,6 +23,7 @@ from .types import (
     OverUnder,
     RecentForm,
     Standing,
+    TeamDetail,
     parse_asian_handicap,
     parse_goal_timings,
     parse_head_to_head,
@@ -35,6 +36,7 @@ from .types import (
     parse_recent_form,
     parse_standings,
     parse_standings_compact,
+    parse_team_detail,
     parse_teams,
 )
 
@@ -231,3 +233,14 @@ class GoalooService:
         if not data or data.get("ErrCode", 0) != 0:
             return []
         return parse_match_events(data.get("Data", "") or "")
+
+    def get_team(self, team_id: int) -> TeamDetail:
+        """
+        Get a team's squad, coach and honors.
+        """
+        url = self.endpoints.team_endpoint(team_id)
+        _logger.debug("fetching goaloo team: %s", url)
+        data = get_api_json(url, proxies=self.proxies)
+        if not data or "TeamInfo" not in data:
+            raise TeamNotFound(team_id)
+        return parse_team_detail(data)

@@ -93,6 +93,27 @@ def fetch_many(callables: list, max_workers: int = 8) -> list:
         return list(executor.map(lambda fn: fn(), callables))
 
 
+def to_dataframe(objects: list):
+    """
+    Convert a list of dataclass instances to a pandas DataFrame.
+
+    pandas is imported lazily, so it is only required when this function is
+    called. Nested dataclasses are flattened one level via ``dataclasses.asdict``.
+
+    Example:
+        from esd import GoalooClient
+        from esd.utils import to_dataframe
+
+        client = GoalooClient()
+        df = to_dataframe(client.get_standings(36))
+    """
+    from dataclasses import asdict
+
+    import pandas as pd
+
+    return pd.DataFrame([asdict(obj) for obj in objects])
+
+
 def get_today() -> str:
     """
     Get the current date in the format "YYYY-MM-DD".

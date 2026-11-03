@@ -634,3 +634,101 @@ def parse_match_events(data_str: str) -> list[MatchEvent]:
             )
         )
     return events
+
+
+@dataclass
+class TeamPlayer:
+    """
+    A player in a team squad.
+    """
+
+    id: int = field(default=0)
+    shirt_number: str = field(default="")
+    name: str = field(default="")
+    position: str = field(default="")
+    logo: str = field(default="")
+
+
+@dataclass
+class TeamHonor:
+    """
+    A trophy or honor won by a team.
+    """
+
+    name: str = field(default="")
+    seasons: str = field(default="")
+
+
+@dataclass
+class TeamDetail:
+    """
+    A team with its squad, coach and honors.
+    """
+
+    id: int = field(default=0)
+    name: str = field(default="")
+    logo: str = field(default="")
+    city: str = field(default="")
+    stadium: str = field(default="")
+    capacity: str = field(default="")
+    founded: str = field(default="")
+    league_name: str = field(default="")
+    coach: str = field(default="")
+    players: list[TeamPlayer] = field(default_factory=list)
+    honors: list[TeamHonor] = field(default_factory=list)
+
+
+_POSITIONS = {
+    "goalkeeper": "goalkeeper",
+    "rearguard": "defender",
+    "midfielder": "midfielder",
+    "vanguard": "forward",
+}
+
+
+def _parse_squad_players(data: dict, key: str, position: str) -> list[TeamPlayer]:
+    players: list[TeamPlayer] = []
+    for raw in data.get(key, []) or []:
+        if not isinstance(raw, list) or len(raw) < 4:
+            continue
+        players.append(
+            TeamPlayer(
+                id=_to_int(_get(raw, 0)),
+                shirt_number=str(_get(raw, 1, "") or ""),
+                name=_get(raw, 2, "") or "",
+                position=position,
+                logo=_get(raw, 4, "") or "",
+            )
+        )
+    return players
+
+
+def parse_team_detail(data: dict) -> TeamDetail:
+    """
+    Parse the team detail payload (``jsdata/teamInfo/teamdetail``).
+    """
+    info = data.get("TeamInfo", []) or []
+    team = TeamDetail(
+        id=_to_int(_get(info, 0)),
+        name=_get(info, 1, "") or "",
+        logo=_get(info, 2, "") or "",
+        city=_get(info, 3, "") or "",
+        stadium=_get(info, 4, "") or "",
+        capacity=str(_get(info, 5, "") or ""),
+        founded=_get(info, 6, "") or "",
+        league_name=_get(info, 10, "") or "",
+    )
+
+    coaches = data.get("coach", []) or []
+    if coaches and isinstance(coaches[0], list):
+        team.coach = _get(coaches[0], 2, "") or ""
+
+    for key, position in _POSITIONS.items():
+        team.players.extend(_parse_squad_players(data, key, position))
+
+    for raw in data.get("TeamHonor", []) or []:
+        if isinstance(raw, list) and len(raw) >= 2:
+            team.honors.append(
+                TeamHonor(name=_get(raw, 0, "") or "", seasons=_get(raw, 1, "") or "")
+            )
+    return team

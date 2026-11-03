@@ -17,6 +17,7 @@ from .types import (
     OverUnder,
     RecentForm,
     Standing,
+    TeamDetail,
 )
 
 
@@ -217,3 +218,15 @@ class GoalooClient:
             list[MatchEvent]: The match events in chronological order.
         """
         return self.__service.get_match_events(match_id)
+
+    def get_team(self, team_id: int) -> TeamDetail:
+        """
+        Get a team's squad, coach and honors.
+
+        Args:
+            team_id (int): The Goaloo team id.
+
+        Returns:
+            TeamDetail: The team metadata, players, coach and honors.
+        """
+        return self.__service.get_team(team_id)

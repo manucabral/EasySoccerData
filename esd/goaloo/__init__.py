@@ -22,6 +22,9 @@ from .types import (
     RecentForm,
     Standing,
     Team,
+    TeamDetail,
+    TeamHonor,
+    TeamPlayer,
 )
 
 __all__ = [
@@ -40,4 +43,7 @@ __all__ = [
     "LiveOdds",
     "MatchEvent",
     "EventType",
+    "TeamDetail",
+    "TeamPlayer",
+    "TeamHonor",
 ]

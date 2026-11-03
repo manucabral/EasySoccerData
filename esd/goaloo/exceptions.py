@@ -19,3 +19,15 @@ class LeagueNotFound(GoalooException):
         if league_id is not None:
             message = f"League not found on Goaloo (league_id={league_id})."
         super().__init__(message)
+
+
+class TeamNotFound(GoalooException):
+    """
+    Exception raised when a team has no data on Goaloo.
+    """
+
+    def __init__(self, team_id: int = None) -> None:
+        message = "Team not found on Goaloo."
+        if team_id is not None:
+            message = f"Team not found on Goaloo (team_id={team_id})."
+        super().__init__(message)
