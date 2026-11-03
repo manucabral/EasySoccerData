@@ -120,6 +120,7 @@ def get_json_playwright(
     proxies: dict = None,
     timeout: int = 30000,
     start_url: str = "https://www.sofascore.com/",
+    headless: bool = False,
 ) -> dict:
     """
     Fetch JSON from a URL using a real browser (Playwright + system Chrome).
@@ -129,13 +130,17 @@ def get_json_playwright(
     source's challenge and cookies resolve, then navigates to ``url`` and
     returns the parsed JSON from the body.
 
+    Args:
+        headless: Run Chrome headless (silent). Some challenges detect
+            headless, so headful is the default.
+
     Returns ``{}`` when the fetch fails or the challenge does not resolve.
     """
     import json as _json
 
     from playwright.sync_api import sync_playwright
 
-    launch_options = {"headless": False}
+    launch_options = {"headless": headless}
     if chrome_path:
         launch_options["executable_path"] = chrome_path
     else:

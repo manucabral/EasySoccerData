@@ -66,10 +66,12 @@ class SofascoreService:
         proxies: dict = None,
         use_playwright: bool = False,
         chrome_path: str = None,
+        headless: bool = False,
     ) -> None:
         self.proxies = proxies
         self.use_playwright = use_playwright
         self.chrome_path = chrome_path
+        self.headless = headless
         self.endpoints = SofascoreEndpoints()
         self._cache: dict[str, tuple[float, dict]] = {}
 
@@ -83,7 +85,9 @@ class SofascoreService:
         except SourceBlocked:
             if not self.use_playwright:
                 raise
-            data = get_json_playwright(url, self.chrome_path, self.proxies)
+            data = get_json_playwright(
+                url, self.chrome_path, self.proxies, headless=self.headless
+            )
         self._cache[url] = (time.monotonic(), data)
         return data
 

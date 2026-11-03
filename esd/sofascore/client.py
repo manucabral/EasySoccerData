@@ -40,6 +40,7 @@ class SofascoreClient:
         proxies: dict = None,
         use_playwright: bool = False,
         chrome_path: str = None,
+        headless: bool = False,
     ) -> None:
         """
         Initializes the Sofascore client.
@@ -49,11 +50,14 @@ class SofascoreClient:
             use_playwright: If True, falls back to a real browser (system
                 Chrome) when curl_cffi is blocked by Sofascore's bot challenge.
             chrome_path: Optional path to Chrome executable.
+            headless: Run the browser headless (silent). Some challenges detect
+                headless, so headful is the default.
         """
         self.__service = SofascoreService(
             proxies=proxies,
             use_playwright=use_playwright,
             chrome_path=chrome_path,
+            headless=headless,
         )
         _logger.debug("SofascoreClient initialized")
 
