@@ -2,9 +2,13 @@
 This module contains utility functions that are used in the project.
 """
 
+import random
 import re
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from functools import wraps
 
 import httpx
 from curl_cffi import requests
@@ -15,20 +19,78 @@ from .logger import get_logger
 
 _logger = get_logger("utils")
 
-_session: requests.Session | None = None
+_local = threading.local()
+
+_MAX_RETRIES = 3
+_BASE_DELAY = 1.0
+
+_TRANSIENT_ERRORS = (
+    SourceBlocked,
+    SourceError,
+    requests.exceptions.RequestException,
+    httpx.HTTPError,
+)
 
 
 def _get_session() -> requests.Session:
     """
-    Return a persistent browser-impersonating session.
+    Return a per-thread browser-impersonating session.
 
-    The session is created once and reused across requests so the connection
-    pool is shared and no TLS handshake is paid per call.
+    Each thread keeps its own session so concurrent requests are safe, while
+    sequential requests in the same thread reuse the connection pool.
     """
-    global _session
-    if _session is None:
-        _session = requests.Session(impersonate="chrome")
-    return _session
+    session = getattr(_local, "session", None)
+    if session is None:
+        session = requests.Session(impersonate="chrome")
+        _local.session = session
+    return session
+
+
+def _retry(func):
+    """
+    Retry a fetch on transient failures with exponential backoff and jitter.
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        last_error = None
+        for attempt in range(_MAX_RETRIES):
+            try:
+                return func(*args, **kwargs)
+            except _TRANSIENT_ERRORS as exc:
+                last_error = exc
+                if attempt == _MAX_RETRIES - 1:
+                    raise
+                delay = _BASE_DELAY * (2 ** attempt) + random.uniform(0, 0.5)
+                _logger.debug(
+                    "retrying %s in %.2fs after %s",
+                    func.__name__, delay, type(exc).__name__,
+                )
+                time.sleep(delay)
+        raise last_error
+
+    return wrapper
+
+
+def fetch_many(callables: list, max_workers: int = 8) -> list:
+    """
+    Run a list of zero-argument callables concurrently and return their results.
+
+    Useful for fetching multiple leagues or matches in parallel. Bind arguments
+    with ``functools.partial``.
+
+    Example:
+        from functools import partial
+        from esd import GoalooClient
+        from esd.utils import fetch_many
+
+        client = GoalooClient()
+        standings = fetch_many(
+            [partial(client.get_standings, league) for league in (36, 31, 34)]
+        )
+    """
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        return list(executor.map(lambda fn: fn(), callables))
 
 
 def get_today() -> str:
@@ -69,6 +131,7 @@ def camel_to_snake(name: str) -> str:
     ).lower()
 
 
+@_retry
 def get_json(
     url: str,
     impersonate: str | None = None,
@@ -269,6 +332,7 @@ def get_api_json(url: str, headers: dict | None = None, proxies: dict | None = N
     return get_json(url, impersonate="chrome", headers=headers, proxies=proxies)
 
 
+@_retry
 def get_text(
     url: str,
     proxies: dict | None = None,
