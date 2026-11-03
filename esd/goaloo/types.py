@@ -453,6 +453,9 @@ def parse_goal_timings(data: list, team_map: dict[int, Team]) -> list[GoalTiming
 class MatchScore:
     """
     The live score and status of a match.
+
+    ``state`` is Goaloo's match phase: -1 finished, 0 not started,
+    1 first half, 2 half-time, 3 second half.
     """
 
     state: int = field(default=0)
@@ -463,6 +466,19 @@ class MatchScore:
     half_away: int = field(default=0)
     injury_time: str = field(default="")
     status_text: str = field(default="")
+
+    @property
+    def state_name(self) -> str:
+        """
+        Human-readable name for ``state``.
+        """
+        return {
+            -1: "Finished",
+            0: "Not started",
+            1: "First half",
+            2: "Half-time",
+            3: "Second half",
+        }.get(self.state, "Unknown")
 
 
 def parse_match_score(data: dict) -> MatchScore:
@@ -479,6 +495,8 @@ def parse_match_score(data: dict) -> MatchScore:
     scores = re.findall(r"class='score'>(\d+)<", raw_html)
     halves = re.findall(r"title='Score 1st Half'>(\d+)-(\d+)<", raw_html)
     status = re.findall(r"state[^>]*>([^<]+)<", raw_html)
+    if not status:
+        status = re.findall(r"id='matchTime'>([^<]+)<", raw_html)
 
     return MatchScore(
         state=_to_int(inner.get("state", 0)),
