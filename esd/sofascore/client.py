@@ -35,8 +35,26 @@ class SofascoreClient:
     This class provides methods to access and retrieve data from Sofascore.
     """
 
-    def __init__(self, proxies: dict = None) -> None:
-        self.__service = SofascoreService(proxies=proxies)
+    def __init__(
+        self,
+        proxies: dict = None,
+        use_playwright: bool = False,
+        chrome_path: str = None,
+    ) -> None:
+        """
+        Initializes the Sofascore client.
+
+        Args:
+            proxies: Optional proxy dict.
+            use_playwright: If True, falls back to a real browser (system
+                Chrome) when curl_cffi is blocked by Sofascore's bot challenge.
+            chrome_path: Optional path to Chrome executable.
+        """
+        self.__service = SofascoreService(
+            proxies=proxies,
+            use_playwright=use_playwright,
+            chrome_path=chrome_path,
+        )
         _logger.debug("SofascoreClient initialized")
 
     def get_events(self, date: str = 'today', live: bool = False) -> list[Event]:

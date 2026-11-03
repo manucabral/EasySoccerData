@@ -114,6 +114,54 @@ def to_dataframe(objects: list):
     return pd.DataFrame([asdict(obj) for obj in objects])
 
 
+def get_json_playwright(
+    url: str,
+    chrome_path: str = None,
+    proxies: dict = None,
+    timeout: int = 30000,
+    start_url: str = "https://www.sofascore.com/",
+) -> dict:
+    """
+    Fetch JSON from a URL using a real browser (Playwright + system Chrome).
+
+    Used as a fallback for sources that block curl_cffi with a JavaScript
+    challenge (e.g. Sofascore). The browser first opens ``start_url`` so the
+    source's challenge and cookies resolve, then fetches ``url`` from the page
+    context and returns the parsed JSON.
+
+    Returns ``{}`` when the fetch fails or the challenge does not resolve.
+    """
+    from playwright.sync_api import sync_playwright
+
+    launch_options = {"headless": False}
+    if chrome_path:
+        launch_options["executable_path"] = chrome_path
+    else:
+        launch_options["channel"] = "chrome"
+    if proxies:
+        launch_options["proxy"] = proxies
+
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(**launch_options)
+            try:
+                page = browser.new_page()
+                _logger.debug("playwright: opening %s", start_url)
+                page.goto(start_url, wait_until="load", timeout=timeout)
+                page.wait_for_timeout(2500)
+                _logger.debug("playwright: fetching JSON %s", url)
+                result = page.evaluate(
+                    "async (u) => { const r = await fetch(u); return await r.json(); }",
+                    url,
+                )
+                return result if isinstance(result, dict) else {}
+            finally:
+                browser.close()
+    except Exception as exc:
+        _logger.warning("playwright JSON fetch failed for %s: %s", url, exc)
+        return {}
+
+
 def get_today() -> str:
     """
     Get the current date in the format "YYYY-MM-DD".

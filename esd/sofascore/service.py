@@ -6,8 +6,9 @@ from __future__ import annotations
 
 import time
 
+from ..exceptions import SourceBlocked
 from ..logger import get_logger
-from ..utils import get_api_json, get_today
+from ..utils import get_api_json, get_json_playwright, get_today
 from .endpoints import SofascoreEndpoints
 from .types import (
     Bracket,
@@ -60,17 +61,29 @@ class SofascoreService:
     A class to represent the SofaScore service.
     """
 
-    def __init__(self, proxies: dict = None) -> None:
+    def __init__(
+        self,
+        proxies: dict = None,
+        use_playwright: bool = False,
+        chrome_path: str = None,
+    ) -> None:
         self.proxies = proxies
+        self.use_playwright = use_playwright
+        self.chrome_path = chrome_path
         self.endpoints = SofascoreEndpoints()
         self._cache: dict[str, tuple[float, dict]] = {}
 
     def _get_json(self, url: str) -> dict:
-        """Fetch JSON from a Sofascore endpoint, honoring optional proxies."""
+        """Fetch JSON from a Sofascore endpoint, falling back to Playwright."""
         cached = self._cache.get(url)
         if cached is not None and time.monotonic() - cached[0] < _CACHE_TTL:
             return cached[1]
-        data = get_api_json(url, proxies=self.proxies)
+        try:
+            data = get_api_json(url, proxies=self.proxies)
+        except SourceBlocked:
+            if not self.use_playwright:
+                raise
+            data = get_json_playwright(url, self.chrome_path, self.proxies)
         self._cache[url] = (time.monotonic(), data)
         return data
 
