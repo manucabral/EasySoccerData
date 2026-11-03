@@ -7,6 +7,7 @@ import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from datetime import datetime
 from functools import wraps
 
@@ -134,6 +135,7 @@ class BrowserSession:
         self.headless = headless
         self._playwright = None
         self._browser = None
+        self._lock = threading.Lock()
 
     def _launch(self) -> None:
         from playwright.sync_api import sync_playwright
@@ -161,6 +163,21 @@ class BrowserSession:
             "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
         )
         return page
+
+    @contextmanager
+    def page(self):
+        """
+        Yield a page in the shared browser.
+
+        The lock serializes access because Playwright's sync API is not
+        thread-safe. The page is always closed when the context exits.
+        """
+        with self._lock:
+            page = self.new_page()
+            try:
+                yield page
+            finally:
+                page.close()
 
     def close(self) -> None:
         """Close the browser and release the Playwright driver."""
@@ -220,14 +237,12 @@ def get_json_playwright(
     Returns ``{}`` when the fetch fails or the challenge does not resolve.
     """
     if session is not None:
-        page = session.new_page()
         try:
-            return _fetch_json_via_page(page, url, timeout, start_url)
+            with session.page() as page:
+                return _fetch_json_via_page(page, url, timeout, start_url)
         except Exception as exc:
             _logger.warning("playwright JSON fetch failed for %s: %s", url, exc)
             return {}
-        finally:
-            page.close()
 
     local = BrowserSession(chrome_path, proxies, headless)
     try:
@@ -438,14 +453,12 @@ def get_document_playwright(
         html.HtmlElement: The parsed HTML document.
     """
     if session is not None:
-        page = session.new_page()
         try:
-            return _fetch_document_via_page(page, url, timeout, wait_until)
+            with session.page() as page:
+                return _fetch_document_via_page(page, url, timeout, wait_until)
         except Exception as exc:
             _logger.warning("playwright failed for %s: %s", url, exc)
             return None
-        finally:
-            page.close()
 
     local = BrowserSession(chrome_path, proxies, headless)
     try:
