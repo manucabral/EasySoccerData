@@ -364,15 +364,24 @@ def get_document_playwright(
                 )
                 _logger.debug("navigating to %s", url)
                 page.goto(url, wait_until=wait_until, timeout=timeout)
-                # Poll until Cloudflare's challenge clears (it redirects via JS).
+                # Poll until Cloudflare clears and the JS shell renders its content.
                 content = page.content()
-                for _ in range(30):
-                    if "Just a moment" not in content and "challenges.cloudflare.com" not in content:
+                for _ in range(40):
+                    has_challenge = (
+                        "Just a moment" in content
+                        or "challenges.cloudflare.com" in content
+                    )
+                    try:
+                        body_len = page.evaluate(
+                            "() => document.body.innerText.length"
+                        )
+                    except Exception:
+                        body_len = 0
+                    if not has_challenge and body_len > 200:
                         break
                     page.wait_for_timeout(1000)
                     content = page.content()
                 _logger.debug("received %d bytes from %s", len(content), url)
-                _logger.debug("content preview: %s", content[:300])
 
                 if "Just a moment" in content or "challenges.cloudflare.com" in content:
                     _logger.warning("Cloudflare challenge still active for %s", url)
