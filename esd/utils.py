@@ -126,11 +126,13 @@ def get_json_playwright(
 
     Used as a fallback for sources that block curl_cffi with a JavaScript
     challenge (e.g. Sofascore). The browser first opens ``start_url`` so the
-    source's challenge and cookies resolve, then fetches ``url`` from the page
-    context and returns the parsed JSON.
+    source's challenge and cookies resolve, then navigates to ``url`` and
+    returns the parsed JSON from the body.
 
     Returns ``{}`` when the fetch fails or the challenge does not resolve.
     """
+    import json as _json
+
     from playwright.sync_api import sync_playwright
 
     launch_options = {"headless": False}
@@ -148,13 +150,13 @@ def get_json_playwright(
                 page = browser.new_page()
                 _logger.debug("playwright: opening %s", start_url)
                 page.goto(start_url, wait_until="load", timeout=timeout)
-                page.wait_for_timeout(2500)
+                page.wait_for_timeout(3000)
                 _logger.debug("playwright: fetching JSON %s", url)
-                result = page.evaluate(
-                    "async (u) => { const r = await fetch(u); return await r.json(); }",
-                    url,
-                )
-                return result if isinstance(result, dict) else {}
+                page.goto(url, wait_until="load", timeout=timeout)
+                page.wait_for_timeout(1000)
+                text = page.evaluate("() => document.body.innerText")
+                _logger.debug("playwright response (%d chars): %s", len(text), text[:200])
+                return _json.loads(text)
             finally:
                 browser.close()
     except Exception as exc:
