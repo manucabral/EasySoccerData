@@ -6,11 +6,13 @@ from . import types
 from .client import GoalooClient
 from .types import (
     AsianHandicap,
+    EventType,
     GoalTiming,
     HeadToHead,
     League,
     LiveOdds,
     Match,
+    MatchEvent,
     MatchScore,
     OverUnder,
     RecentForm,
@@ -32,4 +34,6 @@ __all__ = [
     "GoalTiming",
     "MatchScore",
     "LiveOdds",
+    "MatchEvent",
+    "EventType",
 ]

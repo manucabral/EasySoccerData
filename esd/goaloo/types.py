@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from enum import Enum
 
 
 @dataclass
@@ -560,3 +561,76 @@ def parse_live_odds(data: dict) -> LiveOdds:
         euro=_parse_odds_line(inner.get("op")),
         corners=_parse_odds_line(inner.get("corner")),
     )
+
+
+_EVENT_RE = re.compile(
+    r"\[(\d+),(\d+),(\d+),(\d+),(\d+),(\d+),'([^']*)','([^']*)',(\d+),'([^']*)',(\d+),(\d+),'([^']*)'\]"
+)
+
+
+class EventType(Enum):
+    """
+    Known Goaloo match event codes.
+    """
+
+    GOAL = 1
+    RED_CARD = 2
+    YELLOW_CARD = 3
+    SUBSTITUTION = 11
+
+
+@dataclass
+class MatchEvent:
+    """
+    A single match event: a goal, a card or a substitution.
+    """
+
+    type: int = field(default=0)
+    minute: int = field(default=0)
+    team_id: int = field(default=0)
+    side: int = field(default=0)
+    player_id: int = field(default=0)
+    related_id: int = field(default=0)
+    player: str = field(default="")
+    related: str = field(default="")
+    home_score: int = field(default=0)
+    away_score: int = field(default=0)
+    gif: str = field(default="")
+
+    @property
+    def type_name(self) -> str:
+        """
+        Human-readable name for ``type``.
+        """
+        try:
+            return EventType(self.type).name.lower()
+        except ValueError:
+            return "unknown"
+
+
+def parse_match_events(data_str: str) -> list[MatchEvent]:
+    """
+    Parse the match events payload (``soccerajax?type=15``).
+
+    ``data_str`` is the JavaScript literal assigned to ``d_f`` by Goaloo's
+    frontend. Each event is ``[type, minute, team_id, player_id,
+    related_id, side, player, related, _, _, home_score, away_score, gif]``.
+    """
+    events: list[MatchEvent] = []
+    for match in _EVENT_RE.finditer(data_str):
+        events.append(
+            MatchEvent(
+                type=_to_int(match.group(1)),
+                minute=_to_int(match.group(2)),
+                team_id=_to_int(match.group(3)),
+                player_id=_to_int(match.group(4)),
+                related_id=_to_int(match.group(5)),
+                side=_to_int(match.group(6)),
+                player=match.group(7),
+                related=match.group(8),
+                home_score=_to_int(match.group(11)),
+                away_score=_to_int(match.group(12)),
+                gif=match.group(13),
+            )
+        )
+    return events

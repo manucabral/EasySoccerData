@@ -68,6 +68,18 @@ class GoalooEndpoints:
         """
         return f"https://www.goaloo.com/ajax/soccerajax?type=11&id={match_id}"
 
+    def match_events_endpoint(self, match_id: int) -> str:
+        """
+        Returns the URL of the match events payload for a match.
+
+        Args:
+            match_id (int): The Goaloo match id.
+
+        Returns:
+            str: The match events URL.
+        """
+        return f"https://www.goaloo.com/ajax/soccerajax?type=15&id={match_id}"
+
     def live_odds_endpoint(self, match_id: int, company_id: int = 0) -> str:
         """
         Returns the URL of the live odds payload for a match.

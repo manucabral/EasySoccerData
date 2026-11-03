@@ -12,6 +12,7 @@ from .types import (
     League,
     LiveOdds,
     Match,
+    MatchEvent,
     MatchScore,
     OverUnder,
     RecentForm,
@@ -204,3 +205,15 @@ class GoalooClient:
             LiveOdds: The Asian handicap, over/under, 1x2 and corner odds.
         """
         return self.__service.get_live_odds(match_id, company_id)
+
+    def get_match_events(self, match_id: int) -> list[MatchEvent]:
+        """
+        Get the events (goals, cards and substitutions) of a match.
+
+        Args:
+            match_id (int): The Goaloo match id.
+
+        Returns:
+            list[MatchEvent]: The match events in chronological order.
+        """
+        return self.__service.get_match_events(match_id)

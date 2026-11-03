@@ -17,6 +17,7 @@ from .types import (
     League,
     LiveOdds,
     Match,
+    MatchEvent,
     MatchScore,
     OverUnder,
     RecentForm,
@@ -26,6 +27,7 @@ from .types import (
     parse_head_to_head,
     parse_league,
     parse_live_odds,
+    parse_match_events,
     parse_match_score,
     parse_matches,
     parse_over_under,
@@ -207,3 +209,14 @@ class GoalooService:
         _logger.debug("fetching goaloo live odds: %s", url)
         data = get_api_json(url, proxies=self.proxies)
         return parse_live_odds(data)
+
+    def get_match_events(self, match_id: int) -> list[MatchEvent]:
+        """
+        Get the events (goals, cards and substitutions) of a match.
+        """
+        url = self.endpoints.match_events_endpoint(match_id)
+        _logger.debug("fetching goaloo match events: %s", url)
+        data = get_api_json(url, proxies=self.proxies)
+        if not data or data.get("ErrCode", 0) != 0:
+            return []
+        return parse_match_events(data.get("Data", "") or "")
