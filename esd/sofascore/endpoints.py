@@ -8,7 +8,7 @@ class SofascoreEndpoints:
     A class to represent the endpoints of the SofaScore API.
     """
 
-    def __init__(self, base_url: str = "https://api.sofascore.com/api/v1") -> None:
+    def __init__(self, base_url: str = "https://www.sofascore.com/api/v1") -> None:
         self.base_url = base_url
 
     @property
