@@ -340,7 +340,11 @@ def get_document_playwright(
 
     from playwright.sync_api import sync_playwright
 
-    launch_options = {"headless": headless}
+    launch_options = {
+        "headless": headless,
+        "args": ["--disable-blink-features=AutomationControlled"],
+        "ignore_default_args": ["--enable-automation"],
+    }
     if chrome_path:
         launch_options["executable_path"] = chrome_path
     else:
@@ -354,6 +358,10 @@ def get_document_playwright(
             browser = p.chromium.launch(**launch_options)
             try:
                 page = browser.new_page()
+                # Hide the automation markers that Cloudflare checks.
+                page.add_init_script(
+                    "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+                )
                 _logger.debug("navigating to %s", url)
                 page.goto(url, wait_until=wait_until, timeout=timeout)
                 # Poll until Cloudflare's challenge clears (it redirects via JS).
