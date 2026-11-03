@@ -78,6 +78,24 @@ for row in standings[:5]:
 
 Check out [Goaloo module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/goaloo/)
 
+## Parallel fetching
+
+Fetch multiple leagues or matches concurrently with `fetch_many`:
+
+```py
+from functools import partial
+
+import esd
+from esd.utils import fetch_many
+
+client = esd.GoalooClient()
+standings = fetch_many(
+    [partial(client.get_standings, league) for league in (36, 31, 8)]
+)
+```
+
+Requests use a pooled HTTP session, cache recent responses briefly, and retry transient failures automatically.
+
 ## Demo
 Simple demonstration of a live table using Sofascore module (see [source code](https://github.com/manucabral/EasySoccerData/blob/main/examples/sofascore/live_table.py))
 <p align="center">
