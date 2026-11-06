@@ -7,6 +7,9 @@ from dataclasses import dataclass, field
 
 import lxml
 
+_LANG_PREFIX_RE = re.compile(r"^/[a-z]{2}(?:-[a-z]{2})?(?=/)")
+_DIGITS_RE = re.compile(r"\d+")
+
 
 @dataclass
 class Match:
@@ -58,7 +61,7 @@ def extract_score(cell: lxml.html.HtmlElement) -> tuple[int, int]:
     """
     Extract the home and away scores from the cell.
     """
-    scores = re.findall(r"\d+", extract_text(cell))
+    scores = _DIGITS_RE.findall(extract_text(cell))
     home = int(scores[0]) if len(scores) > 0 else 0
     away = int(scores[1]) if len(scores) > 1 else 0
     return home, away
@@ -91,8 +94,10 @@ def parse_matchs(data: lxml.html.HtmlElement) -> list[Match]:
     rows = data.xpath("//table[starts-with(@id, 'sched')]//tbody/tr")
 
     for row in rows:
+        if "thead" in (row.get("class") or ""):
+            continue
         data_stat = {}
-        cells = row.xpath(".//th | .//td")
+        cells = row.xpath("./th | ./td")
         for cell in cells:
             stat = cell.get("data-stat")
             if not stat:
@@ -101,7 +106,7 @@ def parse_matchs(data: lxml.html.HtmlElement) -> list[Match]:
             if stat == "match_report":
                 url = extract_href(cell)
                 if url:
-                    url = url[3:]
+                    url = _LANG_PREFIX_RE.sub("", url)
                 data_stat["id"] = url
                 if "/matches/" in url:
                     data_stat["id_type"] = "matches"

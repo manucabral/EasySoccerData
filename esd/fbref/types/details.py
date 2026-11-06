@@ -244,16 +244,12 @@ class PlayerStatsTableDetails(TableDetails):
     """
 
     rows: list[PlayerStatsRow] = field(default_factory=list)
-    summary: PlayerSummaryRow = field(default_factory=PlayerSummaryRow)
-    passing: PlayerPassRow = field(default_factory=PlayerPassRow)
-    passtypes: PlayerPassTypesRow = field(default_factory=PlayerPassTypesRow)
-    defensive_actions: PlayerDefensiveActionsRow = field(
-        default_factory=PlayerDefensiveActionsRow
-    )
-    possessions: PlayerPossessionRow = field(default_factory=PlayerPossessionRow)
-    miscellaneous: PlayerMiscellaneousRow = field(
-        default_factory=PlayerMiscellaneousRow
-    )
+    summary: list[PlayerSummaryRow] = field(default_factory=list)
+    passing: list[PlayerPassRow] = field(default_factory=list)
+    passtypes: list[PlayerPassTypesRow] = field(default_factory=list)
+    defensive_actions: list[PlayerDefensiveActionsRow] = field(default_factory=list)
+    possessions: list[PlayerPossessionRow] = field(default_factory=list)
+    miscellaneous: list[PlayerMiscellaneousRow] = field(default_factory=list)
 
 
 @dataclass
@@ -276,6 +272,23 @@ class MatchDetails:
     away_keeper: PlayerStatsTableDetails = field(
         default_factory=PlayerStatsTableDetails
     )
+
+
+def _cast_field_value(obj: object, attr: str, raw: str):
+    current = getattr(obj, attr, None)
+    if isinstance(current, bool):
+        return bool(raw)
+    if isinstance(current, int):
+        try:
+            return int(raw.replace(",", "")) if raw else 0
+        except ValueError:
+            return 0
+    if isinstance(current, float):
+        try:
+            return float(raw.replace(",", "")) if raw else 0.0
+        except ValueError:
+            return 0.0
+    return raw
 
 
 def get_all_tables(data: lxml.html.HtmlElement) -> list[lxml.html.HtmlElement]:
@@ -313,17 +326,20 @@ def parse_match_details(data: lxml.html.HtmlElement) -> MatchDetails:
         content = get_table_wrappers(data)
 
     match_details = MatchDetails(is_table_wrapper=is_table_wrapper)
-    is_home = True
+    player_switcher_idx = 0
     found_tables = []
     for child in content:
         element_id = child.get("id").strip() if child.get("id") else "unknown"
         if is_table_wrapper:
+            found_tables.extend(child.xpath(".//table"))
             continue
         found_tables = child.xpath(".//table")
         if "shots" in element_id:
             # ... add shots parser
             continue
-        target_key = "home_players" if is_home else "away_players"
+        if player_switcher_idx >= 2:
+            continue
+        target_key = "home_players" if player_switcher_idx == 0 else "away_players"
         setattr(
             match_details,
             target_key,
@@ -340,25 +356,19 @@ def parse_match_details(data: lxml.html.HtmlElement) -> MatchDetails:
                 miscellaneous=parse_table(found_tables, 5, PlayerMiscellaneousRow),
             ),
         )
-        is_home = False
+        player_switcher_idx += 1
 
-    if is_table_wrapper:
+    if is_table_wrapper and found_tables:
         match_details.home_players = parse_table_wrapped(found_tables, 0)
         match_details.home_keeper = parse_table_wrapped(found_tables, 1)
         match_details.away_players = parse_table_wrapped(found_tables, 2)
         match_details.away_keeper = parse_table_wrapped(found_tables, 3)
+    elif not is_table_wrapper:
+        keeper_tables = data.xpath("//table[starts-with(@id, 'keeper_stats_')]")
+        if keeper_tables:
+            match_details.home_keeper = parse_table_wrapped(keeper_tables, 0)
+            match_details.away_keeper = parse_table_wrapped(keeper_tables, 1)
 
-    # ... mix wrappered goalkeeper stats if is switcher
-    # mixed_content = get_table_wrappers(data)
-    # found_tables = []
-    # for child in mixed_content:
-    # tables = child.xpath(".//table")
-    # for table in tables:
-    # table_id = table.get("id", "unknown")
-    # if "keeper" in table_id:
-    # found_tables.append(table)
-    # match_details.home_keeper = parse_table_wrapped(found_tables, 0)
-    # match_details.away_keeper = parse_table_wrapped(found_tables, 1)
     return match_details
 
 
@@ -376,13 +386,17 @@ def parse_table(data: list[lxml.html.HtmlElement], index: int, instance: type) -
     tbody = table.xpath(".//tbody")
     if not tbody:
         return rows
-    for tr in tbody[0].xpath(".//tr"):
+    for tr in tbody[0].xpath("./tr"):
+        if "thead" in (tr.get("class") or ""):
+            continue
         player = instance()
-        for cell in tr.xpath(".//th | .//td"):
+        for cell in tr.xpath("./th | ./td"):
             data_stat = cell.get("data-stat")
+            if not data_stat:
+                continue
             value = cell.text_content().strip()
             attr = data_stat.strip()
-            setattr(player, attr, value)
+            setattr(player, attr, _cast_field_value(player, attr, value))
         rows.append(player)
     return rows
 
@@ -403,13 +417,17 @@ def parse_table_wrapped(
     tbody = table.xpath(".//tbody")
     if not tbody:
         return PlayerStatsTableDetails(id=table_id, name=table_name)
-    for tr in tbody[0].xpath(".//tr"):
+    for tr in tbody[0].xpath("./tr"):
+        if "thead" in (tr.get("class") or ""):
+            continue
         player = PlayerStatsRow() if "keeper" not in table_id else KeeperStatsRow()
-        for cell in tr.xpath(".//th | .//td"):
+        for cell in tr.xpath("./th | ./td"):
             data_stat = cell.get("data-stat")
+            if not data_stat:
+                continue
             value = cell.text_content().strip()
             attr = data_stat.strip()
-            setattr(player, attr, value)
+            setattr(player, attr, _cast_field_value(player, attr, value))
         rows.append(player)
     # header = [th.text_content().strip() for th in table.xpath(".//thead/tr/th")]
     return PlayerStatsTableDetails(id=table_id, name=table_name, rows=rows)

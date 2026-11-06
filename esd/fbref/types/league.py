@@ -85,16 +85,19 @@ def parse_league_players(
     """
     table = document.find(f".//table[@id='{table_id}']")
     if table is None:
-        from bs4 import BeautifulSoup, Comment
-
-        html_str = lxml.html.tostring(document, encoding="unicode")
-        soup = BeautifulSoup(html_str, "lxml")
-        for comment in soup.find_all(text=lambda t: isinstance(t, Comment)):
-            inner = BeautifulSoup(comment, "lxml")
-            found = inner.find("table", id=table_id)
-            if found:
-                table_html = lxml.html.fromstring(str(found))
-                return _parse_table_rows(table_html)
+        for comment in document.xpath("//comment()"):
+            text = comment.text
+            if not text or table_id not in text:
+                continue
+            try:
+                fragment = lxml.html.fromstring(text)
+            except Exception:
+                continue
+            if fragment.tag == "table" and fragment.get("id") == table_id:
+                return _parse_table_rows(fragment)
+            found = fragment.find(f".//table[@id='{table_id}']")
+            if found is not None:
+                return _parse_table_rows(found)
         return []
 
     return _parse_table_rows(table)
@@ -118,7 +121,7 @@ def _parse_table_rows(table: lxml.html.HtmlElement) -> list[LeaguePlayerStandard
         if "class" in tr.attrib and "thead" in tr.attrib["class"]:
             continue
         player = LeaguePlayerStandard()
-        for cell in tr.findall(".//th | .//td"):
+        for cell in tr.xpath("./th | ./td"):
             stat = cell.get("data-stat", "")
             value = _extract_text(cell)
             if stat == "player":

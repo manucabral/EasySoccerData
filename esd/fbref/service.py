@@ -66,12 +66,19 @@ class FBrefService:
             BrowserSession(chrome_path, proxies, headless) if use_playwright else None
         )
 
+    def __enter__(self) -> FBrefService:
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()
+
     def close(self) -> None:
         """Close the reused browser, if any."""
         if self._browser is not None:
             self._browser.close()
             self._browser = None
 
+    @rate_limit(calls=9, period=60)
     def _fetch_document(self, url: str):
         """Fetch a document using configured backends with fallback."""
         from lxml import html as lxml_html
@@ -81,14 +88,31 @@ class FBrefService:
         backends = []
         blocked_backends = []
         if self.use_curl_cffi:
-            backends.append(("curl_cffi", lambda: get_document_impersonate(
-                self.proxies, url, impersonate=self.impersonate, delay=self.delay,
-            )))
+            backends.append(
+                (
+                    "curl_cffi",
+                    lambda: get_document_impersonate(
+                        self.proxies,
+                        url,
+                        impersonate=self.impersonate,
+                        delay=self.delay,
+                    ),
+                )
+            )
         if self.use_playwright:
-            backends.append(("playwright", lambda: get_document_playwright(
-                url, self.chrome_path, self.proxies, wait_until="load",
-                headless=self.headless, session=self._browser,
-            )))
+            backends.append(
+                (
+                    "playwright",
+                    lambda: get_document_playwright(
+                        url,
+                        self.chrome_path,
+                        self.proxies,
+                        wait_until="load",
+                        headless=self.headless,
+                        session=self._browser,
+                    ),
+                )
+            )
         if not backends:
             backends.append(("httpx", lambda: get_document(self.proxies, url)))
 
@@ -116,7 +140,6 @@ class FBrefService:
             )
         return lxml_html.fromstring("<html><body></body></html>")
 
-    @rate_limit(calls=9, period=60)
     def get_matchs(self, date: str = None) -> list[Match]:
         """
         Get the scheduled matchs.
@@ -133,7 +156,9 @@ class FBrefService:
             url = self.endpoints.matchs_endpoint.format(date=date)
             _logger.debug(
                 "fetching matches from %s (playwright=%s, cffi=%s)",
-                url, self.use_playwright, self.use_curl_cffi,
+                url,
+                self.use_playwright,
+                self.use_curl_cffi,
             )
             document = self._fetch_document(url)
             matches = parse_matchs(document)
@@ -142,7 +167,6 @@ class FBrefService:
         except Exception as exc:
             raise exc
 
-    @rate_limit(calls=9, period=60)
     def get_match_details(self, match_id: str) -> MatchDetails:
         """
         Get the match details.
@@ -156,20 +180,22 @@ class FBrefService:
         Raises:
             InvalidMatchId: If the match id is invalid.
         """
-        if "matches" not in match_id:
+        if not match_id or "matches" not in match_id:
             raise InvalidMatchId(match_id)
         try:
-            url = self.endpoints.match_details_endpoint.format(match_id=match_id)
+            clean_id = match_id.lstrip("/")
+            url = self.endpoints.match_details_endpoint.format(match_id=clean_id)
             _logger.debug(
                 "fetching match details from %s (playwright=%s, cffi=%s)",
-                url, self.use_playwright, self.use_curl_cffi,
+                url,
+                self.use_playwright,
+                self.use_curl_cffi,
             )
             document = self._fetch_document(url)
             return parse_match_details(document)
         except Exception as exc:
             raise exc
 
-    @rate_limit(calls=9, period=60)
     def get_league_players(
         self,
         comp_id: int,
@@ -188,13 +214,20 @@ class FBrefService:
         Returns:
             list[LeaguePlayerStandard]: Parsed player statistics rows.
         """
+        stat_type = table_id or "stats_standard"
+        if stat_type.startswith("stats_"):
+            stat_type = stat_type[len("stats_") :]
+        if stat_type in ("", "standard"):
+            stat_type = "stats"
         try:
             url = self.endpoints.league_players_endpoint.format(
-                comp_id=comp_id, league_slug=league_slug
+                comp_id=comp_id, league_slug=league_slug, stat_type=stat_type
             )
             _logger.debug(
                 "fetching league players from %s (playwright=%s, cffi=%s)",
-                url, self.use_playwright, self.use_curl_cffi,
+                url,
+                self.use_playwright,
+                self.use_curl_cffi,
             )
             document = self._fetch_document(url)
             players = parse_league_players(document, table_id=table_id)
