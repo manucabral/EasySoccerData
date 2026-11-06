@@ -78,6 +78,54 @@ for row in standings[:5]:
 
 Check out [Goaloo module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/goaloo/)
 
+## 365Scores
+```py
+import esd
+
+client = esd.Scores365Client()
+games = client.get_games("today")
+standings = client.get_standings(72)    # 72 = Liga Profesional Argentina
+for row in standings[0].rows[:5]:
+    print(row.position, row.team.name, row.points)
+```
+
+## Understat
+```py
+import esd
+
+client = esd.UnderstatClient()
+matches = client.get_league_matches("EPL", 2024)
+shots = client.get_match_shots(26602)
+```
+
+## Transfermarkt
+```py
+import esd
+
+client = esd.TransfermarktClient()
+player = client.get_player(28003)
+print(player.name, player.market_value_display)
+transfers = client.get_player_transfers(28003)
+```
+
+## ESPN
+```py
+import esd
+
+client = esd.ESPNClient()
+matches = client.get_scoreboard("arg.1")
+standings = client.get_standings("arg.1")
+```
+
+## BeSoccer
+```py
+import esd
+
+client = esd.BeSoccerClient()
+matches = client.get_matches("today")
+standings = client.get_standings("torneo_final")
+```
+
 ## Parallel fetching
 
 Fetch multiple leagues or matches concurrently with `fetch_many`:
@@ -114,6 +162,11 @@ If you have any questions or need further assistance, feel free to open an issue
 | Promiedos | ✅ | ✅ |
 | FBRef | ❌ | ✅ |
 | Goaloo | ❌ | ✅ |
+| 365Scores | ❌ | ✅ |
+| Understat | ❌ | ✅ |
+| Transfermarkt | ❌ | ✅ |
+| ESPN | ❌ | ✅ |
+| BeSoccer | ❌ | ✅ |
 
 > Keep in mind that it is still under active development.
 

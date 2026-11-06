@@ -65,6 +65,54 @@ for event in events:
 
 Check out [Promiedos module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/promiedos/)
 
+## Goaloo
+```py
+import esd
+
+client = esd.GoalooClient()
+standings = client.get_standings(36)
+```
+
+## 365Scores
+```py
+import esd
+
+client = esd.Scores365Client()
+games = client.get_games("today")
+```
+
+## Understat
+```py
+import esd
+
+client = esd.UnderstatClient()
+matches = client.get_league_matches("EPL", 2024)
+```
+
+## Transfermarkt
+```py
+import esd
+
+client = esd.TransfermarktClient()
+player = client.get_player(28003)
+```
+
+## ESPN
+```py
+import esd
+
+client = esd.ESPNClient()
+matches = client.get_scoreboard("arg.1")
+```
+
+## BeSoccer
+```py
+import esd
+
+client = esd.BeSoccerClient()
+matches = client.get_matches("today")
+```
+
 
 # Supported modules
 
@@ -74,8 +122,13 @@ Check out [Promiedos module examples](https://github.com/manucabral/EasySoccerDa
 | FBref    | ✔️ |
 | Promiedos    | ✔️ |
 | Goaloo    | ✔️ |
+| 365Scores    | ✔️ |
+| Understat    | ✔️ |
+| Transfermarkt    | ✔️ |
+| ESPN    | ✔️ |
+| BeSoccer    | ✔️ |
 ...
 > Keep in mind that it is still under active development.
 
-### Constributions
-All constributions, bug reports or fixes and ideas are welcome.
+### Contributions
+All contributions, bug reports or fixes and ideas are welcome.
