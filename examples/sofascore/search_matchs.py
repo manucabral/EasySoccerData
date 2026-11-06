@@ -29,7 +29,7 @@ matchs: list[esd.sofascore.Event] = client.search(
 for match in matchs:
     print(f"Match ID: {match.id}, Status: {match.status.description}")
     print(f"{match.home_team.name} vs {match.away_team.name}")
-    if match.status.type == "notstarted":
+    if match.status.type == esd.sofascore.StatusType.NOT_STARTED:
         start_time = datetime.datetime.fromtimestamp(match.start_timestamp)
         print(f"Start time: {start_time}")
     print("--------------------")

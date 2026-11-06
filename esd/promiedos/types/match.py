@@ -67,11 +67,13 @@ def parse_match(data: dict) -> Match:
     )
     scores_data = data.get("scores", [])
     tv_networks_data = data.get("tv_networks", [])
-    date_str = data.get("start_time") or "01-01-1970 00:00"
-    try:
-        start_ts = datetime.strptime(date_str, "%d-%m-%Y %H:%M").timestamp()
-    except ValueError:
-        start_ts = 0.0
+    date_str = data.get("start_time")
+    start_ts = 0.0
+    if date_str:
+        try:
+            start_ts = datetime.strptime(date_str, "%d-%m-%Y %H:%M").timestamp()
+        except (ValueError, OSError):
+            start_ts = 0.0
 
     return Match(
         id=data.get("id"),
