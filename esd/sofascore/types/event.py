@@ -101,7 +101,7 @@ class Event:
         Returns:
             datetime: The current period start time.
         """
-        return datetime.fromtimestamp(self.time.current_period_start)
+        return datetime.fromtimestamp(self.time.current_period_start or 0)
 
     @property
     def total_elapsed_minutes(self) -> int:
@@ -111,6 +111,8 @@ class Event:
         Returns:
             int: The total elapsed minutes.
         """
+        if not self.start_timestamp:
+            return 0
         return int((time.time() - self.start_timestamp) / 60)
 
     @property
@@ -121,6 +123,8 @@ class Event:
         Returns:
             int: The current elapsed minutes.
         """
+        if not self.time.current_period_start:
+            return 0
         return int((time.time() - self.time.current_period_start) / 60)
 
 
@@ -192,7 +196,7 @@ def parse_event(data: dict) -> Event:
     """
     return Event(
         id=data.get("id"),
-        start_timestamp=data.get("startTimestamp"),
+        start_timestamp=data.get("startTimestamp", 0),
         slug=data.get("slug"),
         # custom_id=data.get("customId"),
         # feed_locked=data.get("feedLocked"),

@@ -107,7 +107,7 @@ def parse_player(data: dict) -> Player:
         date_of_birth=data.get("dateOfBirthTimestamp", 0),
         contract_until=data.get("contractUntilTimestamp", 0),
         market_value=data.get("proposedMarketValue")
-        or data.get("proposedMarketValueRaw", {}).get("value", 0),
+        or (data.get("proposedMarketValueRaw") or {}).get("value", 0),
         team=parse_team(data.get("team", {})),
         country=parse_country(data.get("country", {})),
         # userCount=data["userCount"],

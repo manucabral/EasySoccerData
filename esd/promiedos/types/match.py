@@ -61,12 +61,17 @@ def parse_match(data: dict) -> Match:
     winner_team = (
         home_team
         if data.get("winner") == 1
-        else away_team if data.get("winner") == 2 else None
+        else away_team
+        if data.get("winner") == 2
+        else None
     )
     scores_data = data.get("scores", [])
     tv_networks_data = data.get("tv_networks", [])
-    date_str = data.get("start_time", "01-01-1970 00:00")
-    dt = datetime.strptime(date_str, "%d-%m-%Y %H:%M")
+    date_str = data.get("start_time") or "01-01-1970 00:00"
+    try:
+        start_ts = datetime.strptime(date_str, "%d-%m-%Y %H:%M").timestamp()
+    except ValueError:
+        start_ts = 0.0
 
     return Match(
         id=data.get("id"),
@@ -79,7 +84,7 @@ def parse_match(data: dict) -> Match:
         away_team=away_team,
         slug=data.get("url_name", ""),
         status=parse_status(data.get("status", {})),
-        start_time=dt.timestamp(),
+        start_time=start_ts,
         current_time=data.get("game_time", 0),
         time_to_display=data.get("game_time_to_display", ""),
         time_status_to_display=data.get("game_time_status_to_display", ""),
