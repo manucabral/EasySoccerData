@@ -318,6 +318,10 @@ class PeriodStats:
     goalkeeping: GoalkeepingStats = field(default_factory=GoalkeepingStats)
 
 
+def _group_items(group_mapping: dict, name: str) -> list:
+    return (group_mapping.get(name) or {}).get("statisticsItems") or []
+
+
 def parse_period_stats(groups: list[dict[str, any]]) -> PeriodStats:
     """
     Parse period statistics.
@@ -328,29 +332,21 @@ def parse_period_stats(groups: list[dict[str, any]]) -> PeriodStats:
     Returns:
         PeriodStats: The parsed period statistics.
     """
-    group_mapping = {group["groupName"].lower(): group for group in groups}
+    group_mapping = {
+        group["groupName"].lower(): group
+        for group in groups
+        if isinstance(group, dict) and "groupName" in group
+    }
     return PeriodStats(
         match_overview=parse_match_overview_stats(
-            group_mapping.get("match overview", {}).get("statisticsItems", [])
+            _group_items(group_mapping, "match overview")
         ),
-        shots=parse_shots_stats(
-            group_mapping.get("shots", {}).get("statisticsItems", [])
-        ),
-        attack=parse_attack_stats(
-            group_mapping.get("attack", {}).get("statisticsItems", [])
-        ),
-        passes=parse_passes_stats(
-            group_mapping.get("passes", {}).get("statisticsItems", [])
-        ),
-        duels=parse_duels_stats(
-            group_mapping.get("duels", {}).get("statisticsItems", [])
-        ),
-        defending=parse_defending_stats(
-            group_mapping.get("defending", {}).get("statisticsItems", [])
-        ),
-        goalkeeping=parse_goalkeeping_stats(
-            group_mapping.get("goalkeeping", {}).get("statisticsItems", [])
-        ),
+        shots=parse_shots_stats(_group_items(group_mapping, "shots")),
+        attack=parse_attack_stats(_group_items(group_mapping, "attack")),
+        passes=parse_passes_stats(_group_items(group_mapping, "passes")),
+        duels=parse_duels_stats(_group_items(group_mapping, "duels")),
+        defending=parse_defending_stats(_group_items(group_mapping, "defending")),
+        goalkeeping=parse_goalkeeping_stats(_group_items(group_mapping, "goalkeeping")),
     )
 
 
@@ -409,7 +405,7 @@ def parse_match_stats(
         MatchStats: The parsed match
     """
     match_stats = MatchStats()
-    match_stats.win_probability = parse_match_probabilities(win_probabilities)
+    match_stats.win_probability = parse_match_probabilities(win_probabilities or {})
     if not data:
         # No data available
         return match_stats

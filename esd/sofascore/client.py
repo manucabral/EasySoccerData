@@ -5,6 +5,7 @@ This module contains the client class for interacting with the Sofascore API.
 from __future__ import annotations
 
 from ..logger import get_logger
+from ..utils import fetch_many
 from .service import SofascoreService
 from .types import (
     Bracket,
@@ -182,8 +183,17 @@ class SofascoreClient:
         Returns:
             TeamEx: The team information.
         """
-        team: Team = self.__service.get_team(team_id)
-        players: list[Player] = self.__service.get_team_players(team_id)
+        if not self.__service.use_playwright:
+            team, players = fetch_many(
+                [
+                    lambda: self.__service.get_team(team_id),
+                    lambda: self.__service.get_team_players(team_id),
+                ],
+                max_workers=2,
+            )
+        else:
+            team = self.__service.get_team(team_id)
+            players = self.__service.get_team_players(team_id)
         team.players = players
         return team
 

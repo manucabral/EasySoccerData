@@ -9,6 +9,7 @@ from ..logger import get_logger
 from ..utils import (
     BrowserSession,
     TTLCache,
+    fetch_many,
     get_api_json,
     get_json_playwright,
     get_today,
@@ -146,6 +147,21 @@ class SofascoreService:
         _logger.debug("get_player(player_id=%s)", player_id)
         try:
             url = self.endpoints.player_endpoint(player_id)
+            if not self.use_playwright:
+                data, attrs, transfers = fetch_many(
+                    [
+                        lambda: self._get_json(url),
+                        lambda: self.get_player_attributes(player_id),
+                        lambda: self.get_player_transfer_history(player_id),
+                    ],
+                    max_workers=3,
+                )
+                if "player" in data:
+                    player = parse_player(data["player"])
+                    player.attributes = attrs
+                    player.transfer_history = transfers
+                    return player
+                return Player()
             data = self._get_json(url)
             if "player" in data:
                 player = parse_player(data["player"])
@@ -215,10 +231,21 @@ class SofascoreService:
 
     def get_match_stats(self, event_id: int) -> MatchStats:
         try:
-            url = self.endpoints.match_stats_endpoint(event_id)
-            data = self._get_json(url).get("statistics", {})
-            url = self.endpoints.match_probabilities_endpoint(event_id)
-            win_probabilities = self._get_json(url).get("winProbability", {})
+            stats_url = self.endpoints.match_stats_endpoint(event_id)
+            prob_url = self.endpoints.match_probabilities_endpoint(event_id)
+            if not self.use_playwright:
+                stats_res, prob_res = fetch_many(
+                    [
+                        lambda: self._get_json(stats_url),
+                        lambda: self._get_json(prob_url),
+                    ],
+                    max_workers=2,
+                )
+            else:
+                stats_res = self._get_json(stats_url)
+                prob_res = self._get_json(prob_url)
+            data = stats_res.get("statistics", {})
+            win_probabilities = prob_res.get("winProbability", {})
             return parse_match_stats(data, win_probabilities)
         except Exception as exc:
             raise exc
