@@ -5,10 +5,9 @@ Goaloo service module.
 from __future__ import annotations
 
 import re
-import time
 
 from ..logger import get_logger
-from ..utils import get_api_json, get_text
+from ..utils import TTLCache, get_api_json, get_text
 from .endpoints import GoalooEndpoints
 from .exceptions import LeagueNotFound, TeamNotFound
 from .types import (
@@ -46,6 +45,7 @@ _BATTLE_RE = re.compile(r'var\s+battleData\s*=\s*"([^"]*)"')
 _LAST_MATCH_RE = re.compile(r'var\s+lastMatchData\s*=\s*"([^"]*)"')
 
 _CACHE_TTL = 60.0
+_SEASONS_CACHE_TTL = 3600.0
 
 
 class GoalooService:
@@ -56,22 +56,24 @@ class GoalooService:
     def __init__(self, proxies: dict = None) -> None:
         self.proxies = proxies
         self.endpoints = GoalooEndpoints()
-        self._seasons_cache: dict[int, list[str]] = {}
-        self._data_cache: dict[tuple[int, str], tuple[float, dict]] = {}
+        self._seasons_cache = TTLCache(ttl=_SEASONS_CACHE_TTL, maxsize=128)
+        self._data_cache = TTLCache(ttl=_CACHE_TTL, maxsize=128)
+        self._h2h_cache = TTLCache(ttl=_CACHE_TTL, maxsize=128)
 
     def get_seasons(self, league_id: int) -> list[str]:
         """
         Get the available seasons for a competition.
         """
-        if league_id in self._seasons_cache:
-            return self._seasons_cache[league_id]
+        cached = self._seasons_cache.get(league_id)
+        if cached is not None:
+            return cached
 
         url = self.endpoints.seasons_endpoint(league_id)
         data = get_api_json(url, proxies=self.proxies)
         seasons = data.get("SeasonList", []) if data else []
         if not seasons:
             raise LeagueNotFound(league_id)
-        self._seasons_cache[league_id] = seasons
+        self._seasons_cache.set(league_id, seasons)
         return seasons
 
     def _resolve_season(self, league_id: int, season: str | None) -> str:
@@ -79,28 +81,41 @@ class GoalooService:
             return season
         return self.get_seasons(league_id)[0]
 
-    def _fetch_data(self, league_id: int, season: str) -> dict:
+    def _fetch_data(self, league_id: int, season: str) -> tuple[dict, dict]:
         key = (league_id, season)
         cached = self._data_cache.get(key)
-        if cached is not None and time.monotonic() - cached[0] < _CACHE_TTL:
+        if cached is not None:
             _logger.debug("using cached goaloo data: %s", key)
-            return cached[1]
+            return cached
         url = self.endpoints.data_endpoint(league_id, season)
         _logger.debug("fetching goaloo data: %s", url)
         data = get_api_json(url, proxies=self.proxies)
-        self._data_cache[key] = (time.monotonic(), data)
-        return data
+        team_map = parse_teams(data.get("TeamInfo", [])) if data else {}
+        if data:
+            self._data_cache.set(key, (data, team_map))
+        return data, team_map
+
+    def _fetch_h2h_page(self, match_id: int) -> str:
+        cached = self._h2h_cache.get(match_id)
+        if cached is not None:
+            return cached
+        url = self.endpoints.h2h_endpoint(match_id)
+        _logger.debug("fetching goaloo h2h: %s", url)
+        page = get_text(url, proxies=self.proxies)
+        if page:
+            self._h2h_cache.set(match_id, page)
+        return page
 
     def get_league(self, league_id: int, season: str = None) -> League:
         """
         Get a competition's metadata and team list.
         """
         season = self._resolve_season(league_id, season)
-        data = self._fetch_data(league_id, season)
+        data, team_map = self._fetch_data(league_id, season)
         if not data or "LeagueInfo" not in data:
             raise LeagueNotFound(league_id)
         league = parse_league(data["LeagueInfo"])
-        league.teams = list(parse_teams(data.get("TeamInfo", [])).values())
+        league.teams = list(team_map.values())
         return league
 
     def get_matches(self, league_id: int, season: str = None) -> list[Match]:
@@ -108,10 +123,9 @@ class GoalooService:
         Get all matches of a competition for a season.
         """
         season = self._resolve_season(league_id, season)
-        data = self._fetch_data(league_id, season)
+        data, team_map = self._fetch_data(league_id, season)
         if not data or "ScheduleList" not in data:
             raise LeagueNotFound(league_id)
-        team_map = parse_teams(data.get("TeamInfo", []))
         return parse_matches(data.get("ScheduleList", {}), team_map)
 
     def get_standings(self, league_id: int, season: str = None) -> list[Standing]:
@@ -119,19 +133,16 @@ class GoalooService:
         Get the standings of a competition for a season.
         """
         season = self._resolve_season(league_id, season)
-        data = self._fetch_data(league_id, season)
+        data, team_map = self._fetch_data(league_id, season)
         if not data or "TotalScore" not in data:
             raise LeagueNotFound(league_id)
-        team_map = parse_teams(data.get("TeamInfo", []))
         return parse_standings(data.get("TotalScore", []), team_map)
 
     def get_h2h(self, match_id: int) -> HeadToHead:
         """
         Get the head-to-head history between the two teams of a match.
         """
-        url = self.endpoints.h2h_endpoint(match_id)
-        _logger.debug("fetching goaloo h2h: %s", url)
-        page = get_text(url, proxies=self.proxies)
+        page = self._fetch_h2h_page(match_id)
         battle = _BATTLE_RE.search(page)
         return parse_head_to_head(battle.group(1) if battle else "")
 
@@ -139,8 +150,7 @@ class GoalooService:
         """
         Get the recent match results for both teams of a match.
         """
-        url = self.endpoints.h2h_endpoint(match_id)
-        page = get_text(url, proxies=self.proxies)
+        page = self._fetch_h2h_page(match_id)
         last = _LAST_MATCH_RE.search(page)
         return parse_recent_form(last.group(1) if last else "")
 
@@ -149,10 +159,9 @@ class GoalooService:
         Get the over/under result distribution for a competition.
         """
         season = self._resolve_season(league_id, season)
-        data = self._fetch_data(league_id, season)
+        data, team_map = self._fetch_data(league_id, season)
         if not data:
             raise LeagueNotFound(league_id)
-        team_map = parse_teams(data.get("TeamInfo", []))
         pan = data.get("BigSmallPan", {}) or {}
         return parse_over_under(pan.get("TotalBs", []), team_map)
 
@@ -163,10 +172,9 @@ class GoalooService:
         Get the Asian handicap result distribution for a competition.
         """
         season = self._resolve_season(league_id, season)
-        data = self._fetch_data(league_id, season)
+        data, team_map = self._fetch_data(league_id, season)
         if not data:
             raise LeagueNotFound(league_id)
-        team_map = parse_teams(data.get("TeamInfo", []))
         pan = data.get("LetgoalPan", {}) or {}
         return parse_asian_handicap(pan.get("TotalPanLu", []), team_map)
 
@@ -175,10 +183,9 @@ class GoalooService:
         Get the home-only standings of a competition for a season.
         """
         season = self._resolve_season(league_id, season)
-        data = self._fetch_data(league_id, season)
+        data, team_map = self._fetch_data(league_id, season)
         if not data or "HomeScore" not in data:
             raise LeagueNotFound(league_id)
-        team_map = parse_teams(data.get("TeamInfo", []))
         return parse_standings_compact(data.get("HomeScore", []), team_map)
 
     def get_away_standings(self, league_id: int, season: str = None) -> list[Standing]:
@@ -186,10 +193,9 @@ class GoalooService:
         Get the away-only standings of a competition for a season.
         """
         season = self._resolve_season(league_id, season)
-        data = self._fetch_data(league_id, season)
+        data, team_map = self._fetch_data(league_id, season)
         if not data or "GuestScore" not in data:
             raise LeagueNotFound(league_id)
-        team_map = parse_teams(data.get("TeamInfo", []))
         return parse_standings_compact(data.get("GuestScore", []), team_map)
 
     def get_goal_timings(self, league_id: int, season: str = None) -> list[GoalTiming]:
@@ -197,10 +203,9 @@ class GoalooService:
         Get the goal timing distribution for each team of a competition.
         """
         season = self._resolve_season(league_id, season)
-        data = self._fetch_data(league_id, season)
+        data, team_map = self._fetch_data(league_id, season)
         if not data:
             raise LeagueNotFound(league_id)
-        team_map = parse_teams(data.get("TeamInfo", []))
         return parse_goal_timings(data.get("GoalInTimeList", []), team_map)
 
     def get_match_score(self, match_id: int) -> MatchScore:
