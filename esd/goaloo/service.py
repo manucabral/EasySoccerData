@@ -124,7 +124,7 @@ class GoalooService:
         """
         season = self._resolve_season(league_id, season)
         data, team_map = self._fetch_data(league_id, season)
-        if not data or "ScheduleList" not in data:
+        if not data or "LeagueInfo" not in data:
             raise LeagueNotFound(league_id)
         return parse_matches(data.get("ScheduleList", {}), team_map)
 
@@ -134,7 +134,7 @@ class GoalooService:
         """
         season = self._resolve_season(league_id, season)
         data, team_map = self._fetch_data(league_id, season)
-        if not data or "TotalScore" not in data:
+        if not data or "LeagueInfo" not in data:
             raise LeagueNotFound(league_id)
         return parse_standings(data.get("TotalScore", []), team_map)
 
@@ -184,7 +184,7 @@ class GoalooService:
         """
         season = self._resolve_season(league_id, season)
         data, team_map = self._fetch_data(league_id, season)
-        if not data or "HomeScore" not in data:
+        if not data or "LeagueInfo" not in data:
             raise LeagueNotFound(league_id)
         return parse_standings_compact(data.get("HomeScore", []), team_map)
 
@@ -194,7 +194,7 @@ class GoalooService:
         """
         season = self._resolve_season(league_id, season)
         data, team_map = self._fetch_data(league_id, season)
-        if not data or "GuestScore" not in data:
+        if not data or "LeagueInfo" not in data:
             raise LeagueNotFound(league_id)
         return parse_standings_compact(data.get("GuestScore", []), team_map)
 

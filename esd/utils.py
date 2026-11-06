@@ -2,6 +2,7 @@
 This module contains utility functions that are used in the project.
 """
 
+import json
 import random
 import re
 import threading
@@ -462,7 +463,7 @@ def get_json(
         raise SourceError(f"HTTP {status} from {url}")
 
     try:
-        data = response.json()
+        data = json.loads(response.text.lstrip("\ufeff"))
     except ValueError as exc:
         raise SourceError(f"Non-JSON response from {url}") from exc
 
