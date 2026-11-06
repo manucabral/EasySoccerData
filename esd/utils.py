@@ -448,7 +448,12 @@ def get_json(
         )
     else:
         _logger.debug("fetching JSON via httpx: %s", url)
-        with httpx.Client(proxies=proxies, timeout=timeout, headers=headers) as client:
+        proxy = (
+            (proxies.get("https") or proxies.get("http"))
+            if isinstance(proxies, dict)
+            else proxies
+        )
+        with httpx.Client(proxy=proxy, timeout=timeout, headers=headers) as client:
             response = client.get(url)
 
     status = response.status_code
@@ -492,7 +497,12 @@ def get_document(proxies: dict = None, url: str = None) -> html.HtmlElement:
     """
     try:
         _logger.debug("fetching document via httpx: %s", url)
-        with httpx.Client(proxies=proxies, timeout=30.0) as client:
+        proxy = (
+            (proxies.get("https") or proxies.get("http"))
+            if isinstance(proxies, dict)
+            else proxies
+        )
+        with httpx.Client(proxy=proxy, timeout=30.0) as client:
             response = client.get(url)
             response.raise_for_status()
             return html.fromstring(response.content)
@@ -639,6 +649,7 @@ def get_text(
     url: str,
     proxies: dict | None = None,
     timeout: float = 30.0,
+    impersonate: str = "chrome",
 ) -> str:
     """
     Get the raw text (HTML) response from a URL via curl_cffi.
@@ -649,6 +660,7 @@ def get_text(
         url (str): The URL to fetch.
         proxies (dict | None): Optional proxy dict.
         timeout (float): Request timeout in seconds (default 30).
+        impersonate (str): Browser profile for curl_cffi (default "chrome").
 
     Returns:
         str: The raw response text.
@@ -658,7 +670,7 @@ def get_text(
         SourceError: If the source returns any other unexpected HTTP status.
     """
     _logger.debug("fetching text via curl_cffi: %s", url)
-    response = _get_session().get(url, proxies=proxies, timeout=timeout)
+    response = _get_session(impersonate).get(url, proxies=proxies, timeout=timeout)
     status = response.status_code
     if status == 403:
         raise SourceBlocked(
