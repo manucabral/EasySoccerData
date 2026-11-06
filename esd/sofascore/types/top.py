@@ -34,7 +34,7 @@ def parse_top_players_match(data: dict) -> TopPlayersMatch:
     """
     if not data:
         return TopPlayersMatch()
-    best_player = data.get("playerOfTheMatch").get("player", {})
+    best_player = (data.get("playerOfTheMatch") or {}).get("player", {})
     return TopPlayersMatch(
         best=parse_player(best_player),
         home_team=parse_top_player_match(data.get("bestHomeTeamPlayers", [])),

@@ -29,7 +29,7 @@ class PlayerAttributes:
     """
 
     average: Attributes = field(default=None)
-    overview: list[Attributes] = field(default=list)
+    overview: list[Attributes] = field(default_factory=list)
 
 
 def parse_attributes(data: dict) -> Attributes:

@@ -61,7 +61,7 @@ class SofascoreClient:
         )
         _logger.debug("SofascoreClient initialized")
 
-    def get_events(self, date: str = 'today', live: bool = False) -> list[Event]:
+    def get_events(self, date: str = "today", live: bool = False) -> list[Event]:
         """
         Get the scheduled events.
 
@@ -343,3 +343,9 @@ class SofascoreClient:
     def close(self) -> None:
         """Close the reused browser, if any."""
         self.__service.close()
+
+    def __enter__(self) -> SofascoreClient:
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()

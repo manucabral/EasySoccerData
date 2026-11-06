@@ -2,6 +2,8 @@
 This module contains the endpoints of the SofaScore API.
 """
 
+from urllib.parse import quote
+
 
 class SofascoreEndpoints:
     """
@@ -54,7 +56,7 @@ class SofascoreEndpoints:
         Returns:
             str: The URL of the endpoint to search for entities.
         """
-        return f"{self.base_url}/search/{entity_type}?q={query}&page=0"
+        return f"{self.base_url}/search/{entity_type}?q={quote(query)}&page=0"
 
     def player_endpoint(self, player_id: int) -> str:
         """
