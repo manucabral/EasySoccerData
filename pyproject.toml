@@ -53,7 +53,6 @@ dependencies = [
     "lxml>=6.0",
     "curl-cffi>=0.7",
     "playwright>=1.40",
-    "beautifulsoup4>=4.9",
 ]
 
 [project.urls]

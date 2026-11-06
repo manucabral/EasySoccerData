@@ -28,4 +28,7 @@ jobs:
           pip install .[dev]
 
       - name: Lint with ruff
-        run: ruff check esd
+        run: ruff check esd tests
+
+      - name: Run tests
+        run: pytest
