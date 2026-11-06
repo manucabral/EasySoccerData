@@ -30,7 +30,7 @@ def parse_event(date: str, league_data: dict) -> Event:
     Returns:
         Event: The event data.
     """
-    games = league_data.pop("games", [])
+    games = league_data.get("games", [])
     league = parse_league(league_data)
     matches = [parse_match(game) for game in games]
     return Event(date=date, league=league, matches=matches)

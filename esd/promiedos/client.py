@@ -18,11 +18,14 @@ class PromiedosClient:
     This class provides methods to access and retrieve data from Promiedos.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, proxies: dict = None) -> None:
         """
         Initializes the Promiedos client.
+
+        Args:
+            proxies: Optional proxy dict.
         """
-        self.__service = PromiedosService()
+        self.__service = PromiedosService(proxies=proxies)
 
     def get_events(self, date: str = "today") -> list[Event]:
         """

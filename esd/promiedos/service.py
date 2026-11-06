@@ -4,10 +4,8 @@ Promiedos service module.
 
 from __future__ import annotations
 
-import time
-
 from ..logger import get_logger
-from ..utils import get_api_json, is_available_date
+from ..utils import TTLCache, get_api_json, is_available_date
 from .endpoints import PromiedosEndpoints
 from .exceptions import InvalidDate
 from .types import (
@@ -34,22 +32,24 @@ class PromiedosService:
     A class to represent the Promiedos service.
     """
 
-    def __init__(self):
+    def __init__(self, proxies: dict = None):
         """
         Initializes the Promiedos service.
         """
+        self.proxies = proxies
         self.endpoints = PromiedosEndpoints()
-        self._cache: dict[str, tuple[float, dict]] = {}
+        self._cache = TTLCache(ttl=_CACHE_TTL, maxsize=256)
 
     def _get_json(self, url: str) -> dict:
         """
         Fetch JSON from a Promiedos endpoint.
         """
         cached = self._cache.get(url)
-        if cached is not None and time.monotonic() - cached[0] < _CACHE_TTL:
-            return cached[1]
-        data = get_api_json(url, headers=_PROMIEDOS_HEADERS)
-        self._cache[url] = (time.monotonic(), data)
+        if cached is not None:
+            return cached
+        data = get_api_json(url, headers=_PROMIEDOS_HEADERS, proxies=self.proxies)
+        if data:
+            self._cache.set(url, data)
         return data
 
     def get_events(self, date: str = "today") -> list[Event]:
@@ -67,7 +67,7 @@ class PromiedosService:
                 ) from exc
         try:
             url = self.endpoints.events_endpoint.format(date=date)
-            data = self._get_json(url)["leagues"]
+            data = self._get_json(url).get("leagues", [])
             return parse_events(date, data)
         except Exception as exc:
             raise exc
@@ -129,7 +129,7 @@ class PromiedosService:
             url = self.endpoints.tournament_matchs_endpoint.format(
                 id=tournament_id, stage_id=stage_id
             )
-            data = self._get_json(url)["games"]
+            data = self._get_json(url).get("games", [])
             return [parse_match(match) for match in data]
         except Exception as exc:
             raise exc
