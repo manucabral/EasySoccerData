@@ -73,6 +73,8 @@ client = esd.GoalooClient()
 standings = client.get_standings(36)
 ```
 
+Check out [Goaloo module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/goaloo/)
+
 ## 365Scores
 ```py
 import esd
@@ -80,6 +82,8 @@ import esd
 client = esd.Scores365Client()
 games = client.get_games("today")
 ```
+
+Check out [365Scores module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/scores365/)
 
 ## Understat
 ```py
@@ -89,6 +93,8 @@ client = esd.UnderstatClient()
 matches = client.get_league_matches("EPL", 2024)
 ```
 
+Check out [Understat module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/understat/)
+
 ## Transfermarkt
 ```py
 import esd
@@ -96,6 +102,8 @@ import esd
 client = esd.TransfermarktClient()
 player = client.get_player(28003)
 ```
+
+Check out [Transfermarkt module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/transfermarkt/)
 
 ## ESPN
 ```py
@@ -105,6 +113,8 @@ client = esd.ESPNClient()
 matches = client.get_scoreboard("arg.1")
 ```
 
+Check out [ESPN module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/espn/)
+
 ## BeSoccer
 ```py
 import esd
@@ -112,6 +122,8 @@ import esd
 client = esd.BeSoccerClient()
 matches = client.get_matches("today")
 ```
+
+Check out [BeSoccer module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/besoccer/)
 
 
 # Supported modules

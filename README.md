@@ -89,6 +89,8 @@ for row in standings[0].rows[:5]:
     print(row.position, row.team.name, row.points)
 ```
 
+Check out [365Scores module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/scores365/)
+
 ## Understat
 ```py
 import esd
@@ -97,6 +99,8 @@ client = esd.UnderstatClient()
 matches = client.get_league_matches("EPL", 2024)
 shots = client.get_match_shots(26602)
 ```
+
+Check out [Understat module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/understat/)
 
 ## Transfermarkt
 ```py
@@ -108,6 +112,8 @@ print(player.name, player.market_value_display)
 transfers = client.get_player_transfers(28003)
 ```
 
+Check out [Transfermarkt module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/transfermarkt/)
+
 ## ESPN
 ```py
 import esd
@@ -117,6 +123,8 @@ matches = client.get_scoreboard("arg.1")
 standings = client.get_standings("arg.1")
 ```
 
+Check out [ESPN module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/espn/)
+
 ## BeSoccer
 ```py
 import esd
@@ -125,6 +133,8 @@ client = esd.BeSoccerClient()
 matches = client.get_matches("today")
 standings = client.get_standings("torneo_final")
 ```
+
+Check out [BeSoccer module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/besoccer/)
 
 ## Parallel fetching
 
