@@ -147,10 +147,15 @@ def parse_livescore_html(html_text: str) -> list[BeSoccerMatch]:
                 home_team.score = _extract_int(r1_els[0].text_content(), None)
                 away_team.score = _extract_int(r2_els[0].text_content(), None)
 
+            dates_els = [
+                d for d in link.iter("div") if "dates" in (d.get("class") or "")
+            ]
+            dates_text = dates_els[0].text_content().strip() if dates_els else ""
             markers = [
                 d for d in link.iter("div") if "marker" in (d.get("class") or "")
             ]
-            time_display = markers[0].text_content().strip() if markers else None
+            marker_text = markers[0].text_content().strip() if markers else ""
+            time_display = dates_text or marker_text or None
 
             tv_els = [
                 d for d in link.iter("div") if "tv-info" in (d.get("class") or "")

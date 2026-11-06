@@ -2,6 +2,8 @@
 Endpoints for the ESPN Soccer API.
 """
 
+from __future__ import annotations
+
 from urllib.parse import quote
 
 

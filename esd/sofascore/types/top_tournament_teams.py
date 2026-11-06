@@ -2,6 +2,8 @@
 Contains top tournament teams data.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 from .team import Team, parse_team

@@ -2,6 +2,8 @@
 SofaScore top tournament players data types.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 from .player import Player, parse_player

@@ -2,6 +2,8 @@
 Endpoints for Transfermarkt API and web search.
 """
 
+from __future__ import annotations
+
 from urllib.parse import quote
 
 

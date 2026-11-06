@@ -2,6 +2,8 @@
 This module contains the endpoints of the 365Scores API.
 """
 
+from __future__ import annotations
+
 from urllib.parse import quote
 
 

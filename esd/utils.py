@@ -2,6 +2,8 @@
 This module contains utility functions that are used in the project.
 """
 
+from __future__ import annotations
+
 import json
 import random
 import re
@@ -216,7 +218,7 @@ class BrowserSession:
         self._lock = threading.Lock()
         self._warmed_urls: set[str] = set()
 
-    def __enter__(self) -> "BrowserSession":
+    def __enter__(self) -> BrowserSession:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:

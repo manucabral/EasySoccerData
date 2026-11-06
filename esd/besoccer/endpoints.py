@@ -2,6 +2,8 @@
 Endpoints for BeSoccer.
 """
 
+from __future__ import annotations
+
 from urllib.parse import quote
 
 
