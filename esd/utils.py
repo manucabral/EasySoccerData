@@ -6,6 +6,7 @@ import random
 import re
 import threading
 import time
+from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime
@@ -26,25 +27,88 @@ _MAX_RETRIES = 3
 _BASE_DELAY = 1.0
 
 _TRANSIENT_ERRORS = (
-    SourceBlocked,
-    SourceError,
     requests.exceptions.RequestException,
     httpx.HTTPError,
 )
 
+_CAMEL_RE_1 = re.compile(r"(.)([A-Z][a-z]+)")
+_CAMEL_RE_2 = re.compile(r"([a-z0-9])([A-Z])")
 
-def _get_session() -> requests.Session:
+
+class TTLCache:
+    """
+    Thread-safe bounded dictionary with time-to-live expiration.
+    """
+
+    def __init__(self, ttl: float = 30.0, maxsize: int = 256) -> None:
+        self.ttl = ttl
+        self.maxsize = maxsize
+        self._data: OrderedDict = OrderedDict()
+        self._lock = threading.Lock()
+
+    def get(self, key):
+        now = time.monotonic()
+        with self._lock:
+            entry = self._data.get(key)
+            if entry is None:
+                return None
+            ts, value = entry
+            if now - ts >= self.ttl:
+                del self._data[key]
+                return None
+            self._data.move_to_end(key)
+            return value
+
+    def set(self, key, value) -> None:
+        now = time.monotonic()
+        with self._lock:
+            if key in self._data:
+                del self._data[key]
+            self._data[key] = (now, value)
+            while len(self._data) > self.maxsize:
+                self._data.popitem(last=False)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._data.clear()
+
+
+def _get_session(impersonate: str = "chrome") -> requests.Session:
     """
     Return a per-thread browser-impersonating session.
 
     Each thread keeps its own session so concurrent requests are safe, while
     sequential requests in the same thread reuse the connection pool.
     """
-    session = getattr(_local, "session", None)
+    sessions = getattr(_local, "sessions", None)
+    if sessions is None:
+        sessions = {}
+        _local.sessions = sessions
+    session = sessions.get(impersonate)
     if session is None:
-        session = requests.Session(impersonate="chrome")
-        _local.session = session
+        session = requests.Session(impersonate=impersonate)
+        sessions[impersonate] = session
     return session
+
+
+def _close_thread_sessions() -> None:
+    """Close any curl_cffi sessions attached to the current thread."""
+    sessions = getattr(_local, "sessions", None)
+    if sessions:
+        for session in sessions.values():
+            try:
+                session.close()
+            except Exception:
+                pass
+        sessions.clear()
+
+
+def _is_retryable_source_error(exc: SourceError) -> bool:
+    msg = str(exc)
+    return any(
+        code in msg
+        for code in ("HTTP 429", "HTTP 500", "HTTP 502", "HTTP 503", "HTTP 504")
+    )
 
 
 def _retry(func):
@@ -58,16 +122,22 @@ def _retry(func):
         for attempt in range(_MAX_RETRIES):
             try:
                 return func(*args, **kwargs)
+            except SourceError as exc:
+                if not _is_retryable_source_error(exc) or attempt == _MAX_RETRIES - 1:
+                    raise
+                last_error = exc
             except _TRANSIENT_ERRORS as exc:
                 last_error = exc
                 if attempt == _MAX_RETRIES - 1:
                     raise
-                delay = _BASE_DELAY * (2 ** attempt) + random.uniform(0, 0.5)
-                _logger.debug(
-                    "retrying %s in %.2fs after %s",
-                    func.__name__, delay, type(exc).__name__,
-                )
-                time.sleep(delay)
+            delay = _BASE_DELAY * (2**attempt) + random.uniform(0, 0.5)
+            _logger.debug(
+                "retrying %s in %.2fs after %s",
+                func.__name__,
+                delay,
+                type(last_error).__name__,
+            )
+            time.sleep(delay)
         raise last_error
 
     return wrapper
@@ -90,8 +160,15 @@ def fetch_many(callables: list, max_workers: int = 8) -> list:
             [partial(client.get_standings, league) for league in (36, 31, 34)]
         )
     """
+
+    def _run(fn):
+        try:
+            return fn()
+        finally:
+            _close_thread_sessions()
+
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        return list(executor.map(lambda fn: fn(), callables))
+        return list(executor.map(_run, callables))
 
 
 def to_dataframe(objects: list):
@@ -136,6 +213,13 @@ class BrowserSession:
         self._playwright = None
         self._browser = None
         self._lock = threading.Lock()
+        self._warmed_urls: set[str] = set()
+
+    def __enter__(self) -> "BrowserSession":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()
 
     def _launch(self) -> None:
         from playwright.sync_api import sync_playwright
@@ -152,10 +236,20 @@ class BrowserSession:
             launch_options["channel"] = "chrome"
         if self.proxies:
             launch_options["proxy"] = self.proxies
-        self._browser = self._playwright.chromium.launch(**launch_options)
+        try:
+            self._browser = self._playwright.chromium.launch(**launch_options)
+        except Exception:
+            try:
+                self._playwright.stop()
+            except Exception:
+                pass
+            self._playwright = None
+            raise
 
     def new_page(self):
         """Return a new page in the shared browser, with stealth applied."""
+        if self._browser is not None and not self._browser.is_connected():
+            self.close()
         if self._browser is None:
             self._launch()
         page = self._browser.new_page()
@@ -177,10 +271,14 @@ class BrowserSession:
             try:
                 yield page
             finally:
-                page.close()
+                try:
+                    page.close()
+                except Exception:
+                    pass
 
     def close(self) -> None:
         """Close the browser and release the Playwright driver."""
+        self._warmed_urls.clear()
         if self._browser is not None:
             try:
                 self._browser.close()
@@ -198,18 +296,40 @@ class BrowserSession:
         self.close()
 
 
-def _fetch_json_via_page(page, url: str, timeout: int, start_url: str) -> dict:
+def _fetch_json_via_page(
+    page,
+    url: str,
+    timeout: int,
+    start_url: str,
+    session: BrowserSession = None,
+) -> dict:
     import json as _json
 
-    _logger.debug("playwright: opening %s", start_url)
-    page.goto(start_url, wait_until="load", timeout=timeout)
-    page.wait_for_timeout(3000)
+    need_warmup = session is None or start_url not in session._warmed_urls
+    if need_warmup:
+        _logger.debug("playwright: opening %s", start_url)
+        page.goto(start_url, wait_until="load", timeout=timeout)
+        page.wait_for_timeout(3000)
+        if session is not None:
+            session._warmed_urls.add(start_url)
+
     _logger.debug("playwright: fetching JSON %s", url)
     page.goto(url, wait_until="load", timeout=timeout)
-    page.wait_for_timeout(1000)
-    text = page.evaluate("() => document.body.innerText")
+    text = page.evaluate("() => document.body ? document.body.innerText : ''")
     _logger.debug("playwright response (%d chars): %s", len(text), text[:200])
-    return _json.loads(text)
+    try:
+        return _json.loads(text)
+    except ValueError:
+        if not need_warmup and session is not None:
+            session._warmed_urls.discard(start_url)
+            _logger.debug("playwright: retrying with warm-up via %s", start_url)
+            page.goto(start_url, wait_until="load", timeout=timeout)
+            page.wait_for_timeout(3000)
+            session._warmed_urls.add(start_url)
+            page.goto(url, wait_until="load", timeout=timeout)
+            text = page.evaluate("() => document.body ? document.body.innerText : ''")
+            return _json.loads(text)
+        raise
 
 
 def get_json_playwright(
@@ -239,7 +359,7 @@ def get_json_playwright(
     if session is not None:
         try:
             with session.page() as page:
-                return _fetch_json_via_page(page, url, timeout, start_url)
+                return _fetch_json_via_page(page, url, timeout, start_url, session)
         except Exception as exc:
             _logger.warning("playwright JSON fetch failed for %s: %s", url, exc)
             return {}
@@ -247,7 +367,7 @@ def get_json_playwright(
     local = BrowserSession(chrome_path, proxies, headless)
     try:
         page = local.new_page()
-        return _fetch_json_via_page(page, url, timeout, start_url)
+        return _fetch_json_via_page(page, url, timeout, start_url, local)
     except Exception as exc:
         _logger.warning("playwright JSON fetch failed for %s: %s", url, exc)
         return {}
@@ -288,9 +408,7 @@ def camel_to_snake(name: str) -> str:
     Returns:
         str: The snake case string.
     """
-    return re.sub(
-        r"([a-z0-9])([A-Z])", r"\1_\2", re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", name)
-    ).lower()
+    return _CAMEL_RE_2.sub(r"\1_\2", _CAMEL_RE_1.sub(r"\1_\2", name)).lower()
 
 
 @_retry
@@ -324,18 +442,9 @@ def get_json(
         _logger.debug(
             "fetching JSON via curl_cffi (impersonate=%s): %s", impersonate, url
         )
-        if impersonate == "chrome":
-            response = _get_session().get(
-                url, headers=headers, proxies=proxies, timeout=timeout
-            )
-        else:
-            response = requests.get(
-                url,
-                impersonate=impersonate,
-                headers=headers,
-                proxies=proxies,
-                timeout=timeout,
-            )
+        response = _get_session(impersonate).get(
+            url, headers=headers, proxies=proxies, timeout=timeout
+        )
     else:
         _logger.debug("fetching JSON via httpx: %s", url)
         with httpx.Client(proxies=proxies, timeout=timeout, headers=headers) as client:
@@ -357,8 +466,8 @@ def get_json(
     except ValueError as exc:
         raise SourceError(f"Non-JSON response from {url}") from exc
 
-    if "error" in data and "code" in data["error"]:
-        code = data["error"]["code"]
+    if isinstance(data, dict) and "error" in data and isinstance(data["error"], dict):
+        code = data["error"].get("code")
         if code == 403:
             raise SourceBlocked(
                 "Access denied (403). The source is blocking this IP. "
@@ -388,7 +497,7 @@ def get_document(proxies: dict = None, url: str = None) -> html.HtmlElement:
             return html.fromstring(response.content)
     except httpx.HTTPStatusError as exc:
         if exc.response.status_code == 404:
-            return html.fromstring("")
+            return html.fromstring("<html><body></body></html>")
         raise exc
 
 
@@ -398,7 +507,8 @@ def _fetch_document_via_page(page, url: str, timeout: int, wait_until: str):
     content = ""
     prev_len = 0
     stable = 0
-    for _ in range(60):
+    saw_challenge = False
+    for i in range(60):
         try:
             content = page.content()
         except Exception:
@@ -406,14 +516,20 @@ def _fetch_document_via_page(page, url: str, timeout: int, wait_until: str):
             page.wait_for_timeout(1000)
             continue
         has_challenge = (
-            "Just a moment" in content
-            or "challenges.cloudflare.com" in content
+            "Just a moment" in content or "challenges.cloudflare.com" in content
         )
+        if has_challenge:
+            saw_challenge = True
         cur_len = len(content)
-        if not has_challenge and cur_len > 1000 and cur_len == prev_len:
-            stable += 1
-            if stable >= 3:
+        if not has_challenge and cur_len > 1000:
+            if not saw_challenge and i == 0:
                 break
+            if cur_len == prev_len:
+                stable += 1
+                if stable >= 2:
+                    break
+            else:
+                stable = 0
         else:
             stable = 0
         prev_len = cur_len
@@ -500,7 +616,9 @@ def is_available_date(date: str, pattern: str) -> None:
         raise ValueError("Invalid date.") from exc
 
 
-def get_api_json(url: str, headers: dict | None = None, proxies: dict | None = None) -> dict:
+def get_api_json(
+    url: str, headers: dict | None = None, proxies: dict | None = None
+) -> dict:
     """
     Get JSON from an API endpoint using Chrome impersonation via curl_cffi.
 
@@ -579,22 +697,15 @@ def get_document_impersonate(
     try:
         _logger.debug(
             "fetching document via curl_cffi (impersonate=%s, delay=%.1fs): %s",
-            impersonate, delay, url,
+            impersonate,
+            delay,
+            url,
         )
         time.sleep(delay)
         headers = {"Referer": "https://fbref.com/"}
-        if impersonate == "chrome":
-            response = _get_session().get(
-                url, proxies=proxies, timeout=timeout, headers=headers
-            )
-        else:
-            response = requests.get(
-                url,
-                impersonate=impersonate,
-                proxies=proxies,
-                timeout=timeout,
-                headers=headers,
-            )
+        response = _get_session(impersonate).get(
+            url, proxies=proxies, timeout=timeout, headers=headers
+        )
         response.raise_for_status()
         content = response.text if hasattr(response, "text") else response.content
         if isinstance(content, str):
@@ -605,7 +716,10 @@ def get_document_impersonate(
             return html.fromstring(content)
         return html.fromstring(content.encode("utf-8"))
     except Exception as exc:
-        if hasattr(exc, "response") and getattr(exc.response, "status_code", 0) in (404, 403):
+        if hasattr(exc, "response") and getattr(exc.response, "status_code", 0) in (
+            404,
+            403,
+        ):
             _logger.warning(
                 "curl_cffi got %d for %s",
                 exc.response.status_code if hasattr(exc, "response") else 0,
