@@ -46,12 +46,16 @@ for event in events:
 Check out [Sofascore module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/sofascore/)
 
 ## FBRef
-> [!WARNING]
-> FBRef is not available in the latest PyPI release yet.
-> 
-> It is currently available only in the development version from the repository.
-> 
-> Check out [FBref module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/fbref/)
+```py
+import esd
+
+client = esd.FBrefClient()
+matchs = client.get_matchs()
+for match in matchs:
+    print(match)
+```
+
+Check out [FBref module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/fbref/)
 
 ## Promiedos
 ```py
@@ -170,13 +174,13 @@ If you have any questions or need further assistance, feel free to open an issue
 | :--- | :---: | :---: |
 | Sofascore | ✅ | ✅ |
 | Promiedos | ✅ | ✅ |
-| FBRef | ❌ | ✅ |
-| Goaloo | ❌ | ✅ |
-| 365Scores | ❌ | ✅ |
-| Understat | ❌ | ✅ |
-| Transfermarkt | ❌ | ✅ |
-| ESPN | ❌ | ✅ |
-| BeSoccer | ❌ | ✅ |
+| FBRef | ✅ | ✅ |
+| Goaloo | ✅ | ✅ |
+| 365Scores | ✅ | ✅ |
+| Understat | ✅ | ✅ |
+| Transfermarkt | ✅ | ✅ |
+| ESPN | ✅ | ✅ |
+| BeSoccer | ✅ | ✅ |
 
 > Keep in mind that it is still under active development.
 

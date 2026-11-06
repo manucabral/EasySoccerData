@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.2.0] - 2026-11-06
+
+### Added
+
+- **365Scores module** (`esd.scores365`): daily and live games, match details with events and lineups, team statistics, competition standings and entity search.
+- **Understat module** (`esd.understat`): league and team matches with Expected Goals (xG) and win forecasts, player xG/xA statistics, team match-by-match xPTS histories and pitch shotmaps with coordinates.
+- **Transfermarkt module** (`esd.transfermarkt`): player profiles, current and historical market value progressions, complete transfer histories, club squad valuations and entity search.
+- **ESPN module** (`esd.espn`): live scoreboards across international leagues, full match summaries (boxscore stats, rosters, timeline events and commentary), league standings and club lists.
+- **BeSoccer module** (`esd.besoccer`): daily livescore matches and competition standings tables.
+- Top-level exports in `esd`: `Scores365Client`, `UnderstatClient`, `TransfermarktClient`, `ESPNClient`, `BeSoccerClient`, `fetch_many` and `to_dataframe`.
+- Automated unit test suite under `tests/` executed in CI across Python 3.9 to 3.13.
+- Usage examples in `examples/` for 365Scores, Understat, Transfermarkt, ESPN and BeSoccer.
+
+### Changed
+
+- Enforce Ruff `FA102` (`flake8-future-annotations`) to guarantee PEP 604 type union compatibility on Python 3.9.
+- `esd.utils.get_text` now accepts custom `impersonate` targets.
+
+### Fixed
+
+- Added `from __future__ import annotations` across all modules using PEP 604 union syntax for Python 3.9 compatibility.
+- `esd.utils._get_httpx_client`: pass `proxy` keyword argument compatible with `httpx>=0.28`.
+- Promiedos: avoid mutating cached events in `get_events` and guard missing `start_time` against Windows epoch `OSError`.
+- Sofascore: fix mutable default arguments, URL-encode search queries and guard empty payloads and null timestamps.
+- FBref: fix table parsers, HTML comment XPath lookup and unified rate limiting.
+- Goaloo: strip UTF-8 BOM in JSON responses and allow empty standings.
+- BeSoccer: prioritize live match clock/status in `time_display` before falling back to marker text.
+
+### Performance
+
+- Bounded `TTLCache` with LRU eviction (`maxsize=256`).
+- Sofascore: parallelize composite fetches in `get_match_stats` and `get_top_tournament_players`.
+- Goaloo: cache parsed team map and reuse H2H page across calls.
+- Skip redundant browser warmup in `BrowserSession` when the target domain is already warmed.
+
+### Removed
+
+- Unused `beautifulsoup4` dependency.
+
 ## [0.1.0] - 2026-11-03
 
 ### Added
