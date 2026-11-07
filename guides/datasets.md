@@ -103,6 +103,18 @@ and does not reproduce official standings. Partial downloads retain their errors
 Use `match_records` or the download example's `--open-dir` to read the same
 fixtures without pandas.
 
+For a comparison of the same Champions League UTC range across 365Scores and ESPN,
+run `python examples/datasets/champions_compare.py`. The
+[comparison example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/datasets/champions_compare.py)
+loads explicit aliases from a JSON example map, links unique candidates and reports
+unmatched or ambiguous native IDs. It retains source scores, status codes and
+original fetch times per query. Review aliases for other date ranges. Score
+differences are observations, not automatic corrections or proof of a source error.
+With the Parquet extra, `--output-dir ./my-data/champions-pair-1` saves both datasets,
+aliases and report. `--open-dir ./my-data/champions-pair-1` repeats the comparison
+offline, without pandas, using the saved tolerance and identities. ESPN queries
+only daily scoreboards, with adjacent-day padding before UTC filtering.
+
 ## Partial downloads
 
 `complete` means that every requested task succeeded. It does not establish that

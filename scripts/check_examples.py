@@ -8,6 +8,7 @@ from pathlib import Path
 BASE = (
     ("examples/datasets/providers.py", "--list"),
     ("examples/pandas/champions_analysis.py", "--help"),
+    ("examples/datasets/champions_compare.py", "--help"),
     ("examples/datasets/link_matches.py",),
     ("examples/datasets/partial_results.py",),
     ("examples/datasets/cache_resume_offline.py",),

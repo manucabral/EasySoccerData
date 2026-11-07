@@ -74,6 +74,64 @@ python examples/datasets/champions_league.py --open-dir "./my-data/champions-sna
 Or iterate over `esd.open_dataset(path).match_records` in Python. That path
 requires PyArrow and does not import pandas.
 
+### Compare Champions League providers
+
+[champions_compare.py](datasets/champions_compare.py) compares 365Scores competition
+`572` with ESPN `uefa.champions`, using normalized records without pandas.
+The default selection is November 3-4, 2026 in UTC. The included
+[identity file](datasets/champions_identities.json) contains explicit competition
+and team mappings checked against both sources on November 7, 2026 for that
+selection. It is an example map, not a complete club catalogue. Review it when
+changing dates or provide your own JSON list with `--identities`.
+
+```sh
+python examples/datasets/champions_compare.py
+python examples/datasets/champions_compare.py --cache-dir "./my-data/champions-responses"
+python examples/datasets/champions_compare.py --start-date 2026-11-03 --end-date 2026-11-04 --season 2026 --espn-season 2026 --identities "./examples/datasets/champions_identities.json"
+```
+
+The selected range is one to seven inclusive UTC days. 365Scores fetches each
+selected day. ESPN also fetches one boundary day before and after the range,
+then filters kickoff times in UTC and deduplicates native match IDs. A two-day
+selection therefore makes six daily queries before transport retries. ESPN's
+source season is validated with `--espn-season`; `--season` is the 365Scores
+caller label. No full-season calendar or match-detail requests are made.
+
+Links require mapped competition IDs, ordered home/away team IDs and a unique
+kickoff candidate within `--tolerance-seconds` (default `300`). Names and scores
+do not establish identity. Missing mappings, unknown kickoff times, swapped
+teams or schedule changes outside tolerance leave matches unresolved. Multiple
+candidates remain ambiguous. Partial mappings can still produce some links.
+
+The report lists linked, unmatched and ambiguous native match IDs separately.
+Each link retains both sources' kickoff, score and native status. Score comparison
+is `equal`, `different` or `unknown` when either source lacks a score. Equal raw
+scores do not prove equivalent match states or penalty conventions. The report
+also includes each loader's time window and original response fetch timestamps
+per task, including cache hits. Those timestamps are not per-match provenance.
+
+To save both datasets and repeat the comparison without network access:
+
+```sh
+python -m pip install -e ".[parquet]"
+python examples/datasets/champions_compare.py --cache-dir "./my-data/champions-responses" --output-dir "./my-data/champions-pair-1"
+python examples/datasets/champions_compare.py --open-dir "./my-data/champions-pair-1"
+```
+
+The new output directory contains `scores365/` and `espn/` snapshots,
+`identities.json` and `comparison.json`. Both snapshots, including partial errors,
+are staged before publishing the pair. Existing paths are not overwritten.
+Opening a pair recomputes links using the saved aliases and tolerance. Use
+`--identities` or `--tolerance-seconds` to override those values offline.
+Download options cannot be combined with `--open-dir`.
+
+The cache needs only the base installation. `--refresh` fetches all selected
+and boundary days again. Parquet storage needs PyArrow, independently of pandas.
+Exit code `0` means both downloads completed, even if records differ or remain
+unlinked. `1` means a source query failed and the report contains partial results.
+Invalid arguments, mismatched snapshot ranges or storage failures return `2`.
+Import and `--help` work without source requests or optional packages.
+
 ## Live dataset queries
 
 ### Champions League: a short date range
