@@ -4,6 +4,7 @@
 
 ### Added
 
+- Normalized lineups and player-match statistics for explicit ESPN, 365Scores and Sofascore match IDs, with shared response budgets, nullable roles/metrics, native member/athlete IDs and live/offline examples. Team match totals can be requested alongside them.
 - Read-only match-statistics comparisons with explicit identities, absolute metric tolerances, missing/period/model diagnostics, original source provenance and optional DataFrame export. Examples cover offline records and Champions League snapshot pairs.
 - Optional native-ID match statistics datasets for ESPN, 365Scores and Sofascore, with bounded endpoint reads, source identity checks, nullable metrics, cache provenance and live/offline examples.
 - Transfermarkt competition search pages and native season selectors, BeSoccer standings year discovery, source URLs and a 365Scores discovery/download/validation workflow with optional verified Parquet snapshots.
@@ -22,7 +23,7 @@
 
 ### Changed
 
-- Normalized schema version 2 adds whole-match team counts, percentage-point possession and source period labels. Version 1 Parquet snapshots remain readable with new columns set to null.
+- Normalized schema version 3 includes whole-match team counts, percentage-point possession, source period labels, lineups and player-match statistics with nullable boolean flags. Version 1/2 snapshots remain readable, retaining their original selected tables, values and timestamps.
 
 ### Fixed
 

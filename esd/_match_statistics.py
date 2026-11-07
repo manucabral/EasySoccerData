@@ -93,7 +93,7 @@ def _match_identity(match, options, identifier):
     return match
 
 
-def _espn(data, options, identifier):
+def _espn_match(data, options, identifier):
     header = _object(data.get("header"), "ESPN header")
     if (str(header.get("id")) != identifier or _object(header.get("league"), "league").get("slug") != options["league"]
             or _object(header.get("season"), "season").get("year") != options["season"]):
@@ -107,6 +107,11 @@ def _espn(data, options, identifier):
     event = dict(header, date=competitions[0].get("date"))
     match = _match_identity(normalize_match(parse_scoreboard({"events": [event]})[0],
                                           competition_id=options["league"], season=options["season"]), options, identifier)
+    return match
+
+
+def _espn(data, options, identifier):
+    match = _espn_match(data, options, identifier)
     teams = _list(_object(data.get("boxscore"), "boxscore").get("teams"), "boxscore teams")
     sides = {match.home_team_id: "home", match.away_team_id: "away"}
     seen, values = set(), {}
@@ -124,7 +129,7 @@ def _espn(data, options, identifier):
     return match, NormalizedMatchStats("espn", identifier, source_period="boxscore", **values)
 
 
-def _scores(data, options, identifier):
+def _scores_match(data, options, identifier):
     games = _list(data.get("games"), "games")
     if len(games) != 1:
         raise SourceError("365Scores statistics must identify exactly one match")
@@ -133,7 +138,16 @@ def _scores(data, options, identifier):
             or str(game.get("seasonNum")) != str(options["season_id"])
             or type(game.get("sportId")) is not int or game["sportId"] != 1):
         raise SourceError("365Scores statistics do not match the requested football competition and native season")
-    match = _match_identity(normalize_match(parse_games({"games": games})[0], season=options["season"]), options, identifier)
+    # Match context must not parse unselected events or individual statistics.
+    context = {key: value for key, value in game.items() if key not in ("members", "events")}
+    for side in ("homeCompetitor", "awayCompetitor"):
+        context[side] = {key: value for key, value in _object(game.get(side), side).items() if key != "lineups"}
+    match = _match_identity(normalize_match(parse_games({"games": [context]})[0], season=options["season"]), options, identifier)
+    return match
+
+
+def _scores(data, options, identifier):
+    match = _scores_match(data, options, identifier)
     actual = data.get("actualGameStatistics")
     if actual is not None and _object(actual, "actualGameStatistics").get("filterId") != -1:
         raise SourceError("365Scores statistics do not describe the whole match")
@@ -178,25 +192,22 @@ def _sofa_stats(data, identifier):
     return NormalizedMatchStats("sofascore", identifier, source_period="ALL", **values)
 
 
-def load_match_statistics(**options):
-    """Fetch only explicit IDs; budget endpoint reads before normal transport retries."""
-    from ._provider_datasets import _Download
-
+def _detail_options(options, *, requests_per_match, allowed_tables):
     source = options["source"]
     identifiers = options["match_ids"]
     if (not isinstance(identifiers, Sequence) or isinstance(identifiers, (str, bytes)) or not identifiers
             or any(type(value) not in (str, int) or not str(value).isascii()
                    or not str(value).isdigit() or int(value) < 1 for value in identifiers)):
-        raise ValueError("match_stats requires a nonempty sequence of positive native match_ids")
+        raise ValueError("Match details require a nonempty sequence of positive native match_ids")
     identifiers = tuple(dict.fromkeys(str(int(value)) for value in identifiers))
     budget = options["max_match_requests"]
-    cost = len(identifiers) * (2 if source == "sofascore" else 1)
+    cost = len(identifiers) * requests_per_match
     if type(budget) is not int or budget < 1 or cost > budget:
         raise ValueError(f"Selected match details require {cost} endpoint reads, exceeding max_match_requests={budget}")
     if any(options[key] is not None for key in ("start_date", "end_date", "anchor_date", "source_timezone", "source_season", "club_ids", "player_ids")) or options["max_pages"] != 100:
         raise ValueError("Explicit match statistics do not accept calendar, date-range or entity filters")
-    if any(table not in ("matches", "teams", "match_stats") for table in options["tables"]):
-        raise ValueError("Load standings and other tables separately from explicit match statistics")
+    if any(table not in allowed_tables for table in options["tables"]):
+        raise ValueError("Load standings and other tables separately from explicit match details")
     if source == "espn":
         if options["season_id"] is not None:
             raise ValueError("ESPN uses its season year instead of season_id")
@@ -208,6 +219,16 @@ def load_match_statistics(**options):
         options["league"] = str(int(options["league"]))
         options["season_id"] = str(int(options["season_id"]))
     options["coverage_scope"] = "match_ids"
+    return identifiers
+
+
+def load_match_statistics(**options):
+    """Fetch only explicit IDs; budget endpoint reads before normal transport retries."""
+    from ._provider_datasets import _Download
+
+    source = options["source"]
+    identifiers = _detail_options(options, requests_per_match=2 if source == "sofascore" else 1,
+                                  allowed_tables=("matches", "teams", "match_stats"))
     download = _Download(options)
     download.requested_ids = identifiers
     for identifier in identifiers:

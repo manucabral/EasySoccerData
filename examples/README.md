@@ -24,6 +24,8 @@ snapshot. Temporary-file examples clean up after themselves.
 | [Discovery workflow](datasets/discovery_workflow_offline.py) | Base | Artificial discovery, exact native selection, download and validation |
 | [Discovery workflow](datasets/discovery_workflow_offline.py) with `--parquet` | Parquet | Same flow, temporary snapshot verification and offline reopening |
 | [Match statistics](datasets/match_statistics_offline.py) | Base | Explicit IDs/budget, away-first team groups, missing values and recorded zeros |
+| [Lineups and player statistics](datasets/match_players_offline.py) | Base | Native player/team IDs, nullable roles, individual metrics and team totals from one response |
+| [Lineups and player statistics](datasets/match_players_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable booleans/counts or temporary snapshot verification |
 | [Match statistics](datasets/match_statistics_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable DataFrame columns or a temporary snapshot round trip |
 | [Statistics comparison](datasets/compare_statistics_offline.py) | Base | Explicit identities, count differences, tolerances, zeros, missing metrics and separate xG models |
 | [Statistics comparison](datasets/compare_statistics_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable report rows or reproducible comparisons from temporary snapshots |
@@ -194,6 +196,47 @@ applicable. Import and `--help` make no requests. The
 records and supports independent `--pandas` and `--parquet` flags.
 
 ## Live dataset queries
+
+### Lineups, player statistics and match totals
+
+[match_players.py](datasets/match_players.py) downloads explicit native match IDs
+from ESPN, 365Scores or Sofascore. It selects `lineups` and `player_match_stats`,
+plus matches/teams as context. `--lineups-only` skips individual metrics.
+`--with-match-stats` adds team totals. No full calendar is requested:
+
+```sh
+python examples/datasets/match_players.py --source espn --league uefa.champions --season 2026 --match-id 401915310 --with-match-stats --max-match-requests 1
+python examples/datasets/match_players.py --source scores365 --league 572 --season 2026 --season-id 74 --match-id 4828447 --with-match-stats --max-match-requests 2
+```
+
+These IDs identified Shakhtar–Sporting on November 3, 2026 in the live check
+on November 7. Supply your own native IDs/year/season for a different match.
+Repeat `--match-id` to select more matches. `--max-match-requests` defaults to
+`20` and counts endpoint reads before retries. ESPN needs one summary per ID.
+365Scores needs one detail plus another read when requesting team totals.
+Sofascore needs event context and lineups, plus team statistics when selected.
+Source blocks remain errors; no browser is launched.
+
+The base installation prints records with a default preview limit of five rows
+per table. Change `--limit` to see more. Unknown minutes and flags remain `None`.
+365Scores keeps separate member/athlete IDs and excludes absent players and
+management. Positions and confirmation/status fields retain source semantics.
+The [guide](../guides/datasets.md#lineups-and-player-match-statistics) explains
+the mappings and difference between player-match and player-season statistics.
+
+```sh
+python examples/datasets/match_players.py --source espn --league uefa.champions --season 2026 --match-id 401915310 --cache-dir ./my-data/player-responses --output-dir ./my-data/player-snapshot-1
+python examples/datasets/match_players.py --open-dir ./my-data/player-snapshot-1
+python examples/datasets/match_players_offline.py
+```
+
+Cache storage uses the base installation. `--refresh` revalidates a new response
+before replacing the old entry. `--output-dir` and `--open-dir` need `[parquet]`,
+with snapshots verified after saving. `--open-dir` cannot be combined with
+download options. Add `--pandas` independently to display the DataFrames.
+Existing destinations and missing extras fail before source requests. Complete
+downloads, including valid empty lineups, return `0`. Partial results retain
+errors and return `1`. Invalid arguments or missing extras return `2`.
 
 ### Match statistics for selected IDs
 

@@ -118,6 +118,7 @@ def check_dataset_compatibility(
     if not valid:
         issues.append("Unsupported or different schema versions")
     attributes = {
+        "lineups": "lineup_records", "player_match_stats": "player_match_stat_records",
         "matches": "match_records",
         "teams": "team_records",
         "standings": "standing_records",

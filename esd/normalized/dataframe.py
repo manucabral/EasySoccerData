@@ -6,16 +6,16 @@ from dataclasses import fields
 
 from ..utils import to_dataframe
 from .models import SCHEMA_VERSION
-from .schema import FLOAT_COLUMNS, INTEGER_COLUMNS, TABLE_MODELS
+from .schema import BOOLEAN_COLUMNS, FLOAT_COLUMNS, INTEGER_COLUMNS, TABLE_MODELS
 
 
 def normalized_to_dataframe(objects: list, *, table: str):
     """Export normalized records using the current normalized schema version.
 
     table selects matches, teams, standings, match_stats, player_stats, shots,
-    players, market_values or transfers.
+    players, market_values, transfers, lineups or player_match_stats.
     All rows must use the normalized model for that table. IDs and names use
-    nullable string, counts use Int64, metrics use Float64, and kickoff uses
+    nullable string, counts use Int64, metrics use Float64, flags use boolean, and kickoff uses
     datetime64[ns, UTC]. Rows are exported without entity matching or
     deduplication. Status values keep the source's codes and text.
     """
@@ -29,7 +29,8 @@ def normalized_to_dataframe(objects: list, *, table: str):
         if field.name != "kickoff":
             dtypes[field.name] = (
                 "Int64" if field.name in INTEGER_COLUMNS else
-                "Float64" if field.name in FLOAT_COLUMNS else "string"
+                "Float64" if field.name in FLOAT_COLUMNS else
+                "boolean" if field.name in BOOLEAN_COLUMNS else "string"
             )
     frame = to_dataframe(
         objects,

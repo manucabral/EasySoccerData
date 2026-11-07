@@ -46,12 +46,22 @@ def main():
     with patch("esd._provider_datasets.get_api_json", return_value=detail_payload):
         details = esd.load_dataset(source="espn", league="example.cup", season=2026,
                                    tables=["match_stats"], match_ids=[1], max_match_requests=1)
-    assert details.complete and details.metadata.schema_version == "2"
+    assert details.complete and details.metadata.schema_version == "3"
     assert details.match_stat_records[0].home_shots == 0 and details.match_stat_records[0].away_shots is None
     assert esd.validate_dataset(details).valid
     comparison = esd.compare_match_statistics(details, details, metrics=["home_shots", "away_shots"])
     assert comparison.rows[0].status == "equal" and comparison.rows[0].delta == 0
     assert comparison.rows[1].status == "missing_both" and comparison.rows[1].delta is None
+    detail_payload["rosters"] = [{"team": {"id": "10"}, "roster": [
+        {"athlete": {"id": "101"}, "starter": False, "stats": [{"name": "totalGoals", "value": 0}]},
+        {"athlete": {"id": "102"}},
+    ]}]
+    with patch("esd._provider_datasets.get_api_json", return_value=detail_payload):
+        players = esd.load_dataset(source="espn", league="example.cup", season=2026,
+                                   tables=["player_match_stats"], match_ids=[1], max_match_requests=1)
+    assert esd.validate_dataset(players).valid and players.complete
+    assert players.lineup_records[0].starter is False and players.lineup_records[1].starter is None
+    assert players.player_match_stat_records[0].goals == 0 and players.player_match_stat_records[0].minutes is None
     assert all(contract.tables for contract in esd.get_dataset_capabilities().values())
     now = datetime(2024, 8, 16, 19, tzinfo=timezone.utc)
     dataset = esd.SoccerDataset(
@@ -89,6 +99,7 @@ def main():
         if wants_arrow:
             assert esd.open_dataset(dataset.save(Path(directory) / "snapshot")) == dataset
             assert esd.open_dataset(details.save(Path(directory) / "statistics")) == details
+            assert esd.open_dataset(players.save(Path(directory) / "players")) == players
         else:
             try:
                 dataset.save(Path(directory) / "snapshot")
@@ -105,6 +116,9 @@ def main():
         assert str(details.match_stats.home_shots.dtype) == "Int64"
         assert details.match_stats.away_shots.isna().all()
         assert str(comparison.to_dataframe().left_value.dtype) == "Float64"
+        assert str(players.lineups.starter.dtype) == "boolean"
+        assert players.lineups.starter.isna().sum() == 1
+        assert str(players.player_match_stats.goals.dtype) == "Int64"
     else:
         assert "pandas" not in sys.modules
         try:

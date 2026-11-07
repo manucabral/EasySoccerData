@@ -30,7 +30,7 @@ class MatchStatisticComparison:
 
     equal includes the caller's absolute tolerance. Missing records/values,
     unknown or different periods and cross-source xG/forecasts have no delta.
-    Fetch times come only from exact match_stats task keys, never loader times.
+    Fetch times come only from exact statistic/detail task keys, never loader times.
     """
 
     left_source: str
@@ -151,7 +151,7 @@ def _index_statistics(dataset):
 
 
 def _fetched(timestamps, identifier):
-    value = timestamps.get(f"match_stats:{identifier}")
+    value = timestamps.get(f"match_stats:{identifier}", timestamps.get(f"match_details:{identifier}"))
     return datetime.fromisoformat(value).astimezone(timezone.utc) if value is not None else None
 
 
@@ -221,6 +221,6 @@ def compare_match_statistics(
             "Numeric differences describe source observations, not verified metric equivalence or a preferred source.",
             "Source totals can include different extra-time or collection conventions; native periods remain visible.",
             "Cross-source xG and forecast values stay separate without a delta.",
-            "Per-row fetch times require exact match_stats task keys; metadata retains all original source timestamps.",
+            "Per-row fetch times require exact match_stats or shared match_details task keys; metadata retains all source timestamps.",
         ),
     )

@@ -14,11 +14,12 @@ from pathlib import Path
 
 from .datasets import DatasetFormatError, DatasetIssue, DatasetMetadata, SoccerDataset
 from .normalized import SCHEMA_VERSION
-from .normalized.schema import FLOAT_COLUMNS, INTEGER_COLUMNS, TABLE_MODELS
+from .normalized.schema import BOOLEAN_COLUMNS, FLOAT_COLUMNS, INTEGER_COLUMNS, TABLE_MODELS
 
 _FORMAT = "easysoccerdata-parquet"
 _STORAGE_VERSION = 1
 _RECORDS = {
+    "lineups": "lineup_records", "player_match_stats": "player_match_stat_records",
     "matches": "match_records", "teams": "team_records", "standings": "standing_records",
     "match_stats": "match_stat_records", "player_stats": "player_stat_records", "shots": "shot_records",
     "players": "player_records", "market_values": "market_value_records", "transfers": "transfer_records",
@@ -45,7 +46,8 @@ def _schema(pa, table, version=SCHEMA_VERSION):
     return pa.schema([
         (field.name, pa.timestamp("us", tz="UTC") if field.name == "kickoff" else
          pa.int64() if field.name in INTEGER_COLUMNS else
-         pa.float64() if field.name in FLOAT_COLUMNS else pa.string())
+         pa.float64() if field.name in FLOAT_COLUMNS else
+         pa.bool_() if field.name in BOOLEAN_COLUMNS else pa.string())
         for field in fields(TABLE_MODELS[table])
         if version != "1" or table != "match_stats" or field.name in _V1_MATCH_STATS
     ])
@@ -95,8 +97,10 @@ def _metadata(data, *, allow_legacy=False):
     if not set(meta["cached_tasks"]) <= {item[0] for item in response_times}:
         raise ValueError("Cached tasks are missing their response timestamps")
     result = DatasetMetadata(**meta)
-    if result.schema_version != SCHEMA_VERSION and not (allow_legacy and result.schema_version == "1"):
+    if result.schema_version != SCHEMA_VERSION and not (allow_legacy and result.schema_version in ("1", "2")):
         raise ValueError(f"Unsupported schema version: {result.schema_version}")
+    if result.schema_version in ("1", "2") and set(result.tables) & {"lineups", "player_match_stats"}:
+        raise ValueError("Lineups and player_match_stats require schema version 3")
     if not result.tables or any(table not in TABLE_MODELS for table in result.tables):
         raise ValueError("Invalid table selection")
     if any(not isinstance(value, str) or not value for value in (result.source, result.league)):
@@ -152,6 +156,9 @@ def _validate_records(records, table):
             elif field.name in FLOAT_COLUMNS:
                 if type(value) not in (int, float) or not math.isfinite(value):
                     raise ValueError(f"{field.name} must be a finite number or None")
+            elif field.name in BOOLEAN_COLUMNS:
+                if type(value) is not bool:
+                    raise ValueError(f"{field.name} must be a boolean or None")
             elif not isinstance(value, str):
                 raise ValueError(f"{field.name} must be a string or None")
 

@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from ._dataset_storage import _RECORDS, _metadata, _metadata_json, _validate_records
 from .datasets import DatasetIssue, DatasetMetadata, SoccerDataset
-from .normalized.schema import MATCH_COUNT_METRICS
+from .normalized.schema import MATCH_COUNT_METRICS, PLAYER_MATCH_COUNT_METRICS
 
 
 @dataclass(frozen=True)
@@ -50,6 +50,7 @@ class DatasetValidationReport:
 
 
 _KEYS = {
+    "lineups": ("match_id", "team_id", "player_id"), "player_match_stats": ("match_id", "team_id", "player_id"),
     "matches": ("match_id",), "teams": ("team_id",), "match_stats": ("match_id",),
     "shots": ("shot_id",), "players": ("player_id",), "transfers": ("transfer_id",),
     "player_stats": ("competition_id", "season", "player_id"),
@@ -58,6 +59,7 @@ _KEYS = {
     "market_values": ("player_id", "source_date", "team_id", "source_season_id"),
 }
 _PRIMARY_IDS = {
+    "lineups": "player_id", "player_match_stats": "player_id",
     "matches": "match_id", "teams": "team_id", "match_stats": "match_id", "shots": "shot_id",
     "players": "player_id", "transfers": "transfer_id", "player_stats": "player_id",
     "standings": "team_id", "market_values": "player_id",
@@ -196,7 +198,7 @@ def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
                 add("error", "competition_mismatch", "Record competition differs from dataset league", table, index, "competition_id")
             if hasattr(row, "season") and row.season is not None and row.season != str(meta.season):
                 add("error", "season_label_mismatch", "Record caller season label differs from metadata", table, index, "season")
-            if (meta.coverage_scope == "match_ids" and table in ("matches", "match_stats")
+            if (meta.coverage_scope == "match_ids" and table in ("matches", "match_stats", "lineups", "player_match_stats")
                     and row.match_id not in meta.requested_match_ids):
                 add("error", "unrequested_match", "Record match ID is outside the explicit selection", table, index, "match_id")
             if table == "matches":
@@ -219,8 +221,47 @@ def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
                         value = getattr(row, name)
                         if value is not None and (value < 0 or metric == "possession_pct" and value > 100):
                             add("error", "invalid_match_metric", "Counts/xG must be nonnegative; possession must be 0 to 100", table, index, name)
+            if table == "player_match_stats":
+                for field in (*PLAYER_MATCH_COUNT_METRICS, "xg", "xa", "source_rating"):
+                    value = getattr(row, field)
+                    if value is not None and value < 0:
+                        add("error", "invalid_player_metric", "Player metrics must be nonnegative or None", table, index, field)
+                for accurate, total in (("accurate_passes", "passes"), ("shots_on_target", "shots")):
+                    first, second = getattr(row, accurate), getattr(row, total)
+                    if first is not None and second is not None and first > second:
+                        add("error", "invalid_player_metric", f"{accurate} exceeds {total}", table, index, accurate)
+            if table == "lineups" and row.home_away not in (None, "home", "away"):
+                add("error", "invalid_lineup_side", "home_away must be home, away or None", table, index, "home_away")
     team_ids = {(row.source, row.team_id) for _, row in rows["teams"] if row.team_id is not None}
     match_ids = {(row.source, row.match_id) for _, row in rows["matches"] if row.match_id is not None}
+    matches = {(row.source, row.match_id): row for _, row in rows["matches"] if row.match_id is not None}
+    lineup_keys = {(row.source, row.match_id, row.team_id, row.player_id) for _, row in rows["lineups"]}
+    lineup_teams = {(row.source, row.match_id, row.player_id): row.team_id for _, row in rows["lineups"]
+                    if row.match_id is not None and row.player_id is not None and row.team_id is not None}
+    for table in ("lineups", "player_match_stats"):
+        memberships = {}
+        for index, row in rows[table]:
+            for field in ("match_id", "team_id"):
+                if getattr(row, field) is None:
+                    add("warning", "missing_identifier", f"Record has no {field}", table, index, field)
+            native = (row.source, row.match_id)
+            if "matches" in selected and native not in match_ids:
+                add("warning", "unresolved_reference", "match_id is absent from selected matches", table, index, "match_id")
+            match = matches.get(native)
+            if match is not None and row.team_id is not None:
+                if row.team_id not in (match.home_team_id, match.away_team_id):
+                    add("error", "player_team_mismatch", "Player team is outside its match", table, index, "team_id")
+                elif table == "lineups" and row.home_away in ("home", "away") and row.team_id != getattr(match, f"{row.home_away}_team_id"):
+                    add("error", "player_team_mismatch", "Lineup side conflicts with its native team", table, index, "home_away")
+            player = (row.source, row.match_id, row.player_id)
+            if row.player_id is not None and row.match_id is not None:
+                if player in memberships and memberships[player] != row.team_id:
+                    add("error", "player_team_conflict", "One match/player is assigned to different teams", table, index, "player_id")
+                memberships[player] = row.team_id
+            if table == "player_match_stats" and "lineups" in selected and (*native, row.team_id, row.player_id) not in lineup_keys:
+                add("warning", "unresolved_reference", "Player statistics have no matching lineup row", table, index, "player_id")
+                if player in lineup_teams and row.team_id is not None and lineup_teams[player] != row.team_id:
+                    add("error", "player_team_conflict", "Player statistics conflict with the lineup team", table, index, "team_id")
     for table in ("matches", "standings", "match_stats", "shots"):
         for index, row in rows[table]:
             references = (("home_team_id", "away_team_id") if table == "matches" else

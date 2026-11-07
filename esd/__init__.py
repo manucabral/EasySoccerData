@@ -60,16 +60,20 @@ from .goaloo import GoalooClient
 from .goaloo import types as GoalooTypes
 from .logger import disable_logging, enable_logging
 from .normalized import (
+    MatchPlayerRecords,
+    NormalizedLineup,
     NormalizedMarketValue,
     NormalizedMatch,
     NormalizedMatchStats,
     NormalizedPlayer,
+    NormalizedPlayerMatchStats,
     NormalizedPlayerStats,
     NormalizedShot,
     NormalizedStanding,
     NormalizedTeam,
     NormalizedTransfer,
     normalize_match,
+    normalize_match_players,
     normalize_match_stats,
     normalize_player_stats,
     normalize_shot,
@@ -100,6 +104,8 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 __all__ = [
+    "MatchPlayerRecords", "normalize_match_players",
+    "NormalizedLineup", "NormalizedPlayerMatchStats",
     "MatchStatisticComparison", "MatchStatisticsReport", "compare_match_statistics",
     "CompetitionInfo", "SeasonInfo", "DiscoveryCapabilities", "DiscoveryResult",
     "DiscoveryNotSupported", "get_discovery_capabilities", "list_competitions", "list_seasons",

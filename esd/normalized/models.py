@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-SCHEMA_VERSION = "2"
+SCHEMA_VERSION = "3"
 
 
 @dataclass(frozen=True)
@@ -110,6 +110,73 @@ class NormalizedMatchStats:
     away_passes: int | None = None
     home_accurate_passes: int | None = None
     away_accurate_passes: int | None = None
+
+
+@dataclass(frozen=True)
+class NormalizedLineup:
+    """One listed player in a match, including unused substitutes.
+
+    Positions and lineup status retain source labels. Unknown flags stay None.
+    For 365Scores, player_id is the member ID; source_athlete_id retains its
+    distinct athlete ID. Neither names nor shirt numbers establish identity.
+    """
+
+    source: str
+    match_id: str | None = None
+    team_id: str | None = None
+    player_id: str | None = None
+    player_name: str | None = None
+    source_athlete_id: str | None = None
+    home_away: str | None = None
+    starter: bool | None = None
+    captain: bool | None = None
+    jersey_number: str | None = None
+    position: str | None = None
+    source_position_id: str | None = None
+    formation: str | None = None
+    confirmed: bool | None = None
+    source_lineup_status: str | None = None
+    source_role: str | None = None
+
+
+@dataclass(frozen=True)
+class NormalizedPlayerMatchStats:
+    """Source observations for one player/team/match, without season aggregation.
+
+    Missing metrics remain None, including minutes for unused substitutes when
+    no minutes were reported. Ratings and xG/xA retain their source models.
+    For 365Scores, source_athlete_id is separate from the lineup member player_id.
+    """
+
+    source: str
+    match_id: str | None = None
+    team_id: str | None = None
+    player_id: str | None = None
+    player_name: str | None = None
+    source_athlete_id: str | None = None
+    minutes: int | None = None
+    appearances: int | None = None
+    goals: int | None = None
+    assists: int | None = None
+    own_goals: int | None = None
+    shots: int | None = None
+    shots_on_target: int | None = None
+    passes: int | None = None
+    accurate_passes: int | None = None
+    key_passes: int | None = None
+    touches: int | None = None
+    tackles: int | None = None
+    interceptions: int | None = None
+    fouls_committed: int | None = None
+    fouls_suffered: int | None = None
+    offsides: int | None = None
+    yellow_cards: int | None = None
+    red_cards: int | None = None
+    saves: int | None = None
+    goals_conceded: int | None = None
+    xg: float | None = None
+    xa: float | None = None
+    source_rating: float | None = None
 
 
 @dataclass(frozen=True)

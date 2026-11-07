@@ -14,10 +14,12 @@ from .espn import ESPNClient
 from .exceptions import ESDException
 from .normalized import (
     SCHEMA_VERSION,
+    NormalizedLineup,
     NormalizedMarketValue,
     NormalizedMatch,
     NormalizedMatchStats,
     NormalizedPlayer,
+    NormalizedPlayerMatchStats,
     NormalizedPlayerStats,
     NormalizedShot,
     NormalizedStanding,
@@ -121,6 +123,8 @@ class SoccerDataset:
     player_records: tuple[NormalizedPlayer, ...] = ()
     market_value_records: tuple[NormalizedMarketValue, ...] = ()
     transfer_records: tuple[NormalizedTransfer, ...] = ()
+    lineup_records: tuple[NormalizedLineup, ...] = ()
+    player_match_stat_records: tuple[NormalizedPlayerMatchStats, ...] = ()
 
     @property
     def complete(self) -> bool:
@@ -158,6 +162,16 @@ class SoccerDataset:
     def match_stats(self):
         """Source match totals and optional xG/forecast values with nullable columns."""
         return self._dataframe(self.match_stat_records, "match_stats")
+
+    @property
+    def lineups(self):
+        """Listed players, native positions and nullable starter/confirmation flags."""
+        return self._dataframe(self.lineup_records, "lineups")
+
+    @property
+    def player_match_stats(self):
+        """Observed player/team/match metrics, separate from season player_stats."""
+        return self._dataframe(self.player_match_stat_records, "player_match_stats")
 
     @property
     def player_stats(self):
@@ -272,11 +286,15 @@ def load_dataset(
     ESPN discovers calendar dates (July 1 by default, or anchor_date) and
     validates the source season year. Teams derive from downloaded matches.
 
-    ESPN, 365Scores and Sofascore match_stats require explicit match_ids. This
+    ESPN, 365Scores and Sofascore match_stats, lineups and player_match_stats
+    require explicit match_ids. Player statistics also select lineups, matches
+    and teams. ESPN shares one summary per ID. 365Scores uses one game detail
+    for lineups/players plus one endpoint if match_stats is selected. Sofascore
+    uses event context plus lineups, plus statistics when selected. This
     selection includes matches/teams, fetches no calendar or season pages and
     cannot be combined with standings or date/entity filters. 365Scores and
     Sofascore require native season_id. max_match_requests bounds endpoint reads
-    before transport retries (one per ESPN/365Scores ID, two per Sofascore ID).
+    before transport retries, according to the source and selected detail tables.
     Duplicate IDs are fetched once. Detail responses use CachePolicy.live_ttl.
 
     Repeated match IDs retain the newest response observation. A day's parsed
@@ -310,14 +328,16 @@ def load_dataset(
         table not in TABLE_MODELS for table in tables
     ):
         raise ValueError("tables must be a nonempty sequence of supported table names")
-    details = source in ("espn", "scores365", "sofascore") and "match_stats" in tables
+    players = bool(set(tables) & {"lineups", "player_match_stats"})
+    details = source in ("espn", "scores365", "sofascore") and bool(set(tables) & {"match_stats", "lineups", "player_match_stats"})
     if type(max_match_requests) is not int or max_match_requests < 1:
         raise ValueError("max_match_requests must be a positive integer")
     if not details and max_match_requests != 20:
-        raise ValueError("max_match_requests applies only to explicit match_stats selections")
+        raise ValueError("max_match_requests applies only to explicit match-detail selections")
     if "teams" in tables and "matches" not in tables and not details and source not in ("goaloo", "transfermarkt"):
         raise ValueError("teams requires matches; teams are derived from downloaded matches")
-    selected = tuple(dict.fromkeys([*tables, *(["matches", "teams"] if details else ["teams"] if "matches" in tables else [])]))
+    selected = tuple(dict.fromkeys([*tables, *(["lineups"] if players else []),
+                                   *(["matches", "teams"] if details else ["teams"] if "matches" in tables else [])]))
     if on_error not in ("raise", "collect"):
         raise ValueError("on_error must be 'raise' or 'collect'")
     if not math.isfinite(request_delay) or request_delay < 0:
@@ -331,9 +351,10 @@ def load_dataset(
     if any(table not in get_dataset_capabilities(source).tables for table in selected):
         raise ValueError(f"Unsupported dataset table for {source}")
     if details:
+        from ._match_players import load_match_players
         from ._match_statistics import load_match_statistics
 
-        return load_match_statistics(
+        return (load_match_players if players else load_match_statistics)(
             source=source, league=league, season=year, tables=selected, proxies=proxies,
             cache_dir=cache_dir, cache_policy=cache_policy, refresh=refresh,
             request_delay=request_delay, on_error=on_error, progress=progress,

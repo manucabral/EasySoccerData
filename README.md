@@ -45,6 +45,11 @@ for linked matches, preserving missing values, source periods and fetch times.
 Comparison requires no extras. [Examples](examples/README.md#compare-match-statistics)
 cover artificial records and a bounded Champions League query.
 
+ESPN, 365Scores and Sofascore also provide normalized `lineups` and
+`player_match_stats` for explicit match IDs. [Player and lineup examples](examples/datasets/match_players.py)
+can include team match totals in the same dataset, with a request budget and
+optional cache, DataFrames or Parquet snapshots.
+
 `esd.list_competitions()` and `esd.list_seasons()` discover native selectors where
 implemented. Inspect `esd.get_discovery_capabilities()` before querying a source.
 Transfermarkt supports paged competition search and native season selectors;

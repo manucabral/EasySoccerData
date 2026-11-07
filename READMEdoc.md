@@ -180,10 +180,11 @@ Shots preserve native coordinates and player statistics retain native club-name
 strings without resolving team identities.
 
 The normalized DataFrame tables are `matches`, `teams`, `standings`,
-`match_stats`, `player_stats`, `shots`, `players`, `market_values` and `transfers`. They
+`match_stats`, `player_stats`, `shots`, `players`, `market_values`, `transfers`,
+`lineups` and `player_match_stats`. They
 have fixed columns and types even when empty: nullable strings for identifiers
 and names, `Int64` for counts, `Float64` for metrics and UTC nanosecond datetimes for `kickoff`.
-`DataFrame.attrs` reports `schema_version="2"` and the table name.
+`DataFrame.attrs` reports `schema_version="3"` and the table name.
 Version `1` Parquet snapshots remain readable; new statistic columns are null.
 
 Join entities using both `source` and their source-local ID. Adapters preserve
@@ -211,6 +212,14 @@ for uniquely linked matches without downloads or optional dependencies. Results
 retain missing values, source periods, original fetch times, partial errors and
 unmatched/ambiguous IDs. Cross-source xG/forecast models remain separate.
 `report.to_dataframe()` requires the pandas extra.
+
+ESPN, 365Scores and Sofascore accept `lineups` and `player_match_stats` for
+explicit match IDs, alongside optional team match totals. Lineups retain native
+positions, formations, source status and nullable starter/captain/confirmation
+flags. Player match rows preserve observed metrics and separate 365Scores member
+and athlete IDs. Missing minutes remain null. Player-season `player_stats`
+retains its existing Understat scope. Both new tables use the base installation;
+DataFrame properties and snapshot storage keep their independent extras.
 
 `esd.get_discovery_capabilities()` lists competition and season discovery support
 for all nine providers. `list_competitions()` and `list_seasons()` return native

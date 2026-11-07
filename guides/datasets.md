@@ -17,6 +17,8 @@ DataFrames with fixed columns and nullable types, including empty tables.
 | Teams | `team_records` | `teams` | All nine |
 | Standings | `standing_records` | `standings` | ESPN, 365Scores, Sofascore, Goaloo, BeSoccer |
 | Match metrics | `match_stat_records` | `match_stats` | ESPN, 365Scores, Sofascore, FBref, Understat |
+| Lineups | `lineup_records` | `lineups` | ESPN, 365Scores, Sofascore |
+| Player-match statistics | `player_match_stat_records` | `player_match_stats` | ESPN, 365Scores, Sofascore |
 | Player-season statistics | `player_stat_records` | `player_stats` | Understat |
 | Shots | `shot_records` | `shots` | Understat |
 | Current player profiles | `player_records` | `players` | Transfermarkt |
@@ -121,6 +123,106 @@ fields; the new count columns remain null for those adapters.
 is launched. ESPN and 365Scores detail responses were verified live on November
 7, 2026. Sofascore's adapter has offline contract tests, but event/statistics
 requests returned HTTP 403 from that verification environment.
+
+## Lineups and player-match statistics
+
+`lineups` contains one row per listed player, including unused substitutes.
+`player_match_stats` contains the source's observed individual metrics for that
+match. Selecting player match statistics also selects lineups, matches and
+teams. Add `match_stats` to get team totals in the same dataset:
+
+```py
+dataset = esd.load_dataset(
+    source="espn", league="uefa.champions", season=2026,
+    tables=["lineups", "player_match_stats", "match_stats"],
+    match_ids=[401915310], max_match_requests=1,
+)
+for player in dataset.lineup_records:
+    print(player.match_id, player.team_id, player.player_id,
+          player.player_name, player.starter, player.formation)
+for row in dataset.player_match_stat_records:
+    print(row.player_id, row.minutes, row.goals, row.assists)
+# Optional: dataset.lineups and dataset.player_match_stats require [pandas].
+```
+
+ESPN uses its native season year. 365Scores and Sofascore require native
+`season_id`, separately from the caller year label. All three use explicit
+`match_ids`, without calendar discovery or season pagination. Endpoint budgets
+are checked before any source request, after deduplicating IDs:
+
+| Source | Lineups and/or player-match statistics | With team `match_stats` |
+| :--- | :--- | :--- |
+| ESPN | 1 summary per ID | Same summary, 1 read total |
+| 365Scores | 1 game detail per ID | Detail plus statistics, 2 reads total |
+| Sofascore | Event context plus lineup, 2 reads per ID | Adds statistics, 3 reads total |
+
+Counts are before transport retries. `max_match_requests` defaults to `20`.
+The existing match-statistics-only path keeps its previous request cost.
+Do not combine explicit detail selections with standings, date ranges or entity
+filters. Other providers reject these new tables before network access;
+`get_dataset_capabilities()` reports the implemented scope for all nine sources.
+
+Lineup keys are `(source, match_id, team_id, player_id)`. ESPN uses its athlete
+ID and Sofascore its player ID. For 365Scores, `player_id` is the lineup member
+ID and `source_athlete_id` retains the separate athlete ID when reported. Member
+IDs are not treated as a person identifier across clubs. Player identity linkage
+across providers is not implemented. Names and jersey numbers are display values.
+
+`starter`, `captain` and `confirmed` are nullable booleans. A missing flag is not
+`False`. Sofascore supplies an explicit confirmation flag. 365Scores' localized
+lineup status remains in `source_lineup_status` without guessing confirmation
+from its text. Positions and formations retain native labels. 365Scores missing
+and management roles and Sofascore's `missingPlayers` are excluded from lineups.
+
+| Metric | ESPN roster native key | 365Scores player-stat type | Sofascore player-stat key |
+| :--- | :--- | :--- | :--- |
+| `minutes` | Not mapped | `30`, including the native trailing apostrophe | `minutesPlayed` |
+| `goals`, `assists` | `totalGoals`, `goalAssists` | `27`, `26` | `goals`, `goalAssist` |
+| `shots`, `shots_on_target` | `totalShots`, `shotsOnTarget` | `3`, `4` | Total not inferred; `onTargetScoringAttempt` |
+| `passes`, `accurate_passes` | Not mapped | `19`: explicit completed/attempted pair, or completed count alone | `totalPass`, `accuratePass` |
+| `xg`, `xa` | Not mapped | `76`, `78` | `expectedGoals`, `expectedAssists` |
+| `source_rating` | Not mapped | Lineup member `ranking` | `rating` |
+
+The adapter also maps reported appearances, own goals, cards, fouls, offsides,
+saves and goals conceded where available. 365Scores/Sofascore add reported
+touches, key passes and interceptions; Sofascore adds tackles. Not every source
+supplies every field. Source rating and xG/xA models are not harmonized.
+365Scores' numeric rating sentinel `-1` becomes null; reported zero stays zero.
+
+Missing values remain `None`. No 90-minute duration, appearance, unused-bench
+zero or shot total is inferred. A source can explicitly report zero statistics
+for an unused substitute; those observations are retained. A player with no
+statistics observation has a lineup row without a manufactured statistics row.
+Player-season aggregates remain in Understat's separate `player_stats` table.
+
+ESPN's shared response uses task key `match_details:<ID>`. 365Scores uses
+`lineups:<ID>` for its game detail and `match_stats:<ID>` when selected.
+Sofascore uses `match:<ID>`, `lineups:<ID>` and optionally `match_stats:<ID>`.
+`response_fetched_at` and `cached_tasks` retain the original observations for
+those requests. A failed source remains an explicit error, not an empty roster.
+With `on_error="collect"`, valid independent tasks remain available and
+`complete` stays false. A successful empty source lineup is allowed and does
+not establish complete real-world squad coverage.
+
+`validate_dataset()` checks native match selection, duplicate player keys,
+team membership, nullable flag types and numeric constraints. DataFrame flags
+use pandas `boolean`, counts `Int64` and floating metrics `Float64`, including
+empty tables. Snapshot save/open requires only PyArrow and retains both tables.
+The public `normalize_match_players(payload, match=verified_match)` adapter
+also works without downloading. It accepts raw source responses to preserve
+missing flags that older provider models may already have defaulted.
+Sofascore lineup responses can omit their event ID; obtain them from the supplied
+match's lineup URL. `include_statistics=False` skips unselected metrics.
+
+The [live CLI](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/datasets/match_players.py)
+supports caller-selected cache/snapshot paths and offline reads. Its
+[offline example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/datasets/match_players_offline.py)
+uses artificial records, with independent `--pandas` and `--parquet` flags.
+On November 7, 2026, the Champions League Shakhtar–Sporting query returned
+46 listed players from ESPN and 365Scores, with 46 and 31 player-statistic rows
+respectively. Both snapshot round trips were verified. These are observations
+from that check. Sofascore's lineup path has offline contract tests; this check
+does not establish its current network availability.
 
 ## Discover competitions and seasons
 
@@ -419,11 +521,13 @@ snapshot never resumes a download. To resume, repeat `load_dataset()` with the
 same selection and cache directory. `refresh=True` bypasses response reuse;
 it does not overwrite an existing snapshot directory.
 
-The normalized schema is version `2`. Existing version `1` Parquet snapshots
-remain readable: the reader validates their original table schemas and checksums,
-adds the new match-statistic columns as null and returns version `2` records.
-Source timestamps, IDs, values, errors and coverage are retained. Saving the
-opened dataset writes version `2`; the original snapshot is not changed.
+The normalized schema is version `3`. Existing version `1` and `2` Parquet
+snapshots remain readable. The reader validates their original table schemas
+and checksums, adds absent version-1 match-statistic columns as null and returns
+version `3` records. New lineup/player-match tables are not selected or fabricated
+for old snapshots. Source timestamps, IDs, values, errors and coverage are
+retained. Saving the opened dataset writes version `3`; the original snapshot
+is not changed.
 
 `metadata.started_at`/`finished_at` describe the current loader call.
 `dict(metadata.response_fetched_at)` preserves original fetch dates per task,
@@ -542,7 +646,9 @@ provider. Same-source records can compare an identical explicit native period.
 Unknown periods, including older xG records without period metadata, remain
 unresolved. Cross-source xG/forecast values get no delta even when they agree.
 
-Per-row fetch dates come only from exact `match_stats:<native ID>` task keys.
+Per-row fetch dates come only from exact `match_stats:<native ID>` task keys,
+or the shared ESPN `match_details:<native ID>` response when no separate
+statistics task is present.
 Calendar/batch timestamps are not attributed to individual matches. A missing
 exact timestamp stays null. The report also retains both complete metadata
 records, original errors and validation warnings. Partial downloads can produce

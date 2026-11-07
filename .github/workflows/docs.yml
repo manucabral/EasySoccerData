@@ -34,6 +34,7 @@ jobs:
           ./esd/dataset_capabilities.py ./esd/dataset_validation.py ./esd/normalized
           ./esd/discovery.py
           ./esd/statistics_comparison.py
+          ./esd/normalized/match_players.py
           ./esd/espn ./esd/sofascore ./esd/fbref ./esd/promiedos ./esd/goaloo
           ./esd/scores365 ./esd/understat ./esd/transfermarkt ./esd/besoccer
           -o ./site-docs
