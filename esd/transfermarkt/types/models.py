@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from lxml import html
 
 _HREF_ID_RE = re.compile(
-    r"/(?P<slug>[^/]+)/(?:profil/spieler|startseite/verein|startseite/wettbewerb)/(?P<id>[A-Za-z0-9]+)"
+    r"/(?P<slug>[^/]+)/(?:profil/spieler|startseite/verein|startseite/(?:pokalwettbewerb|wettbewerb))/(?P<id>[A-Za-z0-9]+)"
 )
 
 
@@ -302,7 +302,7 @@ def parse_search_html(html_text: str) -> list[TMSearchItem]:
     doc = html.fromstring(html_text)
     results: list[TMSearchItem] = []
     seen: set[tuple[str, str]] = set()
-    for link in doc.xpath("//td[contains(@class, 'hauptlink')]/a"):
+    for link in doc.xpath("//td[contains(@class, 'hauptlink')]/a | //*[@id='competition-grid']//td/a"):
         href = link.get("href") or ""
         match = _HREF_ID_RE.search(href)
         if not match:

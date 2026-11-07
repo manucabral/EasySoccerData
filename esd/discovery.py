@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from os import PathLike
 from urllib.parse import unquote, urlsplit
 
+from ._discovery_html import html_seasons, transfermarkt_competitions
 from ._response_reader import ResponseReader
+from .besoccer.endpoints import BeSoccerEndpoints
 from .cache import CachePolicy, ResponseCache
 from .espn.endpoints import ESPNEndpoints
 from .exceptions import ESDException, SourceError
@@ -16,7 +19,8 @@ from .promiedos.endpoints import PromiedosEndpoints
 from .promiedos.service import _PROMIEDOS_HEADERS
 from .scores365.endpoints import Scores365Endpoints
 from .sofascore.endpoints import SofascoreEndpoints
-from .utils import get_api_json
+from .transfermarkt.endpoints import TransfermarktEndpoints
+from .utils import get_api_json, get_text
 
 
 class DiscoveryNotSupported(ESDException):
@@ -25,19 +29,23 @@ class DiscoveryNotSupported(ESDException):
 
 @dataclass(frozen=True)
 class CompetitionInfo:
-    """competition_id selects datasets. native_id also retains ESPN's numeric ID."""
+    """competition_id selects datasets. native_id also retains ESPN's numeric ID.
+
+    Transfermarkt's source_url retains the link needed for season discovery.
+    """
 
     source: str
     competition_id: str
     name: str
     native_id: str
+    source_url: str | None = None
 
 
 @dataclass(frozen=True)
 class SeasonInfo:
     """Native season ID and labels, without deriving a caller year from the name.
 
-    year is populated only by ESPN's explicit season-year index. source_season
+    year is populated by ESPN's year index or BeSoccer's native year selector. source_season
     retains Goaloo's selection string or Sofascore's native year/period label.
     Dataset loaders still require their documented provider-specific arguments.
     """
@@ -64,9 +72,10 @@ class DiscoveryCapabilities:
 class DiscoveryResult:
     """Immutable records and the scope/original fetch time of one source request.
 
-    Scope describes a source listing, search, category, date or season response.
+    Scope describes a source listing, search page, category, date or season response.
     No result asserts that every competition or historical season is included.
     cached reports reuse of the original response, not a new source observation.
+    source_url identifies the requested route. page is populated for Transfermarkt search.
     """
 
     source: str
@@ -80,6 +89,8 @@ class DiscoveryResult:
     category_id: str | None = None
     date: str | None = None
     notes: tuple[str, ...] = ()
+    page: int | None = None
+    source_url: str | None = None
 
 
 _CAPABILITIES = {
@@ -102,9 +113,21 @@ _CAPABILITIES = {
         "Explicit date required; only leagues listed on that source day are returned.",
         "No historical season index is implemented.",
     )),
-    **{source: DiscoveryCapabilities(source, notes=(
-        "No verified competition/season discovery adapter is implemented; use manual selection.",
-    )) for source in ("fbref", "understat", "besoccer", "transfermarkt")},
+    "besoccer": DiscoveryCapabilities("besoccer", seasons="selector", notes=(
+        "Native season option values select standings years; a 2026-27 label may use 2027.",
+        "Competition discovery remains manual: the listing can omit its content or return a challenge.",
+    )),
+    "transfermarkt": DiscoveryCapabilities("transfermarkt", "search_page", "selector", (
+        "query is required; page selects one competition results page, not the full search catalogue.",
+        "Seasons require competition_url from CompetitionInfo.source_url to preserve the native league/cup route.",
+        "Season discovery does not make entity datasets historical: profiles remain current and histories unfiltered.",
+    )),
+    "fbref": DiscoveryCapabilities("fbref", notes=(
+        "Competition/history pages were blocked during adapter verification; selection remains manual.",
+    )),
+    "understat": DiscoveryCapabilities("understat", notes=(
+        "League pages returned maintenance HTML during adapter verification; selection remains manual.",
+    )),
 }
 
 
@@ -151,7 +174,10 @@ def _unique(rows, field):
     return tuple(result.values())
 
 
-def _competitions(data, source):
+def _competitions(data, source, page=None):
+    if source == "transfermarkt":
+        return _unique((CompetitionInfo(source, row["id"], row["name"], row["id"], row["source_url"])
+                        for row in _rows(transfermarkt_competitions(data, page), "competitions")), "competition_id")
     if source == "espn":
         return _unique((CompetitionInfo(source, _text(row.get("slug"), "league slug"),
                                         _text(row.get("name"), "name"), _id(row.get("id")))
@@ -171,6 +197,10 @@ def _competitions(data, source):
 
 
 def _seasons(data, source, competition):
+    if source in ("besoccer", "transfermarkt"):
+        return _unique((SeasonInfo(source, competition, row["id"], row["name"],
+                                  year=int(row["id"]) if source == "besoccer" else None)
+                        for row in _rows(html_seasons(data, source, competition), "seasons")), "season_id")
     if source == "goaloo":
         return _unique((SeasonInfo(source, competition, _text(value, "season"), value, source_season=value)
                         for value in _rows(data, "SeasonList")), "season_id")
@@ -209,7 +239,14 @@ def _read(source, url, parse, cache_dir, cache_policy, refresh, proxies):
         raise TypeError("cache_policy must be a CachePolicy")
     cache = ResponseCache(cache_dir) if cache_dir is not None else None
     headers = _PROMIEDOS_HEADERS if source == "promiedos" else None
-    reader = ResponseReader(lambda address: get_api_json(address, proxies=proxies, headers=headers),
+
+    def fetch(address):
+        if source in ("besoccer", "transfermarkt"):
+            return {"html": get_text(address, proxies=proxies,
+                                     impersonate="safari17_0" if source == "besoccer" else "chrome")}
+        return get_api_json(address, proxies=proxies, headers=headers)
+
+    reader = ResponseReader(fetch,
                             cache=cache, refresh=refresh)
 
     def validate(data):
@@ -226,19 +263,23 @@ def list_competitions(
     source: str, *, query: str | None = None, category_id: int | str | None = None,
     date: str | None = None, cache_dir: str | PathLike | None = None,
     cache_policy: CachePolicy | None = None, refresh: bool = False, proxies: dict | None = None,
+    page: int | None = None,
 ) -> DiscoveryResult:
     """List a provider's competitions with explicit listing/search/category/date scope.
 
-    ESPN uses its soccer dropdown. 365Scores requires query. Sofascore requires a
+    ESPN uses its soccer dropdown. 365Scores and Transfermarkt require query.
+    Transfermarkt's page selects one search page. Sofascore requires a
     football category_id, such as 1 for England. Promiedos requires an ISO source
-    date. query filters returned names locally except on 365Scores, where it is
-    sent to search. Other adapters raise DiscoveryNotSupported before I/O.
+    date. query is sent to search on 365Scores and Transfermarkt and filters names
+    locally on other listings. Other adapters raise DiscoveryNotSupported before I/O.
     """
     if not isinstance(source, str):
         raise ValueError("source must be a provider name")
     capability = get_discovery_capabilities(source)
     if capability.competitions is None:
         raise DiscoveryNotSupported(f"{source} competition discovery is not implemented; choose its ID manually")
+    if page is not None and (source != "transfermarkt" or type(page) is not int or page < 1):
+        raise ValueError("page must be a positive integer and is supported only for Transfermarkt search")
     if query is not None and (not isinstance(query, str) or not query.strip()):
         raise ValueError("query must be nonempty text")
     if category_id is not None and source != "sofascore":
@@ -246,10 +287,14 @@ def list_competitions(
     if date is not None and source != "promiedos":
         raise ValueError("date is supported only for Promiedos discovery")
     category = None
-    if source == "scores365":
+    if source in ("scores365", "transfermarkt"):
         if query is None:
-            raise ValueError("365Scores competition discovery requires query")
-        url = Scores365Endpoints().search(query)
+            raise ValueError(f"{source} competition discovery requires query")
+        if source == "transfermarkt":
+            page = page if page is not None else 1
+            url = TransfermarktEndpoints().search(query, page=page)
+        else:
+            url = Scores365Endpoints().search(query)
     elif source == "sofascore":
         category = _numeric(category_id, "category_id")
         url = SofascoreEndpoints().tournaments_endpoint(int(category))
@@ -259,16 +304,18 @@ def list_competitions(
         url = PromiedosEndpoints().events_url(date)
     else:
         url = ESPNEndpoints().competitions()
-    rows, fetched, cached = _read(source, url, lambda data: _competitions(data, source), cache_dir, cache_policy, refresh, proxies)
-    if query is not None and source != "scores365":
+    rows, fetched, cached = _read(source, url, lambda data: _competitions(data, source, page), cache_dir, cache_policy, refresh, proxies)
+    if query is not None and source not in ("scores365", "transfermarkt"):
         rows = tuple(row for row in rows if query.casefold() in row.name.casefold())
     return DiscoveryResult(source, capability.competitions, fetched, cached, competitions=rows,
-                           query=query, category_id=category, date=date, notes=capability.notes)
+                           query=query, category_id=category, date=date, notes=capability.notes, page=page,
+                           source_url=url)
 
 
 def list_seasons(
     source: str, competition_id: int | str, *, cache_dir: str | PathLike | None = None,
     cache_policy: CachePolicy | None = None, refresh: bool = False, proxies: dict | None = None,
+    competition_url: str | None = None,
 ) -> DiscoveryResult:
     """List native seasons without guessing years from names or filling absent history.
 
@@ -276,17 +323,29 @@ def list_seasons(
     Goaloo strings select source_season. 365Scores returns only seasons included
     in its competition response, which may omit history. Each call fetches one
     response; paginated ESPN results raise instead of returning a partial index.
+    BeSoccer preserves its explicit standings year selector. Transfermarkt needs
+    competition_url from a competition result and returns native season options;
+    its entity datasets still use current profiles and unfiltered histories.
     """
     if not isinstance(source, str):
         raise ValueError("source must be a provider name")
     capability = get_discovery_capabilities(source)
     if capability.seasons is None:
         raise DiscoveryNotSupported(f"{source} season discovery is not implemented; choose its selection manually")
+    if competition_url is not None and source != "transfermarkt":
+        raise ValueError("competition_url is supported only for Transfermarkt discovery")
     if source == "espn":
         if not isinstance(competition_id, str) or not competition_id.strip():
             raise ValueError("ESPN competition_id must be its league slug")
         competition = competition_id
         url = ESPNEndpoints().seasons(competition)
+    elif source in ("besoccer", "transfermarkt"):
+        pattern = r"[A-Za-z0-9_-]+" if source == "besoccer" else r"[A-Za-z0-9]+"
+        if not isinstance(competition_id, str) or re.fullmatch(pattern, competition_id) is None:
+            raise ValueError(f"{source} competition_id must be its native slug or code")
+        competition = competition_id
+        url = (BeSoccerEndpoints().standings(competition) if source == "besoccer"
+               else TransfermarktEndpoints().competition_seasons(competition, competition_url))
     else:
         competition = _numeric(competition_id, "competition_id")
         if source == "goaloo":
@@ -297,4 +356,4 @@ def list_seasons(
             url = SofascoreEndpoints().tournament_seasons_endpoint(int(competition))
     rows, fetched, cached = _read(source, url, lambda data: _seasons(data, source, competition), cache_dir, cache_policy, refresh, proxies)
     return DiscoveryResult(source, capability.seasons, fetched, cached, seasons=rows,
-                           competition_id=competition, notes=capability.notes)
+                           competition_id=competition, notes=capability.notes, source_url=url)

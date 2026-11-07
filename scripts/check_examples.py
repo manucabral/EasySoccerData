@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 
 BASE = (
+    ("examples/datasets/discover_and_download.py", "--help"),
+    ("examples/datasets/discovery_workflow_offline.py",),
     ("examples/datasets/discovery_offline.py",),
     ("examples/datasets/discover.py", "--list"),
     ("examples/datasets/validate_dataset.py",),
@@ -21,7 +23,8 @@ PANDAS = (
     ("examples/pandas/normalized_tables.py",),
     ("examples/pandas/dataset_analysis.py",),
 )
-PARQUET = (("examples/datasets/parquet_roundtrip.py",),)
+PARQUET = (("examples/datasets/parquet_roundtrip.py",),
+           ("examples/datasets/discovery_workflow_offline.py", "--parquet"))
 
 WRAPPER = """
 import runpy

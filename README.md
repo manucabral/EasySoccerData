@@ -42,6 +42,9 @@ the dataset unchanged. See [dataset validation](guides/datasets.md#validate-a-da
 
 `esd.list_competitions()` and `esd.list_seasons()` discover native selectors where
 implemented. Inspect `esd.get_discovery_capabilities()` before querying a source.
+Transfermarkt supports paged competition search and native season selectors;
+BeSoccer exposes its standings year selector. An [example workflow](examples/datasets/discover_and_download.py)
+checks discovered IDs before downloading, validating and optionally storing a 365Scores dataset.
 See [competition and season discovery](guides/datasets.md#discover-competitions-and-seasons).
 
 # Usage

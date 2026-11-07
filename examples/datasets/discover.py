@@ -16,6 +16,8 @@ def main(argv=None):
     parser.add_argument("--date", help="Promiedos source date, YYYY-MM-DD")
     parser.add_argument("--seasons", action="store_true", help="Discover seasons instead of competitions")
     parser.add_argument("--competition-id", help="Native ID or ESPN league slug, required with --seasons")
+    parser.add_argument("--competition-url", help="Transfermarkt competition source URL, required with --seasons")
+    parser.add_argument("--page", type=int, help="Transfermarkt competition search page (default: 1)")
     parser.add_argument("--cache-dir", type=Path, help="Optional response cache directory")
     parser.add_argument("--refresh", action="store_true", help="Fetch again instead of reusing cache")
     args = parser.parse_args(argv)
@@ -26,16 +28,17 @@ def main(argv=None):
     if args.seasons:
         if args.competition_id is None:
             parser.error("--seasons requires --competition-id")
-        if any(value is not None for value in (args.query, args.category_id, args.date)):
+        if any(value is not None for value in (args.query, args.category_id, args.date, args.page)):
             parser.error("--seasons cannot be combined with competition listing filters")
-    elif args.competition_id is not None:
-        parser.error("--competition-id requires --seasons")
+    elif args.competition_id is not None or args.competition_url is not None:
+        parser.error("--competition-id and --competition-url require --seasons")
     try:
         if args.seasons:
-            result = esd.list_seasons(args.source, args.competition_id, cache_dir=args.cache_dir, refresh=args.refresh)
+            result = esd.list_seasons(args.source, args.competition_id, cache_dir=args.cache_dir, refresh=args.refresh,
+                                      competition_url=args.competition_url)
         else:
             result = esd.list_competitions(args.source, query=args.query, category_id=args.category_id,
-                                           date=args.date, cache_dir=args.cache_dir, refresh=args.refresh)
+                                           date=args.date, cache_dir=args.cache_dir, refresh=args.refresh, page=args.page)
     except (ValueError, TypeError) as exc:
         parser.error(str(exc))
     except esd.ESDException as exc:
@@ -43,8 +46,12 @@ def main(argv=None):
         return 1
     print("Source:", result.source, "| Scope:", result.scope, "| Cached:", result.cached)
     print("Original fetch:", result.fetched_at.isoformat())
+    if result.page is not None:
+        print("Search page:", result.page)
     for row in result.competitions:
         print(row.competition_id, "| native ID:", row.native_id, "|", row.name)
+        if row.source_url is not None:
+            print("Competition URL:", row.source_url)
     for row in result.seasons:
         print(row.season_id, "| name:", row.name, "| native year:", row.year, "| source label:", row.source_season)
     for note in result.notes:

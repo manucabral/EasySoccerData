@@ -21,6 +21,8 @@ snapshot. Temporary-file examples clean up after themselves.
 | [Provider contracts](datasets/providers.py) with `--list` | Base | All nine sources and supported tables |
 | [Discovery selectors and cache](datasets/discovery_offline.py) | Base | ESPN slugs, native season IDs, source labels and cache provenance |
 | [Discovery support](datasets/discover.py) with `--list` | Base | Implemented competition and season query modes for all nine providers |
+| [Discovery workflow](datasets/discovery_workflow_offline.py) | Base | Artificial discovery, exact native selection, download and validation |
+| [Discovery workflow](datasets/discovery_workflow_offline.py) with `--parquet` | Parquet | Same flow, temporary snapshot verification and offline reopening |
 | [Partial results](datasets/partial_results.py) | Base | `raise`, `collect`, attached records and failed days |
 | [Dataset validation](datasets/validate_dataset.py) | Base | Errors, warnings, nullable scores, partial downloads and duplicate keys |
 | [Cache reuse](datasets/cache_resume_offline.py) | Base | First download, disk reuse, original timestamps and forced refresh |
@@ -148,6 +150,9 @@ python examples/datasets/discover.py --source scores365 --seasons --competition-
 python examples/datasets/discover.py --source goaloo --seasons --competition-id 36
 python examples/datasets/discover.py --source sofascore --category-id 1
 python examples/datasets/discover.py --source promiedos --date 2026-11-07
+python examples/datasets/discover.py --source besoccer --seasons --competition-id champions
+python examples/datasets/discover.py --source transfermarkt --query Champions --page 2
+python examples/datasets/discover.py --source transfermarkt --seasons --competition-id CL --competition-url https://www.transfermarkt.com/uefa-champions-league/startseite/pokalwettbewerb/CL
 ```
 
 Except for `--list` and `--help`, these commands query a provider. Each discovery
@@ -163,6 +168,43 @@ the current season in competition details. Promiedos lists leagues on the suppli
 day. No operation claims an exhaustive catalogue of all competitions or history.
 Read the [discovery guide](../guides/datasets.md#discover-competitions-and-seasons)
 before passing selectors to dataset loaders.
+
+BeSoccer's year option can use `2027` for `2026-27`; pass its explicit year to
+standings selection. Transfermarkt's `source_url` retains the league/cup route
+needed for season discovery. Its season index does not make entity snapshots
+historical. FBref and Understat discovery still require manual selection: their
+HTML contracts could not be verified through the blocked/maintenance responses.
+
+### Discover, download, validate and store
+
+[discover_and_download.py](datasets/discover_and_download.py) uses 365Scores with
+an exact competition ID, an explicitly chosen native season ID and at most seven
+UTC days. First inspect the currently returned seasons:
+
+```sh
+python examples/datasets/discover.py --source scores365 --seasons --competition-id 572
+python examples/datasets/discover_and_download.py --season-id 74 --start-date 2026-11-03 --end-date 2026-11-04 --cache-dir ./my-data/responses
+python examples/datasets/discover_and_download.py --season-id 74 --output-dir ./my-data/champions-verified
+python examples/datasets/discover_and_download.py --open-dir ./my-data/champions-verified
+```
+
+`74` was the returned Champions League native season ID during verification on
+November 7, 2026. Choose an ID from your own discovery response. The caller year
+label is separate, set with `--season` (default `2026`), and dates select matches.
+The example checks that both requested IDs were actually returned before loading.
+
+Downloads and validation use the base install. Saving and opening require
+`[parquet]`; missing PyArrow and existing destinations fail before HTTP. Quality
+errors prevent saving. A partial download may be saved with its source errors
+and returns `1`. A saved snapshot is reopened and compared with the downloaded
+dataset. `--open-dir` makes no source requests. Invalid arguments return `2`.
+
+Run the same workflow with artificial responses and temporary files:
+
+```sh
+python examples/datasets/discovery_workflow_offline.py
+python examples/datasets/discovery_workflow_offline.py --parquet
+```
 
 ### Champions League: a short date range
 

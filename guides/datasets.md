@@ -64,7 +64,7 @@ for row in seasons.seasons:
     print(row.season_id, row.year, row.name)
 ```
 
-`DiscoveryResult.scope` identifies the source listing, search, category, date or
+`DiscoveryResult.scope` identifies the source listing, search page, category, date or
 season response. None of these asserts complete worldwide or historical coverage.
 `fetched_at` is the original UTC fetch time, including cache reuse; `cached` reports
 reuse. `notes` records selection limitations. Competition and season records remain
@@ -80,8 +80,8 @@ without following per-entry references or launching a browser.
 | Promiedos | Required source `date`, leagues listed that day | Manual selection |
 | FBref | Manual selection | Manual selection |
 | Understat | Manual selection | Manual selection |
-| BeSoccer | Manual selection | Manual selection |
-| Transfermarkt | Manual selection | Manual selection |
+| BeSoccer | Manual competition slug | Native standings year selector |
+| Transfermarkt | Required `query`, explicit `page` (default 1), competition grid only | Native options, requiring `competition_url` from a search result |
 
 Manual selection means that this common API has no verified adapter for that
 operation; it does not establish that the provider has no such feature elsewhere.
@@ -95,12 +95,48 @@ separate numeric ID. Both fields retain native IDs for other implemented sources
 Names do not establish cross-provider identity.
 
 `SeasonInfo.season_id` is kept separate from `year` and `source_season`. ESPN's
-index explicitly provides a year, usable as `season`. For Sofascore or 365Scores,
+index explicitly provides a year, usable as `season`. BeSoccer's `year` preserves
+the native standings selector, which can be `2027` for a `2026-27` label. For Sofascore or 365Scores,
 pass the native ID as `season_id` and choose the caller year label separately.
 Goaloo's `source_season` selects the listed season string. Discovery does not
 derive years from labels such as `26/27`, assume every integer is a year or fill
 missing historical seasons with generated values. An ESPN index requiring more
 than one page raises rather than silently returning a partial list.
+
+Transfermarkt search includes both league (`wettbewerb`) and cup
+(`pokalwettbewerb`) links. `page` and `scope="search_page"` describe one response,
+not the whole search catalogue. Pass the competition's `source_url` to season
+discovery so it can retain the native slug and route:
+
+```py
+results = esd.list_competitions("transfermarkt", query="Champions", page=1)
+competition = next(row for row in results.competitions if row.competition_id == "CL")
+seasons = esd.list_seasons(
+    "transfermarkt", competition.competition_id,
+    competition_url=competition.source_url,
+)
+```
+
+Only official Transfermarkt competition links matching the selected ID are
+accepted. Its native season option remains an ID and label; it does not select
+historical entity datasets. Transfermarkt profiles remain current and histories
+remain unfiltered, as described below. HTML selectors are checked against their
+competition, and missing structures or browser challenges raise instead of
+becoming empty lists. `DiscoveryResult.source_url` records the requested route.
+If Transfermarkt clamps an out-of-range search page to another page, discovery
+raises `SourceError` rather than labeling those results with the requested number.
+
+The remaining discovery adapters were investigated on November 7, 2026. FBref's
+[competition index](https://fbref.com/en/comps/) and
+[history page](https://fbref.com/en/comps/9/history/Premier-League-Seasons) returned
+HTTP 403 from the verification environment. Understat's
+[home](https://understat.com/) and [league page](https://understat.com/league/EPL)
+returned maintenance HTML. BeSoccer's competition listing returned a page shell
+without the catalogue or a challenge, although its
+[Champions season selector](https://es.besoccer.com/competicion/clasificacion/champions)
+was readable. These observations do not establish permanent provider limitations.
+Their unverified operations retain manual selection; no static catalogue or
+generated historical seasons substitutes for a source response.
 
 Supply `cache_dir`, `cache_policy` and `refresh` to either discovery function for
 validated response reuse and refresh. The directory is caller-selected; no files
@@ -116,6 +152,17 @@ These responses are not stability guarantees. Use the
 [CLI examples](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#discover-selectors-before-loading-data)
 or run `python examples/datasets/discovery_offline.py` for artificial responses
 showing selector differences and cache behavior.
+
+For a full 365Scores example, use `examples/datasets/discover_and_download.py`.
+It checks the exact competition and native season IDs against discovery results,
+downloads one to seven UTC days plus standings and validates the normalized data.
+`--output-dir` saves a new Parquet snapshot and reopens it to compare all records
+and metadata. Validation errors prevent saving. A partial download retains its
+errors in the snapshot and returns exit code `1`; warnings alone do not fail a
+complete download. `--open-dir` validates a snapshot without discovery or HTTP.
+The base install supports download/validation; storage needs `[parquet]`, without
+pandas. `discovery_workflow_offline.py` runs the same flow with artificial responses;
+add `--parquet` for temporary storage and offline reopening.
 
 ## Provider selection
 

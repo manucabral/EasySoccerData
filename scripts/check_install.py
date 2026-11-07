@@ -31,6 +31,11 @@ def main():
         seasons = esd.list_seasons("goaloo", 36)
         assert seasons.seasons[0].source_season == "2024-2025"
         assert seasons.seasons[0].year is None
+    with patch("esd.discovery.get_text", return_value='''<select id="season" name="season"
+        data-url="https://es.besoccer.com/competicion/clasificacion/champions/NNN">
+        <option value="2027">2026-27</option></select>'''):
+        assert esd.list_seasons("besoccer", "champions").seasons[0].year == 2027
+    assert esd.get_discovery_capabilities("transfermarkt").competitions == "search_page"
     assert all(contract.tables for contract in esd.get_dataset_capabilities().values())
     now = datetime(2024, 8, 16, 19, tzinfo=timezone.utc)
     dataset = esd.SoccerDataset(

@@ -31,14 +31,14 @@ def test_capabilities_cover_all_nine_sources_without_fetching(fetch):
     fetch.assert_not_called()
 
 
-@pytest.mark.parametrize("source", ["fbref", "understat", "besoccer", "transfermarkt", "goaloo"])
+@pytest.mark.parametrize("source", ["fbref", "understat", "besoccer", "goaloo"])
 def test_manual_competition_selection_is_explicit_before_io(fetch, source):
     with pytest.raises(esd.DiscoveryNotSupported, match="manually"):
         esd.list_competitions(source)
     fetch.assert_not_called()
 
 
-@pytest.mark.parametrize("source", ["fbref", "understat", "besoccer", "transfermarkt", "promiedos"])
+@pytest.mark.parametrize("source", ["fbref", "understat", "promiedos"])
 def test_manual_season_selection_is_explicit_before_io(fetch, source):
     with pytest.raises(esd.DiscoveryNotSupported, match="manually"):
         esd.list_seasons(source, "native")

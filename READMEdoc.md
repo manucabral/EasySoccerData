@@ -202,6 +202,9 @@ and does not change or fetch data.
 `esd.get_discovery_capabilities()` lists competition and season discovery support
 for all nine providers. `list_competitions()` and `list_seasons()` return native
 selectors with their query scope and original fetch timestamp, without pandas.
+Transfermarkt discovery preserves league/cup routes and search pages. BeSoccer
+returns its native standings year options. The examples include a 365Scores
+discovery-to-download flow with validation and optional snapshot verification.
 
 .. include:: guides/datasets.md
 

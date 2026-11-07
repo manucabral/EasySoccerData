@@ -4,6 +4,7 @@
 
 ### Added
 
+- Transfermarkt competition search pages and native season selectors, BeSoccer standings year discovery, source URLs and a 365Scores discovery/download/validation workflow with optional verified Parquet snapshots.
 - Native competition/season discovery for ESPN, 365Scores, Sofascore, Goaloo and dated Promiedos listings, with explicit support for all nine providers, immutable results, source scope and optional response caching.
 - Read-only `validate_dataset()` reports for normalized records and coverage across all nine providers, with contextual errors/warnings and no optional dependencies.
 - Live source checks now report dataset validation separately from download status, with opt-in Parquet round trips, temporary cleanup and caller-selected snapshot directories.
@@ -19,6 +20,7 @@
 
 ### Fixed
 
+- Transfermarkt search now reads competition grid cells and cup links (`pokalwettbewerb`), which were omitted by the previous link parser.
 - Include example identity maps in source distributions so saved-provider comparisons can run from the source archive.
 - Promiedos: convert ISO query dates to the source's `DD-MM-YYYY` URL format in clients and dataset loaders.
 - BeSoccer: raise `SourceBlocked` when a browser challenge persists and keep that response out of the cache.
