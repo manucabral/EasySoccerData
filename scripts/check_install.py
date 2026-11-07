@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from importlib.metadata import metadata
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 
 def main():
@@ -24,6 +25,12 @@ def main():
     assert metadata("EasySoccerData")["License-Expression"] == "MIT"
     assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
     assert len(esd.get_dataset_capabilities()) == 9
+    assert len(esd.get_discovery_capabilities()) == 9
+    assert esd.get_discovery_capabilities("goaloo").seasons == "index"
+    with patch("esd.discovery.get_api_json", return_value={"SeasonList": ["2024-2025"]}):
+        seasons = esd.list_seasons("goaloo", 36)
+        assert seasons.seasons[0].source_season == "2024-2025"
+        assert seasons.seasons[0].year is None
     assert all(contract.tables for contract in esd.get_dataset_capabilities().values())
     now = datetime(2024, 8, 16, 19, tzinfo=timezone.utc)
     dataset = esd.SoccerDataset(

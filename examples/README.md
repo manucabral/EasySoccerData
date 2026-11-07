@@ -19,6 +19,8 @@ snapshot. Temporary-file examples clean up after themselves.
 | Script | Extra | Behavior shown |
 | :--- | :--- | :--- |
 | [Provider contracts](datasets/providers.py) with `--list` | Base | All nine sources and supported tables |
+| [Discovery selectors and cache](datasets/discovery_offline.py) | Base | ESPN slugs, native season IDs, source labels and cache provenance |
+| [Discovery support](datasets/discover.py) with `--list` | Base | Implemented competition and season query modes for all nine providers |
 | [Partial results](datasets/partial_results.py) | Base | `raise`, `collect`, attached records and failed days |
 | [Dataset validation](datasets/validate_dataset.py) | Base | Errors, warnings, nullable scores, partial downloads and duplicate keys |
 | [Cache reuse](datasets/cache_resume_offline.py) | Base | First download, disk reuse, original timestamps and forced refresh |
@@ -134,6 +136,33 @@ Invalid arguments, mismatched snapshot ranges or storage failures return `2`.
 Import and `--help` work without source requests or optional packages.
 
 ## Live dataset queries
+
+### Discover selectors before loading data
+
+```sh
+python examples/datasets/discover.py --list
+python examples/datasets/discover.py --source espn --query Champions
+python examples/datasets/discover.py --source espn --seasons --competition-id uefa.champions
+python examples/datasets/discover.py --source scores365 --query Champions
+python examples/datasets/discover.py --source scores365 --seasons --competition-id 572
+python examples/datasets/discover.py --source goaloo --seasons --competition-id 36
+python examples/datasets/discover.py --source sofascore --category-id 1
+python examples/datasets/discover.py --source promiedos --date 2026-11-07
+```
+
+Except for `--list` and `--help`, these commands query a provider. Each discovery
+call reads one response. `--cache-dir ./my-data/discovery` enables persistent
+response reuse; `--refresh` fetches again. Neither requires pandas or PyArrow.
+Unsupported operations report `DiscoveryNotSupported` with exit code `1`, as
+do source blocks and transport errors. Invalid arguments return `2`.
+
+The output distinguishes the selector accepted by dataset loaders from ESPN's
+numeric competition ID, and native season IDs from year labels. It includes scope,
+original UTC fetch time and provider-specific notes. 365Scores may include only
+the current season in competition details. Promiedos lists leagues on the supplied
+day. No operation claims an exhaustive catalogue of all competitions or history.
+Read the [discovery guide](../guides/datasets.md#discover-competitions-and-seasons)
+before passing selectors to dataset loaders.
 
 ### Champions League: a short date range
 

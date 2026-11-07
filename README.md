@@ -40,6 +40,10 @@ network access and required extras.
 pandas or file writes. Its report separates errors from warnings and leaves
 the dataset unchanged. See [dataset validation](guides/datasets.md#validate-a-dataset).
 
+`esd.list_competitions()` and `esd.list_seasons()` discover native selectors where
+implemented. Inspect `esd.get_discovery_capabilities()` before querying a source.
+See [competition and season discovery](guides/datasets.md#discover-competitions-and-seasons).
+
 # Usage
 
 ## Sofascore

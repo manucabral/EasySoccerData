@@ -55,3 +55,11 @@ class ESPNEndpoints:
         Return the teams list URL for a league.
         """
         return f"{self.site_base_url}/{quote(league)}/teams"
+
+    def competitions(self) -> str:
+        """Return ESPN's soccer league dropdown, including names and dataset codes."""
+        return "https://site.api.espn.com/apis/site/v2/leagues/dropdown?region=us&lang=en&sport=soccer"
+
+    def seasons(self, league: str) -> str:
+        """Return the native season-year index in one page of at most 1000 entries."""
+        return f"https://sports.core.api.espn.com/v2/sports/soccer/leagues/{quote(league, safe='')}/seasons?limit=1000"

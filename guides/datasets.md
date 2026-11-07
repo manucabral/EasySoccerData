@@ -46,6 +46,77 @@ for match in dataset.match_records[:5]:
 status to determine whether a match has finished. Status fields retain native
 source codes and text.
 
+## Discover competitions and seasons
+
+Discovery returns immutable records without pandas or PyArrow. Inspect the
+implemented operations before making a request:
+
+```py
+import esd
+
+support = esd.get_discovery_capabilities()
+competitions = esd.list_competitions("espn", query="Champions")
+for row in competitions.competitions:
+    print(row.competition_id, row.native_id, row.name)
+
+seasons = esd.list_seasons("espn", "uefa.champions")
+for row in seasons.seasons:
+    print(row.season_id, row.year, row.name)
+```
+
+`DiscoveryResult.scope` identifies the source listing, search, category, date or
+season response. None of these asserts complete worldwide or historical coverage.
+`fetched_at` is the original UTC fetch time, including cache reuse; `cached` reports
+reuse. `notes` records selection limitations. Competition and season records remain
+separate tuples. Queries make one source request before normal transport retries,
+without following per-entry references or launching a browser.
+
+| Source | Competition query | Season query |
+| :--- | :--- | :--- |
+| ESPN | Soccer dropdown, optional local name filter | Native season-year index for a league slug |
+| 365Scores | Required `query`, football results only | Seasons included in competition details, possibly current season only |
+| Sofascore | Required football `category_id`, all returned groups | Native tournament season IDs and period labels |
+| Goaloo | Manual competition ID | Native `SeasonList` strings |
+| Promiedos | Required source `date`, leagues listed that day | Manual selection |
+| FBref | Manual selection | Manual selection |
+| Understat | Manual selection | Manual selection |
+| BeSoccer | Manual selection | Manual selection |
+| Transfermarkt | Manual selection | Manual selection |
+
+Manual selection means that this common API has no verified adapter for that
+operation; it does not establish that the provider has no such feature elsewhere.
+These calls raise `DiscoveryNotSupported` before I/O. Implemented routes may
+still raise `SourceBlocked`, `SourceNotFound` or `SourceError`. Malformed responses
+are errors, not empty lists. Explicitly empty source lists remain empty.
+
+`CompetitionInfo.competition_id` is the value to pass as `load_dataset(league=...)`.
+For ESPN this is a slug such as `uefa.champions`, while `native_id` retains its
+separate numeric ID. Both fields retain native IDs for other implemented sources.
+Names do not establish cross-provider identity.
+
+`SeasonInfo.season_id` is kept separate from `year` and `source_season`. ESPN's
+index explicitly provides a year, usable as `season`. For Sofascore or 365Scores,
+pass the native ID as `season_id` and choose the caller year label separately.
+Goaloo's `source_season` selects the listed season string. Discovery does not
+derive years from labels such as `26/27`, assume every integer is a year or fill
+missing historical seasons with generated values. An ESPN index requiring more
+than one page raises rather than silently returning a partial list.
+
+Supply `cache_dir`, `cache_policy` and `refresh` to either discovery function for
+validated response reuse and refresh. The directory is caller-selected; no files
+are written without it. Original fetch times survive cache hits. Failed refreshes
+do not replace a valid entry. `proxies` is forwarded to the existing HTTP helper.
+
+The routes use provider responses, including ESPN's
+[soccer listing](https://site.api.espn.com/apis/site/v2/leagues/dropdown?region=us&lang=en&sport=soccer),
+[season index](https://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.champions/seasons?limit=1000),
+Sofascore's [native seasons](https://www.sofascore.com/api/v1/unique-tournament/7/seasons)
+and Goaloo's [season strings](https://football.goaloo.com/jsData/leagueSeason/sea36.json).
+These responses are not stability guarantees. Use the
+[CLI examples](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#discover-selectors-before-loading-data)
+or run `python examples/datasets/discovery_offline.py` for artificial responses
+showing selector differences and cache behavior.
+
 ## Provider selection
 
 The same Python call has provider-specific selection requirements. Inspect

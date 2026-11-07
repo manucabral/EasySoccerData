@@ -77,3 +77,7 @@ class Scores365Endpoints:
         Return the search URL for teams, competitions and athletes.
         """
         return f"{self.base_url}/search/?{self._common_params}&query={quote(query)}"
+
+    def competition_seasons(self, competition_id: int) -> str:
+        """Return competition details with the seasons included by 365Scores."""
+        return f"{self.base_url}/competitions/?{self._common_params}&competitions={competition_id}&withSeasons=true"

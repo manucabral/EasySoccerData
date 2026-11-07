@@ -199,6 +199,10 @@ pandas and make no network requests; DataFrame export uses the optional extra.
 records, references and task coverage. Validation works without pandas or PyArrow
 and does not change or fetch data.
 
+`esd.get_discovery_capabilities()` lists competition and season discovery support
+for all nine providers. `list_competitions()` and `list_seasons()` return native
+selectors with their query scope and original fetch timestamp, without pandas.
+
 .. include:: guides/datasets.md
 
 # Contributing

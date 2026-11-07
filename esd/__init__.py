@@ -41,6 +41,16 @@ from .datasets import (
     load_dataset,
     open_dataset,
 )
+from .discovery import (
+    CompetitionInfo,
+    DiscoveryCapabilities,
+    DiscoveryNotSupported,
+    DiscoveryResult,
+    SeasonInfo,
+    get_discovery_capabilities,
+    list_competitions,
+    list_seasons,
+)
 from .espn import ESPNClient
 from .espn import types as ESPNTypes
 from .exceptions import ESDException, SourceBlocked, SourceError, SourceNotFound
@@ -85,6 +95,8 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 __all__ = [
+    "CompetitionInfo", "SeasonInfo", "DiscoveryCapabilities", "DiscoveryResult",
+    "DiscoveryNotSupported", "get_discovery_capabilities", "list_competitions", "list_seasons",
     "DatasetValidationIssue", "DatasetValidationReport", "validate_dataset",
     "DatasetCompatibility", "EntityAlias", "IdentityMap", "MatchLink", "MatchLinkResult",
     "check_dataset_compatibility", "link_dataset_matches",

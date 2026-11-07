@@ -4,6 +4,7 @@
 
 ### Added
 
+- Native competition/season discovery for ESPN, 365Scores, Sofascore, Goaloo and dated Promiedos listings, with explicit support for all nine providers, immutable results, source scope and optional response caching.
 - Read-only `validate_dataset()` reports for normalized records and coverage across all nine providers, with contextual errors/warnings and no optional dependencies.
 - Live source checks now report dataset validation separately from download status, with opt-in Parquet round trips, temporary cleanup and caller-selected snapshot directories.
 - Champions League date-range example using the base installation, with UTC bounds, nullable scores and partial-result reporting.
