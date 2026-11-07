@@ -356,7 +356,7 @@ def _dated(download):
         if source == "fbref":
             url = FBrefEndpoints().matchs_endpoint.format(date=day)
         elif source == "promiedos":
-            url = PromiedosEndpoints().events_endpoint.format(date=day)
+            url = PromiedosEndpoints().events_url(day)
         else:
             url = BeSoccerEndpoints().livescore(day)
 

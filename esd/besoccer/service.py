@@ -4,6 +4,7 @@ BeSoccer service module.
 
 from __future__ import annotations
 
+from ..exceptions import SourceBlocked
 from ..utils import TTLCache, get_text, is_available_date
 from .endpoints import BeSoccerEndpoints
 from .types import (
@@ -29,8 +30,17 @@ class BeSoccerService:
         if cached is not None:
             return cached
         html_text = get_text(url, proxies=self.proxies, impersonate="safari17_0")
-        if "<title>Client Challenge</title>" in html_text[:1500]:
+
+        def blocked(text):
+            return any(
+                marker in text[:4000].lower()
+                for marker in ("client challenge", "just a moment", "cf-chl-")
+            )
+
+        if blocked(html_text):
             html_text = get_text(url, proxies=self.proxies, impersonate="chrome")
+        if blocked(html_text):
+            raise SourceBlocked("BeSoccer returned a browser challenge")
         self._cache.set(url, html_text)
         return html_text
 

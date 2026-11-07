@@ -192,13 +192,14 @@ def test_promiedos_preserves_raw_dates_and_filters_leagues(monkeypatch, promiedo
     promiedos["leagues"].append({"id": "other", "games": [{"id": "bad"}]})
     captured = []
     monkeypatch.setattr(
-        remaining, "get_api_json", lambda url, **k: captured.append(k) or deepcopy(promiedos)
+        remaining, "get_api_json", lambda url, **k: captured.append((url, k)) or deepcopy(promiedos)
     )
     result = load("promiedos")
     assert result.complete and len(result.match_records) == 1
     assert result.match_records[0].kickoff.isoformat() == "2024-08-16T19:00:00+00:00"
     assert result.match_records[0].competition_id == "hc"
-    assert captured[0]["headers"]["X-VER"]
+    assert captured[0][0].endswith("/games/16-08-2024")
+    assert captured[0][1]["headers"]["X-VER"]
     assert promiedos["leagues"][0]["games"][0]["start_time"] == "16-08-2024 19:00"
 
 
@@ -435,7 +436,7 @@ def test_new_provider_callback_error_is_not_wrapped(monkeypatch, goaloo):
 
 def test_failed_date_is_preserved_alongside_successful_dates(monkeypatch, promiedos):
     def fetch(url, **kwargs):
-        if "2024-08-17" in url:
+        if "17-08-2024" in url:
             raise SourceError("Source unavailable")
         return promiedos
 

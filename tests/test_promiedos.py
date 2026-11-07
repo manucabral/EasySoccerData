@@ -1,5 +1,8 @@
 """Tests for esd.promiedos parsers and types."""
 
+import pytest
+
+from esd.promiedos import PromiedosClient
 from esd.promiedos.types import (
     EventType,
     MatchStatus,
@@ -10,6 +13,28 @@ from esd.promiedos.types import (
     parse_players,
     parse_tournament,
 )
+
+
+@pytest.mark.parametrize(
+    ("query", "native"),
+    [
+        ("2024-02-29", "29-02-2024"),
+        ("today", "today"),
+        ("yesterday", "yesterday"),
+        ("tomorrow", "tomorrow"),
+    ],
+)
+def test_event_dates_use_native_url_and_keep_caller_date(monkeypatch, query, native):
+    calls = []
+
+    def fetch(url, **kwargs):
+        calls.append(url)
+        return {"leagues": [{"id": "hc", "games": []}]}
+
+    monkeypatch.setattr("esd.promiedos.service.get_api_json", fetch)
+    result = PromiedosClient().get_events(query)
+    assert calls == [f"https://api.promiedos.com.ar/games/{native}"]
+    assert result[0].date == query
 
 
 def test_parse_events_does_not_mutate_input():

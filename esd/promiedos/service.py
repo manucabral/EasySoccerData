@@ -66,7 +66,7 @@ class PromiedosService:
                     "Invalid date format. Use YYYY-MM-DD or today, yesterday, or tomorrow."
                 ) from exc
         try:
-            url = self.endpoints.events_endpoint.format(date=date)
+            url = self.endpoints.events_url(date)
             data = self._get_json(url).get("leagues", [])
             return parse_events(date, data)
         except Exception as exc:

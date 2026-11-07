@@ -2,7 +2,35 @@
 Unit tests for BeSoccer HTML parsers.
 """
 
+import pytest
+
+from esd.besoccer.service import BeSoccerService
 from esd.besoccer.types import parse_livescore_html, parse_standings_html
+from esd.exceptions import SourceBlocked
+
+
+def test_browser_challenge_is_not_an_empty_standings_success_or_cached(monkeypatch):
+    responses = iter(
+        (
+            "<title>Client Challenge</title>",
+            "<title>Just a moment</title>",
+            "<html><body>No matches</body></html>",
+        )
+    )
+    calls = []
+
+    def fetch(url, **kwargs):
+        calls.append(kwargs["impersonate"])
+        return next(responses)
+
+    monkeypatch.setattr("esd.besoccer.service.get_text", fetch)
+    service = BeSoccerService()
+    with pytest.raises(SourceBlocked, match="browser challenge"):
+        service.get_standings("torneo_final")
+    assert service.get_standings("torneo_final") == []
+    assert calls == ["safari17_0", "chrome", "safari17_0"]
+    assert service.get_standings("torneo_final") == []
+    assert len(calls) == 3
 
 
 def test_parse_besoccer_livescore_html():

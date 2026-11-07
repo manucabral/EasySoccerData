@@ -2,6 +2,8 @@
 Promiedos event, match and tournament URLs.
 """
 
+from datetime import datetime
+
 
 class PromiedosEndpoints:
     """
@@ -17,6 +19,12 @@ class PromiedosEndpoints:
         Get the events endpoint.
         """
         return self.base_url + "games/{date}"
+
+    def events_url(self, date: str) -> str:
+        """Accept an ISO date or relative day and format the source's date path."""
+        if date not in ("today", "yesterday", "tomorrow"):
+            date = datetime.strptime(date, "%Y-%m-%d").strftime("%d-%m-%Y")
+        return self.events_endpoint.format(date=date)
 
     @property
     def match_endpoint(self) -> str:
