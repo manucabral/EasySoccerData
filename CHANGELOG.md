@@ -1,5 +1,48 @@
 # Changelog
 
+## [Unreleased]
+
+## [0.2.0] - 2026-11-06
+
+### Fixed
+
+- Package metadata now declares MIT, matching the repository license.
+- Unknown or null event status data uses short cache freshness instead of raising during TTL evaluation.
+- Parquet snapshots reopen UTC timestamps without pandas, pytz or a timezone database on Windows.
+- FBref: preserve native match/team/competition context and parse match scores separately from penalty shootout numbers.
+- Promiedos normalization: use raw source dates with an explicit timezone instead of the host-dependent parsed timestamp, preserving native status codes.
+- BeSoccer datasets: filter adjacent-day fixtures and detect mismatched canonical date pages.
+- 365Scores: filter games locally when the source ignores the requested competition ID.
+- ESPN: assign match statistics and rosters by team ID or home/away metadata before falling back to list order, preserving away-first payloads.
+- Browser sessions: close pages when initialization fails and preserve the original error if cleanup also fails.
+
+### Changed
+
+- ESPN request delays apply only to source fetches. Duplicate match and team observations prefer the original response fetch timestamp, preserving newer results across cached downloads.
+
+### Added
+
+- Installed-wheel checks for base, pandas, parquet and full environments across Python 3.9–3.13 on Linux and Windows in CI.
+- Dataset plans for FBref, Goaloo, Promiedos, BeSoccer and Transfermarkt, bringing explicit dataset contracts to all nine providers.
+- Transfermarkt current profiles, full valuation/transfer histories and caller-selected entities, with optional DataFrames and Parquet snapshots.
+- Explicit identity maps, compatibility inspection and one-to-one cross-source match linkage with unmatched/ambiguous results, without pandas or automatic name matching.
+- Dataset loaders for 365Scores UTC date ranges, Sofascore native-season pagination and Understat season matches, xG, player statistics and opt-in shots.
+- Source capability discovery, explicit task coverage and provider selection metadata, preserved through cache reuse and Parquet snapshots.
+- Sofascore and Understat normalized adapters, nullable metric schemas and offline provider-contract regression tests.
+- Caller-selected persistent JSON response caches with atomic replacement, corruption checks and cache cleanup, requiring no optional dependencies.
+- ESPN download resume and incremental updates with configurable calendar/live/upcoming/recent/historical/standings freshness, forced refresh and cache-aware progress.
+- Parquet snapshot save/open with versioned manifests, preserved metadata and partial errors, fixed schemas, checksums and staged writes to new directories.
+- Independent parquet extra for PyArrow, offline round-trip examples and tests confirming file storage works without pandas.
+- Full extra combining all optional runtime features, with pandas and PyArrow kept out of the base installation.
+- ESPN season datasets with daily and stage calendar discovery, sequential downloads, deduplication, progress callbacks, normalized records and explicit partial-result errors.
+- Strict ESPN season validation for dataset scoreboards and standings, calendar coverage metadata and lazy DataFrame tables.
+- Common match, team and standings records with opt-in ESPN and 365Scores adapters, source-local identifiers, UTC kickoffs and preserved table/stage/group context.
+- Normalized DataFrame export with versioned columns and fixed nullable types for populated and empty tables, plus offline examples and adapter tests.
+- Optional DataFrame flattening, nullable type inference, explicit column types and UTC date conversion in `to_dataframe`, with the original defaults preserved.
+- Offline pandas examples for matches, standings and team ID joins, plus DataFrame tests and CI installation of the pandas extra.
+- Offline regression tests for ESPN team assignment and browser page cleanup.
+- HTTP transport tests for request options, permanent errors, transient retries, retry exhaustion, invalid JSON and error payloads across httpx and curl_cffi.
+
 ## [0.1.0] - 2026-11-06
 
 ### Added
