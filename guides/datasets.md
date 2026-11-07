@@ -83,7 +83,8 @@ For a two-day Champions League download without pandas, run
 `python examples/datasets/champions_league.py` from the checkout root. Use
 `--start-date` and `--end-date` to select up to seven UTC days. The
 [Champions League example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/datasets/champions_league.py)
-prints records and reports any failed days without writing files.
+prints records and reports failed days. Supply `--cache-dir ./my-data/champions-responses`
+to reuse validated responses, or add `--refresh` to fetch the range again.
 
 ## Partial downloads
 

@@ -42,7 +42,8 @@ Install the matching extras before choosing `pandas`, `parquet` or `full`.
 
 [champions_league.py](datasets/champions_league.py) downloads matches for two UTC
 days using the base installation. It prints IDs, kickoff times, teams, scores and
-source statuses. It does not require pandas or PyArrow and writes no files.
+source statuses. It does not require pandas or PyArrow. It writes response files
+only when `--cache-dir` is supplied.
 
 ```sh
 python examples/datasets/champions_league.py
@@ -54,6 +55,20 @@ of seven days per call. The competition ID is `572` for the Champions League;
 `332` is a separate qualifying competition. `--season` labels the records; the
 date range selects the matches. Kickoff times use UTC; status codes come from 365Scores.
 An unknown score is printed as `?`, and zero stays zero.
+
+Choose a response cache directory to reuse valid responses across runs:
+
+```sh
+python examples/datasets/champions_league.py --cache-dir "./my-data/champions-responses"
+python examples/datasets/champions_league.py --cache-dir "./my-data/champions-responses"
+python examples/datasets/champions_league.py --cache-dir "./my-data/champions-responses" --refresh
+```
+
+The second run reports how many days came from cache. Successful days are reused
+while fresh; failed or expired days are requested again. Cached responses keep
+their original fetch times. `--refresh` fetches every selected day again and
+replaces cache entries after validation. A failed refresh leaves an existing
+entry intact and reports the failure. The script does not save a Parquet snapshot.
 
 If a day fails, the script displays the successful days and reports the failed
 tasks on stderr, with exit code `1`. A complete request returns `0`, including

@@ -81,6 +81,8 @@ def test_seven_day_range_and_champions_selection(monkeypatch, capsys):
         end_date="2026-11-07",
         tables=["matches"],
         on_error="collect",
+        cache_dir=None,
+        refresh=False,
     )
     output = capsys.readouterr().out
     assert "Home 0 - ? Away" in output
@@ -122,3 +124,81 @@ def test_empty_range_is_reported_without_error(monkeypatch, capsys):
     monkeypatch.setattr("esd._provider_datasets.get_api_json", lambda *a, **k: {"games": []})
     assert runpy.run_path(str(EXAMPLE))["main"]([]) == 0
     assert "No fixtures returned" in capsys.readouterr().out
+
+
+def test_cache_recovers_failed_day_reuses_fetch_times_and_refreshes(monkeypatch, tmp_path, capsys):
+    main = runpy.run_path(str(EXAMPLE))["main"]
+    arguments = ["--cache-dir", str(tmp_path / "chosen-cache")]
+    calls, datasets = [], []
+    blocked = [True]
+    score = [0]
+    clock = [datetime(2026, 11, 7, tzinfo=timezone.utc).timestamp()]
+    original_load = esd.load_dataset
+
+    def load(**kwargs):
+        dataset = original_load(**kwargs)
+        datasets.append(dataset)
+        return dataset
+
+    def fetch(url, **kwargs):
+        day = 4 if "04/11/2026" in url else 3
+        calls.append(day)
+        if day == 4 and blocked[0]:
+            raise SourceError("Sample failed day")
+        return {
+            "games": [
+                {
+                    "id": day,
+                    "competitionId": 572,
+                    "seasonNum": 2026,
+                    "startTime": f"2026-11-{day:02d}T20:00:00Z",
+                    "statusGroup": 4,
+                    "homeCompetitor": {"id": 10, "name": "Home", "score": score[0]},
+                    "awayCompetitor": {"id": 20, "name": "Away", "score": 1},
+                }
+            ]
+        }
+
+    monkeypatch.setattr(esd, "load_dataset", load)
+    monkeypatch.setattr("esd._provider_datasets.get_api_json", fetch)
+    monkeypatch.setattr("esd._response_reader.time.time", lambda: clock[0])
+    assert main(arguments) == 1
+    assert calls == [3, 4]
+    assert len(list((tmp_path / "chosen-cache").rglob("*.json"))) == 1
+    first_times = dict(datasets[-1].metadata.response_fetched_at)
+
+    blocked[0] = False
+    clock[0] += 10
+    assert main(arguments) == 0
+    assert calls == [3, 4, 4]
+    assert datasets[-1].metadata.cached_tasks == ("matches:2026-11-03",)
+    resumed_times = dict(datasets[-1].metadata.response_fetched_at)
+    assert resumed_times["matches:2026-11-03"] == first_times["matches:2026-11-03"]
+
+    clock[0] += 10
+    assert main(arguments) == 0
+    assert calls == [3, 4, 4]
+    assert len(datasets[-1].metadata.cached_tasks) == 2
+    assert dict(datasets[-1].metadata.response_fetched_at) == resumed_times
+    assert "Days reused from cache: 2" in capsys.readouterr().out
+
+    score[0] = 2
+    clock[0] += 10
+    assert main([*arguments, "--refresh"]) == 0
+    assert calls == [3, 4, 4, 3, 4]
+    assert not datasets[-1].metadata.cached_tasks
+    assert all(match.home_score == 2 for match in datasets[-1].match_records)
+    assert dict(datasets[-1].metadata.response_fetched_at) != resumed_times
+
+
+def test_cache_path_cannot_be_a_file(monkeypatch, tmp_path, capsys):
+    destination = tmp_path / "existing-file"
+    destination.write_text("Keep this file", encoding="utf-8")
+    fetch = Mock(side_effect=AssertionError("Unexpected HTTP"))
+    monkeypatch.setattr("esd._provider_datasets.get_api_json", fetch)
+    with pytest.raises(SystemExit) as exc:
+        runpy.run_path(str(EXAMPLE))["main"](["--cache-dir", str(destination)])
+    assert exc.value.code == 2
+    assert "not a directory" in capsys.readouterr().err
+    assert destination.read_text(encoding="utf-8") == "Keep this file"
+    fetch.assert_not_called()
