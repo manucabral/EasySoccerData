@@ -181,11 +181,12 @@ strings without resolving team identities.
 
 The normalized DataFrame tables are `matches`, `teams`, `standings`,
 `match_stats`, `player_stats`, `shots`, `players`, `market_values`, `transfers`,
-`lineups` and `player_match_stats`. They
+`lineups`, `player_match_stats` and `match_events`. They
 have fixed columns and types even when empty: nullable strings for identifiers
 and names, `Int64` for counts, `Float64` for metrics and UTC nanosecond datetimes for `kickoff`.
-`DataFrame.attrs` reports `schema_version="3"` and the table name.
-Version `1` Parquet snapshots remain readable; new statistic columns are null.
+`DataFrame.attrs` reports `schema_version="4"` and the table name.
+Version `1`–`3` Parquet snapshots remain readable. Absent statistic columns are
+null and tables introduced later stay unselected.
 
 Join entities using both `source` and their source-local ID. Adapters preserve
 names without matching entities across providers. The caller-supplied `season`
@@ -212,6 +213,14 @@ for uniquely linked matches without downloads or optional dependencies. Results
 retain missing values, source periods, original fetch times, partial errors and
 unmatched/ambiguous IDs. Cross-source xG/forecast models remain separate.
 `report.to_dataframe()` requires the pandas extra.
+
+ESPN/365Scores also expose `match_events` for explicit IDs. They share the same
+summary/game detail with selected player tables. Native periods, added time,
+participant IDs and shootout counters remain separate. ESPN includes reviewed
+commentary plays missing from `keyEvents`, without resolving names to IDs.
+The [event guide](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/guides/datasets.md#match-events)
+documents field meanings and collection limits. Run
+`python examples/datasets/match_events_offline.py` for both artificial sources.
 
 ESPN, 365Scores and Sofascore accept `lineups` and `player_match_stats` for
 explicit match IDs, alongside optional team match totals. Lineups retain native

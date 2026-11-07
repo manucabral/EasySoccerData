@@ -18,6 +18,8 @@ snapshot. Temporary-file examples clean up after themselves.
 
 | Script | Extra | Behavior shown |
 | :--- | :--- | :--- |
+| [Match events](datasets/match_events_offline.py) | Base | Artificial goals/stoppage time, shootout counters, shared player responses and cache reuse for ESPN/365Scores |
+| [Match events](datasets/match_events_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable event frames or snapshots reopened without HTTP |
 | [Reviewed catalog](datasets/catalog.py) with `--list` | Base | Local competition selectors, review metadata and team identity count |
 | [Catalog workflow](datasets/catalog_workflow_offline.py) | Base | Three competitions/two artificial seasons, source selectors, linking, catalog JSON and response cache |
 | [Catalog workflow](datasets/catalog_workflow_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Report DataFrame types or twelve snapshot round trips with saved identities |
@@ -226,6 +228,49 @@ coverage. Existing discovery blocks remain source failures.
 shows immutable extensions, identity maps and saving a catalog beside snapshots.
 The offline workflow uses artificial source seasons/fixtures for all three
 competitions and two seasons. `--pandas` and `--parquet` remain independent.
+
+### Match events
+
+[match_events.py](datasets/match_events.py) accepts explicit ESPN/365Scores
+match IDs and prints a preview sorted by observed minute, then shootout order.
+It reads no full calendar and leaves unknown IDs/clocks unresolved:
+
+```sh
+python examples/datasets/match_events.py --source espn --league uefa.champions --season 2023 --match-id 700722 --max-match-requests 1
+python examples/datasets/match_events.py --source scores365 --league 572 --season 2026 --season-id 74 --match-id 4828447 --with-players --max-match-requests 1
+```
+
+The first selects Manchester City–Real Madrid on April 17, 2024 using ESPN's
+native year 2023, including its ten observed shootout attempts from commentary.
+The second selects Shakhtar–Sporting on November 3, 2026, sharing a game detail
+with lineups/player statistics. These native IDs were checked November 7, 2026;
+choose your own match and native season for other queries. The two commands
+select different matches. Event collections are not guaranteed complete or
+equivalent across sources.
+
+Repeat `--match-id` for more matches. `--with-players` adds no endpoint read.
+`--with-match-stats` shares the ESPN summary or adds one 365Scores request per
+ID. The budget defaults to 20 reads before retries. `--limit` changes the default
+30-row preview. `--cache-dir` uses the base installation, and `--refresh` checks
+a new response before replacing a valid cache entry.
+
+```sh
+python examples/datasets/match_events.py --source espn --league uefa.champions --season 2023 --match-id 700722 --cache-dir ./my-data/event-responses --output-dir ./my-data/event-snapshot-1
+python examples/datasets/match_events.py --open-dir ./my-data/event-snapshot-1
+python examples/datasets/match_events_offline.py
+```
+
+Save/open requires `[parquet]` without pandas. `--pandas` independently displays
+the event DataFrame. Destinations must be new; missing extras and existing
+destinations fail before HTTP. `--open-dir` rejects download options and never
+resumes a query. Exit codes are 0 for completed tasks, including explicit empty
+lists, 1 for source/validation failures and 2 for invalid arguments/missing extras.
+
+The [offline example](datasets/match_events_offline.py) uses artificial responses
+for both providers, shared player reads, cache reuse and unknown shootout
+participants. Add `--parquet` for snapshot checks or `--pandas` for typed frames.
+The [event guide](../guides/datasets.md#match-events) documents native keys,
+classification mappings, own-goal team semantics and collection limits.
 
 ### Lineups, player statistics and match totals
 

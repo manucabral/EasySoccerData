@@ -126,7 +126,7 @@ original catalog unchanged and reject conflicting names, source IDs or review
 metadata. Deliberate replacements require constructing a new complete catalog.
 `save_json()` stages a complete document and publishes a new file without
 overwriting existing paths. JSON format version `1` is independent of normalized
-dataset schema version `3`. Saving the catalog with your snapshots preserves
+dataset schema version `4`. Saving the catalog with your snapshots preserves
 the particular identities used for later comparisons. Catalog JSON needs no
 optional dependencies; dataset snapshots still require `[parquet]`.
 
@@ -358,6 +358,103 @@ On November 7, 2026, the Champions League Shakhtar–Sporting query returned
 respectively. Both snapshot round trips were verified. These are observations
 from that check. Sofascore's lineup path has offline contract tests; this check
 does not establish its current network availability.
+
+## Match events
+
+ESPN and 365Scores accept `tables=["match_events"]` with explicit `match_ids`.
+The selection adds matches/teams for context, without calendar discovery.
+Other providers reject this table before HTTP. Base installs return immutable
+`match_event_records`; `.match_events` imports pandas only when accessed.
+
+```py
+import esd
+
+dataset = esd.load_dataset(
+    source="espn", league="uefa.champions", season=2023,
+    tables=["match_events"], match_ids=[700722], max_match_requests=1,
+    cache_dir="./my-data/event-responses",
+)
+for event in dataset.match_event_records:
+    print(event.event_type, event.minute, event.added_minute, event.is_shootout,
+          event.player_id, event.player_name)
+```
+
+This example selects Manchester City–Real Madrid on April 17, 2024. ESPN's
+native season year is `2023`. The source response checked November 7, 2026
+contained ten shootout attempts in `commentary.play`, absent from `keyEvents`.
+Some commentary participants had names but no IDs. They remain unresolved:
+the adapter never matches their names to rosters or guesses a team ID.
+
+| Field | Contract |
+| :--- | :--- |
+| `event_id` | Native ESPN event ID; null for 365Scores, which supplies an order instead |
+| `source_order` | Native commentary sequence or 365Scores order within this response; not a persistent event identity |
+| `source_collection` | `keyEvents`, `commentary.play` or `game.events` |
+| `event_type` | Reviewed goal/card/substitution/penalty mappings; unrecognized native types remain `other` |
+| `source_type_id`, `source_subtype_id` and names | Original source classification, retained independently of normalized type |
+| `source_period`, `source_status_id` | Native codes, not shared period names across providers |
+| `minute`, `added_minute` | Explicit match minute and added minutes, nullable; no default zero and no conversion from elapsed seconds |
+| `clock_seconds` | ESPN elapsed clock in seconds; not the displayed rounded minute |
+| `source_game_time`, `source_clock` | Native 365Scores numeric counter and displayed clock, or ESPN displayed clock |
+| `is_shootout` | ESPN flag or reviewed shootout period, 365Scores stage `11`; null when not established |
+| `scoring_play` | ESPN's explicit flag when present; does not recalculate match scores |
+| `team_id` | Native event team; for own goals it can be the beneficiary rather than the player's team |
+| `player_id`, `related_player_id` | Native athlete IDs for ESPN; native member IDs for 365Scores |
+| `source_athlete_id`, `related_source_athlete_id` | Separate 365Scores athlete IDs when included in member metadata |
+| Participant names and `source_participants_json` | Source names plus all original participant references, including missing IDs or more than two participants |
+| `player_role`, `related_player_role` | `incoming` and `outgoing` for verified substitution ordering; otherwise null, including a goal's second participant |
+| `source_text` | ESPN's original description, without interpreting free text |
+
+Reviewed normalized types are `goal`, `own_goal`, `penalty_scored`,
+`penalty_missed`, `yellow_card`, `red_card`, `substitution` and `other`.
+ESPN maps native types 70/137/173 to goals, 97 to own goals, 98/104 to converted
+penalties, 113/115 to missed penalties, 94/93 to yellow/red cards and 76 to
+substitutions. 365Scores maps type 1 to goals, subtype 2 to own goals, subtype
+3 to converted penalties, type 6 to missed penalties, 2/3 to yellow/red cards
+and 1000 to substitutions. Names can be localized and never select a mapping.
+Unreviewed classifications, including distinct second-yellow codes, stay `other`
+with the native type preserved.
+
+ESPN retains every `keyEvents` record and appends recognized goals, penalties,
+cards and substitutions from commentary, deduplicating by native event ID.
+Key-event fields take precedence; contradictory known participant/team/type
+IDs fail validation. Repeated commentary descriptions do not duplicate a play.
+365Scores retains every explicit event and keys it by match plus native order.
+An order can change between responses and must not serve as an audit-log ID.
+Returned records preserve collection order, not a common chronological order.
+The CLI sorts its preview by observed minute and puts shootout attempts last.
+Unknown clocks remain unknown.
+
+ESPN period 5 identifies penalty shootout attempts even when their flag is
+absent. 365Scores stage 11 uses counters such as 121 and a displayed attempt
+number: these remain in `source_game_time`/`source_clock`, while `minute` and
+`added_minute` are null. Events never change `home_score`/`away_score`, and should
+not be summed to reconstruct the match result. An own goal's event team must
+not be used as the player's roster membership.
+
+Adding `lineups` or `player_match_stats` costs no extra read: ESPN shares one
+summary per ID, 365Scores one game detail per ID. Adding `match_stats` also
+shares the ESPN summary but costs one additional 365Scores endpoint read.
+365Scores requires native `season_id`; the year remains a caller label.
+All selected parts of a shared response are checked before caching/committing.
+Failed shared details remain partial, while separately valid team statistics
+can still be retained with `on_error="collect"`.
+
+Empty explicit event lists are valid. Missing/malformed lists are source
+errors and are never cached as successful empty coverage. `complete` describes
+the requested tasks, not a full event feed, all historical events or matching
+coverage across sources. Datasets retain original fetch timestamps under
+`match_details:{id}` for ESPN, `match_events:{id}` for 365Scores events alone,
+or the existing `lineups:{id}` task when 365Scores player tables are selected.
+
+Join participants to lineups/player statistics using `source`, `match_id` and
+native `player_id`. Unresolved participants remain null or generate reference
+warnings. Cross-provider player equivalence is not inferred by the catalog.
+`normalize_match_events(payload, match=...)` offers the same raw-response
+adapter without downloads, optional dependencies or input mutation.
+
+See [event CLI and offline examples](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#match-events)
+for cache paths, independent extras, saving and reopening snapshots.
 
 ## Discover competitions and seasons
 
@@ -656,12 +753,13 @@ snapshot never resumes a download. To resume, repeat `load_dataset()` with the
 same selection and cache directory. `refresh=True` bypasses response reuse;
 it does not overwrite an existing snapshot directory.
 
-The normalized schema is version `3`. Existing version `1` and `2` Parquet
+The normalized schema is version `4`. Existing version `1`, `2` and `3` Parquet
 snapshots remain readable. The reader validates their original table schemas
 and checksums, adds absent version-1 match-statistic columns as null and returns
-version `3` records. New lineup/player-match tables are not selected or fabricated
-for old snapshots. Source timestamps, IDs, values, errors and coverage are
-retained. Saving the opened dataset writes version `3`; the original snapshot
+version `4` records. Tables absent from the original schema, including events
+and older lineup/player tables, are not selected or fabricated.
+Source timestamps, IDs, values, errors and coverage are
+retained. Saving the opened dataset writes version `4`; the original snapshot
 is not changed.
 
 `metadata.started_at`/`finished_at` describe the current loader call.

@@ -3,12 +3,14 @@
 from .adapters import normalize_match, normalize_standings, normalize_team
 from .additional import normalize_match_stats, normalize_player_stats, normalize_shot
 from .dataframe import normalized_to_dataframe
+from .match_events import normalize_match_events
 from .match_players import MatchPlayerRecords, normalize_match_players
 from .models import (
     SCHEMA_VERSION,
     NormalizedLineup,
     NormalizedMarketValue,
     NormalizedMatch,
+    NormalizedMatchEvent,
     NormalizedMatchStats,
     NormalizedPlayer,
     NormalizedPlayerMatchStats,
@@ -20,6 +22,7 @@ from .models import (
 )
 
 __all__ = [
+    "NormalizedMatchEvent", "normalize_match_events",
     "MatchPlayerRecords", "normalize_match_players",
     "NormalizedLineup", "NormalizedPlayerMatchStats",
     "NormalizedPlayer", "NormalizedMarketValue", "NormalizedTransfer",

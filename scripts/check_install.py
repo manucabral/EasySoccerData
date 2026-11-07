@@ -50,7 +50,7 @@ def main():
     with patch("esd._provider_datasets.get_api_json", return_value=detail_payload):
         details = esd.load_dataset(source="espn", league="example.cup", season=2026,
                                    tables=["match_stats"], match_ids=[1], max_match_requests=1)
-    assert details.complete and details.metadata.schema_version == "3"
+    assert details.complete and details.metadata.schema_version == "4"
     assert details.match_stat_records[0].home_shots == 0 and details.match_stat_records[0].away_shots is None
     assert esd.validate_dataset(details).valid
     comparison = esd.compare_match_statistics(details, details, metrics=["home_shots", "away_shots"])
@@ -66,6 +66,16 @@ def main():
     assert esd.validate_dataset(players).valid and players.complete
     assert players.lineup_records[0].starter is False and players.lineup_records[1].starter is None
     assert players.player_match_stat_records[0].goals == 0 and players.player_match_stat_records[0].minutes is None
+    detail_payload["keyEvents"] = [
+        {"id": "e1", "type": {"id": "104"}, "period": {"number": 5},
+         "clock": {"value": 7200, "displayValue": "120'"}},
+    ]
+    with patch("esd._provider_datasets.get_api_json", return_value=detail_payload) as fetch:
+        events = esd.load_dataset(source="espn", league="example.cup", season=2026,
+                                  tables=["match_events", "player_match_stats"], match_ids=[1], max_match_requests=1)
+    assert fetch.call_count == 1 and events.complete and esd.validate_dataset(events).valid
+    assert events.match_event_records[0].is_shootout is True and events.match_event_records[0].minute is None
+    assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
     assert all(contract.tables for contract in esd.get_dataset_capabilities().values())
     now = datetime(2024, 8, 16, 19, tzinfo=timezone.utc)
     dataset = esd.SoccerDataset(

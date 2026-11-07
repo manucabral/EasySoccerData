@@ -4,6 +4,7 @@ from .models import (
     NormalizedLineup,
     NormalizedMarketValue,
     NormalizedMatch,
+    NormalizedMatchEvent,
     NormalizedMatchStats,
     NormalizedPlayer,
     NormalizedPlayerMatchStats,
@@ -15,6 +16,7 @@ from .models import (
 )
 
 TABLE_MODELS = {
+    "match_events": NormalizedMatchEvent,
     "lineups": NormalizedLineup, "player_match_stats": NormalizedPlayerMatchStats,
     "matches": NormalizedMatch, "teams": NormalizedTeam, "standings": NormalizedStanding,
     "match_stats": NormalizedMatchStats, "shots": NormalizedShot, "player_stats": NormalizedPlayerStats,
@@ -25,6 +27,7 @@ INTEGER_COLUMNS = {
     "goals_for", "goals_against", "goal_difference", "points", "deductions",
     "minute", "games", "minutes", "goals", "assists", "shots", "key_passes", "yellow_cards", "red_cards",
     "market_value", "value", "fee",
+    "source_order", "added_minute",
 }
 MATCH_COUNT_METRICS = (
     "shots", "shots_on_target", "corners", "fouls", "offsides", "yellow_cards", "red_cards",
@@ -37,10 +40,11 @@ PLAYER_MATCH_COUNT_METRICS = (
     "fouls_committed", "fouls_suffered", "offsides", "yellow_cards", "red_cards", "saves", "goals_conceded",
 )
 INTEGER_COLUMNS.update(PLAYER_MATCH_COUNT_METRICS)
-BOOLEAN_COLUMNS = {"starter", "captain", "confirmed"}
+BOOLEAN_COLUMNS = {"starter", "captain", "confirmed", "is_shootout", "scoring_play"}
 FLOAT_COLUMNS = {
     "home_xg", "away_xg", "forecast_win", "forecast_draw", "forecast_loss",
     "x", "y", "xg", "xa", "npxg", "xg_chain", "xg_buildup",
     "home_possession_pct", "away_possession_pct",
     "source_rating",
+    "clock_seconds", "source_game_time",
 }

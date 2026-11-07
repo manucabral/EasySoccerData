@@ -10,7 +10,51 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-SCHEMA_VERSION = "3"
+SCHEMA_VERSION = "4"
+
+
+@dataclass(frozen=True)
+class NormalizedMatchEvent:
+    """One source event, scoped to a match, with nullable native participants.
+
+    ESPN event_id is native. 365Scores uses source_order within the response,
+    without claiming a persistent event ID. team_id retains the source's event
+    team, which can be the beneficiary of an own goal. Related players have no
+    inferred role except for verified substitution ordering (incoming/outgoing).
+    Shootout counters never become match minutes or alter match scores.
+    """
+
+    source: str
+    match_id: str | None = None
+    event_id: str | None = None
+    source_order: int | None = None
+    source_collection: str | None = None
+    event_type: str | None = None
+    source_type_id: str | None = None
+    source_type_name: str | None = None
+    source_subtype_id: str | None = None
+    source_subtype_name: str | None = None
+    source_period: str | None = None
+    source_status_id: str | None = None
+    minute: int | None = None
+    added_minute: int | None = None
+    clock_seconds: float | None = None
+    source_game_time: float | None = None
+    source_clock: str | None = None
+    is_shootout: bool | None = None
+    scoring_play: bool | None = None
+    team_id: str | None = None
+    team_name: str | None = None
+    player_id: str | None = None
+    player_name: str | None = None
+    source_athlete_id: str | None = None
+    related_player_id: str | None = None
+    related_player_name: str | None = None
+    related_source_athlete_id: str | None = None
+    player_role: str | None = None
+    related_player_role: str | None = None
+    source_participants_json: str | None = None
+    source_text: str | None = None
 
 
 @dataclass(frozen=True)

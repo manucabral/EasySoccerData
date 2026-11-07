@@ -19,6 +19,7 @@ from .normalized.schema import BOOLEAN_COLUMNS, FLOAT_COLUMNS, INTEGER_COLUMNS, 
 _FORMAT = "easysoccerdata-parquet"
 _STORAGE_VERSION = 1
 _RECORDS = {
+    "match_events": "match_event_records",
     "lineups": "lineup_records", "player_match_stats": "player_match_stat_records",
     "matches": "match_records", "teams": "team_records", "standings": "standing_records",
     "match_stats": "match_stat_records", "player_stats": "player_stat_records", "shots": "shot_records",
@@ -97,10 +98,12 @@ def _metadata(data, *, allow_legacy=False):
     if not set(meta["cached_tasks"]) <= {item[0] for item in response_times}:
         raise ValueError("Cached tasks are missing their response timestamps")
     result = DatasetMetadata(**meta)
-    if result.schema_version != SCHEMA_VERSION and not (allow_legacy and result.schema_version in ("1", "2")):
+    if result.schema_version != SCHEMA_VERSION and not (allow_legacy and result.schema_version in ("1", "2", "3")):
         raise ValueError(f"Unsupported schema version: {result.schema_version}")
     if result.schema_version in ("1", "2") and set(result.tables) & {"lineups", "player_match_stats"}:
         raise ValueError("Lineups and player_match_stats require schema version 3")
+    if result.schema_version in ("1", "2", "3") and "match_events" in result.tables:
+        raise ValueError("match_events require schema version 4")
     if not result.tables or any(table not in TABLE_MODELS for table in result.tables):
         raise ValueError("Invalid table selection")
     if any(not isinstance(value, str) or not value for value in (result.source, result.league)):

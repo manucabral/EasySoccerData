@@ -17,6 +17,7 @@ from .normalized import (
     NormalizedLineup,
     NormalizedMarketValue,
     NormalizedMatch,
+    NormalizedMatchEvent,
     NormalizedMatchStats,
     NormalizedPlayer,
     NormalizedPlayerMatchStats,
@@ -125,6 +126,7 @@ class SoccerDataset:
     transfer_records: tuple[NormalizedTransfer, ...] = ()
     lineup_records: tuple[NormalizedLineup, ...] = ()
     player_match_stat_records: tuple[NormalizedPlayerMatchStats, ...] = ()
+    match_event_records: tuple[NormalizedMatchEvent, ...] = ()
 
     @property
     def complete(self) -> bool:
@@ -162,6 +164,11 @@ class SoccerDataset:
     def match_stats(self):
         """Source match totals and optional xG/forecast values with nullable columns."""
         return self._dataframe(self.match_stat_records, "match_stats")
+
+    @property
+    def match_events(self):
+        """Native match events with nullable clocks, participants and shootout flags."""
+        return self._dataframe(self.match_event_records, "match_events")
 
     @property
     def lineups(self):
@@ -295,6 +302,8 @@ def load_dataset(
     cannot be combined with standings or date/entity filters. 365Scores and
     Sofascore require native season_id. max_match_requests bounds endpoint reads
     before transport retries, according to the source and selected detail tables.
+    ESPN/365Scores match_events uses the same summary/game detail as lineups,
+    also with explicit IDs. Shootout events retain separate flags and counters.
     Duplicate IDs are fetched once. Detail responses use CachePolicy.live_ttl.
 
     Repeated match IDs retain the newest response observation. A day's parsed
@@ -329,7 +338,8 @@ def load_dataset(
     ):
         raise ValueError("tables must be a nonempty sequence of supported table names")
     players = bool(set(tables) & {"lineups", "player_match_stats"})
-    details = source in ("espn", "scores365", "sofascore") and bool(set(tables) & {"match_stats", "lineups", "player_match_stats"})
+    events = "match_events" in tables
+    details = source in ("espn", "scores365", "sofascore") and bool(set(tables) & {"match_stats", "lineups", "player_match_stats", "match_events"})
     if type(max_match_requests) is not int or max_match_requests < 1:
         raise ValueError("max_match_requests must be a positive integer")
     if not details and max_match_requests != 20:
@@ -354,7 +364,7 @@ def load_dataset(
         from ._match_players import load_match_players
         from ._match_statistics import load_match_statistics
 
-        return (load_match_players if players else load_match_statistics)(
+        return (load_match_players if players or events else load_match_statistics)(
             source=source, league=league, season=year, tables=selected, proxies=proxies,
             cache_dir=cache_dir, cache_policy=cache_policy, refresh=refresh,
             request_delay=request_delay, on_error=on_error, progress=progress,

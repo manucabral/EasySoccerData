@@ -4,6 +4,7 @@
 
 ### Added
 
+- Normalized ESPN/365Scores match events with native clocks, participant references, nullable IDs and separate shootout counters. Event downloads share selected lineup/player responses, respect request budgets and support cached/offline examples. Schema 4 reads existing schema 1–3 snapshots without fabricating event tables.
 - Versioned competition/team catalog with reviewed ESPN/365Scores IDs for Champions League, Premier League and LaLiga, source evidence/dates, explicit native season selections, identity-map integration and caller-owned JSON extensions. Examples cover three competitions across two artificial seasons, cache reuse and snapshots.
 - Normalized lineups and player-match statistics for explicit ESPN, 365Scores and Sofascore match IDs, with shared response budgets, nullable roles/metrics, native member/athlete IDs and live/offline examples. Team match totals can be requested alongside them.
 - Read-only match-statistics comparisons with explicit identities, absolute metric tolerances, missing/period/model diagnostics, original source provenance and optional DataFrame export. Examples cover offline records and Champions League snapshot pairs.

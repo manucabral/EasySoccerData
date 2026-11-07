@@ -21,15 +21,17 @@ class DatasetCapabilities:
 
 
 _CAPABILITIES = {
-    "espn": DatasetCapabilities("espn", ("matches", "teams", "standings", "match_stats", "lineups", "player_match_stats"), "season_year", (
+    "espn": DatasetCapabilities("espn", ("matches", "teams", "standings", "match_stats", "lineups", "player_match_stats", "match_events"), "season_year", (
         "Optional match_stats requires explicit match_ids and max_match_requests; it skips calendar discovery.",
         "lineups/player_match_stats share one summary response per explicit ID, including selected match_stats.",
+        "match_events shares that summary: keyEvents plus recognized commentary plays, deduplicated by native ID; not a full event feed.",
     )),
-    "scores365": DatasetCapabilities("scores365", ("matches", "teams", "standings", "match_stats", "lineups", "player_match_stats"), "date_range", (
+    "scores365": DatasetCapabilities("scores365", ("matches", "teams", "standings", "match_stats", "lineups", "player_match_stats", "match_events"), "date_range", (
         "Explicit start_date/end_date for matches; season is a caller label.",
         "Native season_id required for standings; responses are locally filtered by competition.",
         "match_stats uses explicit match_ids/native season_id instead of dates, with a bounded request budget.",
         "lineups/player_match_stats use one game detail per ID; selected match_stats adds one endpoint read.",
+        "match_events shares game detail with players; native order is response-local, stage 11 identifies shootouts.",
     )),
     "sofascore": DatasetCapabilities("sofascore", ("matches", "teams", "standings", "match_stats", "lineups", "player_match_stats"), "native_season_id", (
         "Explicit native season_id; past and upcoming pages must reach an explicit end.",

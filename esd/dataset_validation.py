@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from ._dataset_storage import _RECORDS, _metadata, _metadata_json, _validate_records
 from .datasets import DatasetIssue, DatasetMetadata, SoccerDataset
+from .normalized.match_events import EVENT_TYPES, _event_key
 from .normalized.schema import MATCH_COUNT_METRICS, PLAYER_MATCH_COUNT_METRICS
 
 
@@ -50,6 +51,7 @@ class DatasetValidationReport:
 
 
 _KEYS = {
+    "match_events": ("match_id", "event_id", "source_order"),
     "lineups": ("match_id", "team_id", "player_id"), "player_match_stats": ("match_id", "team_id", "player_id"),
     "matches": ("match_id",), "teams": ("team_id",), "match_stats": ("match_id",),
     "shots": ("shot_id",), "players": ("player_id",), "transfers": ("transfer_id",),
@@ -59,6 +61,7 @@ _KEYS = {
     "market_values": ("player_id", "source_date", "team_id", "source_season_id"),
 }
 _PRIMARY_IDS = {
+    "match_events": "match_id",
     "lineups": "player_id", "player_match_stats": "player_id",
     "matches": "match_id", "teams": "team_id", "match_stats": "match_id", "shots": "shot_id",
     "players": "player_id", "transfers": "transfer_id", "player_stats": "player_id",
@@ -190,6 +193,8 @@ def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
                 add("warning", "missing_identifier", "Record has no native identifier", table, index, primary)
             else:
                 key = (row.source, *(getattr(row, name) for name in _KEYS[table]))
+                if table == "match_events":
+                    key = (row.source, *_event_key(row))
                 if table != "market_values" or row.source_date is not None:
                     if key in seen:
                         add("error", "duplicate_key", f"Record key repeats row {seen[key]}", table, index, primary)
@@ -198,7 +203,7 @@ def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
                 add("error", "competition_mismatch", "Record competition differs from dataset league", table, index, "competition_id")
             if hasattr(row, "season") and row.season is not None and row.season != str(meta.season):
                 add("error", "season_label_mismatch", "Record caller season label differs from metadata", table, index, "season")
-            if (meta.coverage_scope == "match_ids" and table in ("matches", "match_stats", "lineups", "player_match_stats")
+            if (meta.coverage_scope == "match_ids" and table in ("matches", "match_stats", "lineups", "player_match_stats", "match_events")
                     and row.match_id not in meta.requested_match_ids):
                 add("error", "unrequested_match", "Record match ID is outside the explicit selection", table, index, "match_id")
             if table == "matches":
@@ -232,12 +237,36 @@ def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
                         add("error", "invalid_player_metric", f"{accurate} exceeds {total}", table, index, accurate)
             if table == "lineups" and row.home_away not in (None, "home", "away"):
                 add("error", "invalid_lineup_side", "home_away must be home, away or None", table, index, "home_away")
+            if table == "match_events":
+                if row.event_type not in EVENT_TYPES:
+                    add("error", "invalid_event_type", "Unknown normalized event type", table, index, "event_type")
+                if row.event_id is None and row.source_order is None:
+                    add("error", "missing_event_key", "Event needs a native ID or response-local order", table, index)
+                for field in ("minute", "added_minute", "source_order", "clock_seconds", "source_game_time"):
+                    if getattr(row, field) is not None and getattr(row, field) < 0:
+                        add("error", "invalid_event_clock", "Event clocks and orders must be nonnegative", table, index, field)
+                if row.is_shootout is True and (row.minute is not None or row.added_minute is not None):
+                    add("error", "shootout_match_minute", "Shootout counters cannot be match minutes", table, index, "minute")
+                for field in ("player_role", "related_player_role"):
+                    if getattr(row, field) not in (None, "incoming", "outgoing"):
+                        add("error", "invalid_event_role", "Unsupported participant role", table, index, field)
     team_ids = {(row.source, row.team_id) for _, row in rows["teams"] if row.team_id is not None}
     match_ids = {(row.source, row.match_id) for _, row in rows["matches"] if row.match_id is not None}
     matches = {(row.source, row.match_id): row for _, row in rows["matches"] if row.match_id is not None}
     lineup_keys = {(row.source, row.match_id, row.team_id, row.player_id) for _, row in rows["lineups"]}
     lineup_teams = {(row.source, row.match_id, row.player_id): row.team_id for _, row in rows["lineups"]
                     if row.match_id is not None and row.player_id is not None and row.team_id is not None}
+    for index, row in rows["match_events"]:
+        match = matches.get((row.source, row.match_id))
+        if "matches" in selected and match is None:
+            add("warning", "unresolved_reference", "Event has no selected match", "match_events", index, "match_id")
+        if match is not None and row.team_id is not None and row.team_id not in (match.home_team_id, match.away_team_id):
+            add("error", "event_team_mismatch", "Event team is outside its match", "match_events", index, "team_id")
+        if "lineups" in selected:
+            for field in ("player_id", "related_player_id"):
+                identifier = getattr(row, field)
+                if identifier is not None and (row.source, row.match_id, identifier) not in lineup_teams:
+                    add("warning", "unresolved_reference", "Event participant has no selected lineup", "match_events", index, field)
     for table in ("lineups", "player_match_stats"):
         memberships = {}
         for index, row in rows[table]:

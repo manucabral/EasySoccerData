@@ -109,6 +109,7 @@ class _Download:
             transfer_records=tuple(self.rows["transfers"].values()),
             lineup_records=tuple(self.rows["lineups"].values()),
             player_match_stat_records=tuple(self.rows["player_match_stats"].values()),
+            match_event_records=tuple(self.rows["match_events"].values()),
         )
 
     def report(self, step, target, error=None):

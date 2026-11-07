@@ -72,6 +72,7 @@ from .normalized import (
     NormalizedLineup,
     NormalizedMarketValue,
     NormalizedMatch,
+    NormalizedMatchEvent,
     NormalizedMatchStats,
     NormalizedPlayer,
     NormalizedPlayerMatchStats,
@@ -81,6 +82,7 @@ from .normalized import (
     NormalizedTeam,
     NormalizedTransfer,
     normalize_match,
+    normalize_match_events,
     normalize_match_players,
     normalize_match_stats,
     normalize_player_stats,
@@ -112,6 +114,7 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 __all__ = [
+    "NormalizedMatchEvent", "normalize_match_events",
     "CatalogCompetition", "CatalogReference", "CatalogTeam", "FootballCatalog", "get_catalog", "open_catalog",
     "MatchPlayerRecords", "normalize_match_players",
     "NormalizedLineup", "NormalizedPlayerMatchStats",

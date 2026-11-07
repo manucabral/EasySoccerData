@@ -13,7 +13,7 @@ def normalized_to_dataframe(objects: list, *, table: str):
     """Export normalized records using the current normalized schema version.
 
     table selects matches, teams, standings, match_stats, player_stats, shots,
-    players, market_values, transfers, lineups or player_match_stats.
+    players, market_values, transfers, lineups, player_match_stats or match_events.
     All rows must use the normalized model for that table. IDs and names use
     nullable string, counts use Int64, metrics use Float64, flags use boolean, and kickoff uses
     datetime64[ns, UTC]. Rows are exported without entity matching or
