@@ -191,6 +191,15 @@ with `python examples/datasets/validate_dataset.py`. It creates artificial recor
 and shows a partial download, duplicate IDs, invalid scores and unresolved teams.
 Calling validation does not automatically reject saves or alter loader behavior.
 
+To check real samples, run `python scripts/check_sources.py --source espn scores365`.
+The command reports download failures separately from validation errors and warnings.
+With `--check-parquet`, it also saves and reopens each returned dataset in temporary
+storage, including partial results. Supply `--snapshot-dir ./my-data/source-samples-1`
+to retain snapshots in a new directory instead. PyArrow is needed only for snapshot
+checks. Both modes work without pandas. See the
+[live check options](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#live-provider-checks)
+for request limits, report fields and exit codes.
+
 ## Response caches and snapshots
 
 Choose each storage path when calling the library:

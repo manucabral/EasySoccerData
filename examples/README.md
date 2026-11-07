@@ -271,6 +271,8 @@ Run small dataset queries for the nine providers separately from the offline tes
 ```sh
 python scripts/check_sources.py --output ./my-data/live-checks.json
 python scripts/check_sources.py --source espn promiedos --date 2026-11-07
+python scripts/check_sources.py --source espn scores365 --check-parquet --output ./my-data/quality-checks.json
+python scripts/check_sources.py --snapshot-dir ./my-data/source-samples-1 --output ./my-data/source-samples-1/report.json
 ```
 
 The default checks select one day, standings table, season response or club.
@@ -279,14 +281,40 @@ runs in its own process, with a default limit of 45 seconds and three HTTP attem
 `--timeout` and `--max-requests` change those limits. No browser is launched.
 
 The report includes the selection, UTC check times, HTTP statuses, row counts
-and source errors. Records are checked for their model, source ID and UTC kickoff
-when present. `ok` means the selected query returned records. `empty` means it
-succeeded without records. Blocks, missing resources, source errors and timeouts
-have separate statuses. Exit code `1` means at least one query did not complete.
+and source errors. Download `status` remains separate from `validation` and
+`storage`. `ok` means the query completed and returned records; `empty` means it
+completed without records. Blocks, missing resources, source errors and timeouts
+have separate download statuses.
+
+Each returned dataset is checked with `esd.validate_dataset()`. The `validation`
+section contains contextual `errors` and `warnings`, with status `passed`,
+`warnings`, `failed` or `error` if validation itself raised. A source block can
+produce an empty partial dataset with coverage warnings while the download still
+reports `blocked`. Missing native IDs are warnings; invalid types, naive kickoffs
+and duplicate keys are errors. Native status codes are not interpreted.
+
+`--check-parquet` enables save/open checks and requires the Parquet extra.
+The `storage` section compares all record tables, metadata, source errors and
+`complete`, including empty and partial results. Each source uses a new snapshot
+directory. Temporary snapshots are removed after the run, including when a worker
+times out. Their report has `retained=false` and no remaining file path.
+
+`--snapshot-dir` also enables these checks and preserves snapshots under
+`<directory>/<source>/`. The supplied root must not exist; no source is queried
+if it already exists or PyArrow is unavailable. Successful snapshots remain
+available even if other checks fail. Use `esd.open_dataset(path)` to inspect them
+without source requests or pandas. A failed storage check does not replace the
+download or validation result. Without either flag, storage is `not_requested`.
+
+Exit code `0` requires every download to complete, no validation errors and every
+requested storage check to pass. Warnings alone do not change that exit code.
+Exit code `1` indicates a download, validation or storage failure. Invalid arguments,
+missing PyArrow, an existing snapshot root or a report write failure return `2`.
 A successful sample does not establish that every method or historical date works.
 
 The dated FBref sample uses `Europe/London`; Promiedos uses
 `America/Argentina/Buenos_Aires`. These are the timezone assumptions of these
 queries. On systems without IANA timezone data, install `tzdata` before running
-them. pandas and PyArrow are not required. A JSON file is written only with
-`--output`. The checks do not run as part of ordinary CI.
+them. pandas is not required. Base checks require no PyArrow; snapshot checks
+need `python -m pip install -e ".[parquet]"` or `".[full]"`. A JSON report is
+written only with `--output`. The checks do not run as part of ordinary CI.

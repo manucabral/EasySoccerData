@@ -5,6 +5,7 @@
 ### Added
 
 - Read-only `validate_dataset()` reports for normalized records and coverage across all nine providers, with contextual errors/warnings and no optional dependencies.
+- Live source checks now report dataset validation separately from download status, with opt-in Parquet round trips, temporary cleanup and caller-selected snapshot directories.
 - Champions League date-range example using the base installation, with UTC bounds, nullable scores and partial-result reporting.
 - Persistent response cache and forced refresh flags in the Champions League example, with cached-day counts and failed-day recovery.
 - Champions League Parquet export and offline read flags, preserving empty tables, partial coverage and errors without pandas.
