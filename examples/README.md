@@ -38,6 +38,29 @@ Install the matching extras before choosing `pandas`, `parquet` or `full`.
 
 ## Live dataset queries
 
+### Champions League: a short date range
+
+[champions_league.py](datasets/champions_league.py) downloads matches for two UTC
+days using the base installation. It prints IDs, kickoff times, teams, scores and
+source statuses. It does not require pandas or PyArrow and writes no files.
+
+```sh
+python examples/datasets/champions_league.py
+python examples/datasets/champions_league.py --start-date 2026-11-03 --end-date 2026-11-04 --season 2026
+```
+
+The default dates are November 3-4, 2026. Both bounds are inclusive, with a maximum
+of seven days per call. The competition ID is `572` for the Champions League;
+`332` is a separate qualifying competition. `--season` labels the records; the
+date range selects the matches. Kickoff times use UTC; status codes come from 365Scores.
+An unknown score is printed as `?`, and zero stays zero.
+
+If a day fails, the script displays the successful days and reports the failed
+tasks on stderr, with exit code `1`. A complete request returns `0`, including
+an empty selection. Invalid arguments return `2`. `--help` works offline.
+
+### Other provider queries
+
 `datasets/providers.py` runs one query. `--list` and `--help` work offline;
 otherwise it makes network requests. Use the selection flags to replace the
 sample IDs and dates. A provider may no longer serve the sample dates.

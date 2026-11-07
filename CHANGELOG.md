@@ -4,6 +4,7 @@
 
 ### Added
 
+- Champions League date-range example using the base installation, with UTC bounds, nullable scores and partial-result reporting.
 - Live dataset check command with per-provider time and request limits, structured results and explicit report paths.
 - Dataset guide, example index and offline examples of partial results, cache reuse, refresh, nullable analysis and ambiguous match linkage.
 - Configurable provider example CLI with selection overrides, record previews, optional snapshot output and explicit exit codes.
