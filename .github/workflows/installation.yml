@@ -1,0 +1,63 @@
+name: Installation
+
+on:
+  push:
+    branches: [main, 'release/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install build twine
+      - run: python -m build
+      - run: python -m twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: distribution
+          path: dist/*
+
+  install:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        extra: [base, pandas, parquet, full]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: distribution
+          path: dist
+      - name: Install wheel in a clean environment
+        shell: bash
+        env:
+          INSTALL_EXTRA: ${{ matrix.extra }}
+        run: |
+          python -m venv install-env
+          if [ -f install-env/Scripts/python.exe ]; then
+            PYTHON=install-env/Scripts/python.exe
+          else
+            PYTHON=install-env/bin/python
+          fi
+          "$PYTHON" -m pip install --upgrade pip
+          WHEEL=$(find dist -name '*.whl' -print -quit)
+          if [ "$INSTALL_EXTRA" = base ]; then
+            "$PYTHON" -m pip install "$WHEEL"
+          else
+            "$PYTHON" -m pip install "$WHEEL[$INSTALL_EXTRA]"
+          fi
+          "$PYTHON" -m pip check
+          "$PYTHON" scripts/check_install.py --extra "$INSTALL_EXTRA"
