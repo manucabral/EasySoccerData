@@ -17,9 +17,13 @@ def main():
     args = parser.parse_args()
     progress = []
     dataset = esd.load_dataset(
-        source="espn", league="eng.1", season=2024,
-        cache_dir=args.cache_dir, refresh=args.refresh,
-        on_error="collect", progress=progress.append,
+        source="espn",
+        league="eng.1",
+        season=2024,
+        cache_dir=args.cache_dir,
+        refresh=args.refresh,
+        on_error="collect",
+        progress=progress.append,
     )
     print("Calendar coverage complete:", dataset.complete)
     print("Matches:", len(dataset.match_records))

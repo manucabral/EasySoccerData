@@ -14,15 +14,27 @@ def main():
     date = datetime(2024, 8, 16, 21, tzinfo=timezone.utc)
     dataset = esd.SoccerDataset(
         metadata=esd.DatasetMetadata(
-            source="espn", league="eng.1", season=2024,
-            tables=("matches", "teams"), started_at=date, finished_at=date,
-            calendar_dates=("2024-08-16",), successful_dates=("2024-08-16",),
-            calendar_loaded=True, calendar_type="day",
+            source="espn",
+            league="eng.1",
+            season=2024,
+            tables=("matches", "teams"),
+            started_at=date,
+            finished_at=date,
+            calendar_dates=("2024-08-16",),
+            successful_dates=("2024-08-16",),
+            calendar_loaded=True,
+            calendar_type="day",
         ),
-        match_records=(esd.NormalizedMatch(
-            source="espn", match_id="001", kickoff=date,
-            home_team_id="home", home_score=0, away_score=None,
-        ),),
+        match_records=(
+            esd.NormalizedMatch(
+                source="espn",
+                match_id="001",
+                kickoff=date,
+                home_team_id="home",
+                home_score=0,
+                away_score=None,
+            ),
+        ),
         team_records=(esd.NormalizedTeam(source="espn", team_id="home", name="Home"),),
     )
     with TemporaryDirectory(prefix="esd-example-") as directory:

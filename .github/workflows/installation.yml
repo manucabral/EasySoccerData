@@ -61,3 +61,4 @@ jobs:
           fi
           "$PYTHON" -m pip check
           "$PYTHON" scripts/check_install.py --extra "$INSTALL_EXTRA"
+          "$PYTHON" scripts/check_examples.py --extra "$INSTALL_EXTRA"

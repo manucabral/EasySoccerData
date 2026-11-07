@@ -1,5 +1,6 @@
 """Offline artificial records showing explicit identities and match linkage."""
 
+from dataclasses import replace
 from datetime import datetime, timezone
 
 import esd
@@ -54,6 +55,15 @@ def main():
         print(link.left_source, link.left_match_id, "->", link.right_source, link.right_match_id)
     print("Unmatched:", result.unmatched_left, result.unmatched_right)
     print("Ambiguous:", result.ambiguous_left, result.ambiguous_right)
+    # Two candidates are reported, rather than selecting one arbitrarily.
+    duplicate = replace(right.match_records[0], match_id="second-candidate")
+    ambiguous = esd.link_dataset_matches(
+        left,
+        replace(right, match_records=(*right.match_records, duplicate)),
+        identities=identities,
+    )
+    assert not ambiguous.links and ambiguous.ambiguous_left and ambiguous.ambiguous_right
+    print("Two candidates:", ambiguous.ambiguous_left, ambiguous.ambiguous_right)
 
 
 if __name__ == "__main__":

@@ -30,7 +30,7 @@ jobs:
           pip install .[dev,full]
 
       - name: Lint with ruff
-        run: ruff check esd tests scripts
+        run: ruff check esd tests scripts examples/datasets examples/pandas
 
       - name: Run tests
         run: pytest
