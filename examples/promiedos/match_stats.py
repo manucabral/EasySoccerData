@@ -3,35 +3,50 @@
 Makes network requests when executed.
 """
 
+import sys
+
 import esd
+from esd.exceptions import ESDException
+from esd.promiedos.exceptions import PromiedosException
 
-client = esd.PromiedosClient()
-events = client.get_events()
 
-for event in events:
-    for match in event.matches:
+def main():
+    try:
+        client = esd.PromiedosClient()
 
-        # ignore matches that are not in progress
-        if match.status.value != esd.promiedos.MatchStatus.IN_PROGRESS:
-            continue
+        events = client.get_events()
 
-        print(f"League name: {event.league.name} - {event.date} - {match.id}")
+        for event in events:
+            for match in event.matches:
+                # ignore matches that are not in progress
+                if match.status.value != esd.promiedos.MatchStatus.IN_PROGRESS:
+                    continue
 
-        print(
-            f"{match.home_team.name} {match.scores.home} - {match.scores.away} {match.away_team.name}"
-        )
-        print(f"Status: {match.status.name} - {match.time_to_display}")
+                print(f"League name: {event.league.name} - {event.date} - {match.id}")
 
-        # Fetch details for each match still in progress.
-        match = client.get_match(match.id)
+                print(
+                    f"{match.home_team.name} {match.scores.home} - {match.scores.away} {match.away_team.name}"
+                )
+                print(f"Status: {match.status.name} - {match.time_to_display}")
 
-        print(
-            f"Formations -> {match.players.lineups.home_team.formation} - {match.players.lineups.away_team.formation}"
-            + "\n"
-            f"Possession -> {match.stats.possession.home_value} - {match.stats.possession.away_value}"
-            + "\n"
-            f"Shots -> {match.stats.total_shots.home_value} - {match.stats.total_shots.away_value}"
-            + "\n"
-            f"Yellow/Red cards -> {match.stats.yellow_cards.home_value}/{match.stats.red_cards.home_value} - {match.stats.yellow_cards.away_value}/{match.stats.red_cards.away_value}"
-        )
-        print("-------------------")
+                # Fetch details for each match still in progress.
+                match = client.get_match(match.id)
+
+                print(
+                    f"Formations -> {match.players.lineups.home_team.formation} - {match.players.lineups.away_team.formation}"
+                    + "\n"
+                    f"Possession -> {match.stats.possession.home_value} - {match.stats.possession.away_value}"
+                    + "\n"
+                    f"Shots -> {match.stats.total_shots.home_value} - {match.stats.total_shots.away_value}"
+                    + "\n"
+                    f"Yellow/Red cards -> {match.stats.yellow_cards.home_value}/{match.stats.red_cards.home_value} - {match.stats.yellow_cards.away_value}/{match.stats.red_cards.away_value}"
+                )
+                print("-------------------")
+    except (ESDException, PromiedosException) as exc:
+        print(f"Source request failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

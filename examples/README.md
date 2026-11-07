@@ -73,9 +73,13 @@ or output path.
 
 ## Individual clients
 
-These folders contain source-specific examples. They make network requests when
-executed, and many run their query immediately. Live responses and available
-fields vary. Source blocks or maintenance can prevent a script from fetching data.
+These folders contain source-specific examples. Importing a script makes no
+requests. Running it directly calls `main()` and queries the provider. Source
+blocks are reported with exit code `1`. Sofascore and FBref examples close their
+clients on success, early return and source errors.
+
+Live responses and available fields vary. Source blocks or maintenance can
+prevent a script from fetching data.
 
 | Provider | Examples |
 | :--- | :--- |
@@ -91,3 +95,30 @@ fields vary. Source blocks or maintenance can prevent a script from fetching dat
 
 For configurable providers, scope, error handling and matching rules, read the
 [dataset guide](../guides/datasets.md).
+
+## Live provider checks
+
+Run small dataset queries for the nine providers separately from the offline tests:
+
+```sh
+python scripts/check_sources.py --output ./my-data/live-checks.json
+python scripts/check_sources.py --source espn promiedos --date 2026-11-07
+```
+
+The default checks select one day, standings table, season response or club.
+They do not traverse fixture calendars or fetch individual shot lists. Each provider
+runs in its own process, with a default limit of 45 seconds and three HTTP attempts.
+`--timeout` and `--max-requests` change those limits. No browser is launched.
+
+The report includes the selection, UTC check times, HTTP statuses, row counts
+and source errors. Records are checked for their model, source ID and UTC kickoff
+when present. `ok` means the selected query returned records. `empty` means it
+succeeded without records. Blocks, missing resources, source errors and timeouts
+have separate statuses. Exit code `1` means at least one query did not complete.
+A successful sample does not establish that every method or historical date works.
+
+The dated FBref sample uses `Europe/London`; Promiedos uses
+`America/Argentina/Buenos_Aires`. These are the timezone assumptions of these
+queries. On systems without IANA timezone data, install `tzdata` before running
+them. pandas and PyArrow are not required. A JSON file is written only with
+`--output`. The checks do not run as part of ordinary CI.

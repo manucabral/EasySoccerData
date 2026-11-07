@@ -3,3 +3,4 @@ recursive-include guides *.md
 recursive-include examples *.py *.md
 include scripts/check_install.py
 include scripts/check_examples.py
+include scripts/check_sources.py

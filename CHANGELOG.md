@@ -4,12 +4,16 @@
 
 ### Added
 
+- Live dataset check command with per-provider time and request limits, structured results and explicit report paths.
 - Dataset guide, example index and offline examples of partial results, cache reuse, refresh, nullable analysis and ambiguous match linkage.
 - Configurable provider example CLI with selection overrides, record previews, optional snapshot output and explicit exit codes.
 - Automated offline example checks across installation extras, with HTTP and browser access blocked.
 
 ### Fixed
 
+- Promiedos: convert ISO query dates to the source's `DD-MM-YYYY` URL format in clients and dataset loaders.
+- BeSoccer: raise `SourceBlocked` when a browser challenge persists and keep that response out of the cache.
+- Live examples: defer queries until execution, handle empty selections and unavailable statistics, select named entities by native ID and close Sofascore/FBref clients on errors and early returns.
 - Replace predicted live example output with descriptions of the requested data and correct incomplete API descriptions.
 - Documentation generation targets local sources and treats warnings as errors, preventing missing README includes from silently passing.
 - API documentation clarifies task coverage, source timestamps, entity scopes and compatibility preconditions.

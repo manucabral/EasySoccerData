@@ -1,4 +1,11 @@
+"""Browse live Sofascore matches in the terminal. Makes network requests."""
+
+from __future__ import annotations
+
+import sys
+
 import esd
+from esd.exceptions import ESDException
 
 
 def clear_screen() -> None:
@@ -27,7 +34,7 @@ def update_table(client: esd.SofascoreClient) -> list[esd.SofascoreTypes.Event]:
             "vs",
             event.away_score.current,
             away_name.ljust(20),
-            event.status.description.ljust(10),
+            (event.status.description or "Unknown").ljust(10),
             event.tournament.name,
         )
 
@@ -41,6 +48,9 @@ def show_match(event: esd.SofascoreTypes.Event):
 
 
 def show_match_details(details: esd.SofascoreTypes.MatchStats):
+    if details is None:
+        print("No match statistics available.")
+        return
     print(
         "Win probability:",
         details.win_probability.home,
@@ -80,30 +90,38 @@ def show_match_details(details: esd.SofascoreTypes.MatchStats):
     )
 
 
-if __name__ == "__main__":
-    client = esd.SofascoreClient()
-
-    while True:
-        clear_screen()
-        events = update_table(client)
-        choice = input("Enter the index for more details (q to quit, r to refresh): ")
-        if choice == "q":
-            break
-        if choice == "r":
-            continue
-        try:
+def main():
+    try:
+        with esd.SofascoreClient() as client:
             while True:
-                index = int(choice)
-                event = events[index]
-                details = client.get_match_stats(event.id)
                 clear_screen()
-                show_match(event)
-                show_match_details(details)
-                other_choice = input(
-                    "Press any key to refresh, or q to back to the list: "
-                )
-                if other_choice == "q":
-                    break
+                events = update_table(client)
+                choice = input("Enter the index for more details (q to quit, r to refresh): ")
+                if choice == "q":
+                    return 0
+                if choice == "r":
+                    continue
+                try:
+                    index = int(choice)
+                    if not 0 <= index < len(events):
+                        raise ValueError
+                except ValueError:
+                    print("Choose an index from the displayed list.")
+                    continue
+                event = events[index]
+                while True:
+                    details = client.get_match_stats(event.id)
+                    clear_screen()
+                    show_match(event)
+                    show_match_details(details)
+                    if input("Press Enter to refresh, or q to return to the list: ") == "q":
+                        break
+    except (EOFError, KeyboardInterrupt):
+        return 0
+    except ESDException as exc:
+        print(f"Source request failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
 
-        except ValueError:
-            print("Invalid input.")
+
+if __name__ == "__main__":
+    raise SystemExit(main())

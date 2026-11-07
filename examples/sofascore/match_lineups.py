@@ -3,33 +3,43 @@
 Makes network requests when executed.
 """
 
+import sys
+
 import esd
+from esd.exceptions import ESDException
 
-client = esd.SofascoreClient()
-matchs = client.get_events(live=True)
-match = matchs[0]
 
-print(match.away_team.name, "vs", match.home_team.name)
+def main():
+    try:
+        with esd.SofascoreClient() as client:
+            matchs = client.get_events(live=True)
+            if not matchs:
+                print("No live matches available.")
+                return 0
 
-lineups = client.get_match_lineups(match.id)
-print("Confirmed lineups:", lineups.confirmed)
+            match = matchs[0]
 
-print("FORMATION", match.home_team.name, ":", lineups.home.formation)
-home_players = lineups.home.players
-for player in home_players:
-    info: esd.sofascore.Player = player.info
-    if player.substitute:
-        # ignore substitutes
-        continue
-    print(info.name, "|", info.position, "|", info.shirt_number)
-    print("-------------------")
+            print(match.away_team.name, "vs", match.home_team.name)
 
-print("FORMATION", match.away_team.name, ":", lineups.away.formation)
-away_players = lineups.away.players
-for player in away_players:
-    info: esd.sofascore.Player = player.info
-    if player.substitute:
-        # ignore substitutes
-        continue
-    print(info.name, "|", info.position, "|", player.info.jersey_number)
-    print("-------------------")
+            lineups = client.get_match_lineups(match.id)
+
+            print("Confirmed lineups:", lineups.confirmed)
+
+            for team, lineup in ((match.home_team, lineups.home), (match.away_team, lineups.away)):
+                if lineup is None:
+                    print(f"No lineup available for {team.name}.")
+                    continue
+                print("FORMATION", team.name, ":", lineup.formation)
+                for player in lineup.players:
+                    if player.substitute or player.info is None:
+                        continue
+                    info = player.info
+                    print(info.name, "|", info.position, "|", info.jersey_number)
+    except ESDException as exc:
+        print(f"Source request failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
