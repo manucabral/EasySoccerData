@@ -83,6 +83,9 @@ full = [
 include = ["esd*"]
 exclude = ["examples*", "tests*", "venv*"]
 
+[tool.setuptools.package-data]
+esd = ["data/*.json"]
+
 [tool.ruff]
 target-version = "py39"
 line-length = 100

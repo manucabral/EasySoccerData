@@ -25,6 +25,10 @@ def main():
     assert metadata("EasySoccerData")["License-Expression"] == "MIT"
     assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
     assert len(esd.get_dataset_capabilities()) == 9
+    catalog = esd.get_catalog()
+    assert catalog.competition("Premier League").for_source("espn").source_id == "eng.1"
+    assert catalog.team("barcelona").for_source("scores365").source_id == "132"
+    assert catalog.identities().resolve("competition", "scores365", "572") == "champions-league"
     assert len(esd.get_discovery_capabilities()) == 9
     assert esd.get_discovery_capabilities("goaloo").seasons == "index"
     with patch("esd.discovery.get_api_json", return_value={"SeasonList": ["2024-2025"]}):
@@ -93,6 +97,7 @@ def main():
     assert validation.valid and not validation.errors
     assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
     with TemporaryDirectory(prefix="esd-install-") as directory:
+        assert esd.open_catalog(catalog.save_json(Path(directory) / "catalog.json")) == catalog
         cache = esd.ResponseCache(Path(directory) / "cache")
         cache.set("query", {"events": []})
         assert cache.get("query", ttl=60).data == {"events": []}

@@ -33,6 +33,7 @@ jobs:
           ./esd ./esd/datasets.py ./esd/cache.py ./esd/compatibility.py
           ./esd/dataset_capabilities.py ./esd/dataset_validation.py ./esd/normalized
           ./esd/discovery.py
+          ./esd/catalog.py
           ./esd/statistics_comparison.py
           ./esd/normalized/match_players.py
           ./esd/espn ./esd/sofascore ./esd/fbref ./esd/promiedos ./esd/goaloo

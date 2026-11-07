@@ -228,6 +228,12 @@ Transfermarkt discovery preserves league/cup routes and search pages. BeSoccer
 returns its native standings year options. The examples include a 365Scores
 discovery-to-download flow with validation and optional snapshot verification.
 
+`esd.get_catalog()` reads a versioned sample of reviewed competition/team IDs
+for ESPN and 365Scores. It resolves canonical IDs, names and declared aliases
+without requests. Season discovery remains explicit and preserves native
+selectors. Catalogs can build an `IdentityMap`, accept nonconflicting additions
+and save/open caller-owned JSON without optional dependencies.
+
 .. include:: guides/datasets.md
 
 # Contributing

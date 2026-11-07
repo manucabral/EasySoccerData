@@ -16,6 +16,14 @@ from importlib.metadata import version as _version
 from .besoccer import BeSoccerClient
 from .besoccer import types as BeSoccerTypes
 from .cache import CacheError, CachePolicy, ResponseCache
+from .catalog import (
+    CatalogCompetition,
+    CatalogReference,
+    CatalogTeam,
+    FootballCatalog,
+    get_catalog,
+    open_catalog,
+)
 from .compatibility import (
     DatasetCompatibility,
     EntityAlias,
@@ -104,6 +112,7 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 __all__ = [
+    "CatalogCompetition", "CatalogReference", "CatalogTeam", "FootballCatalog", "get_catalog", "open_catalog",
     "MatchPlayerRecords", "normalize_match_players",
     "NormalizedLineup", "NormalizedPlayerMatchStats",
     "MatchStatisticComparison", "MatchStatisticsReport", "compare_match_statistics",

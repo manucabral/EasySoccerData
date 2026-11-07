@@ -4,6 +4,141 @@ This guide describes the unreleased 0.2.0 source checkout. Run commands from
 the repository root after `python -m pip install -e .`. The base installation
 returns records. Add pandas for DataFrames or PyArrow for Parquet files.
 
+## Reviewed competition and team catalog
+
+`get_catalog()` reads bundled identities without HTTP, pandas or PyArrow. The
+initial version covers three competitions and 62 reviewed team identities from
+ESPN and 365Scores. References retain their source URLs and review dates.
+This is a sample of identities, not a full list of leagues, season participants
+or historical squads. A reviewed ID does not establish current source availability.
+
+```py
+import esd
+
+catalog = esd.get_catalog()
+print(catalog.version)
+competition = catalog.competition("Champions League")
+print(competition.for_source("espn").source_id)       # uefa.champions
+print(competition.for_source("espn").native_id)       # 775
+print(competition.for_source("scores365").source_id)  # 572
+team = catalog.team("FC Barcelona")
+print(team.for_source("espn").source_id)              # 83
+print(team.for_source("scores365").source_id)         # 132
+```
+
+| Catalog competition | ESPN dataset selector | ESPN numeric ID | 365Scores ID |
+| :--- | :--- | :--- | :--- |
+| Champions League | `uefa.champions` | `775` | `572` |
+| Premier League | `eng.1` | `700` | `7` |
+| La Liga | `esp.1` | `740` | `11` |
+
+Lookups use canonical IDs, names and declared aliases, ignoring case and
+whitespace. They do not use fuzzy matching or treat an arbitrary native ID as a
+name. Unknown names and unreviewed provider references raise `ValueError` before
+network access. Other providers remain available through their existing clients,
+discovery and dataset APIs, or through caller-reviewed catalog extensions.
+
+### Choose native seasons
+
+Season discovery is a separate, explicit source request. Cache paths, refresh,
+source errors and original fetch timestamps follow the existing discovery API:
+
+```py
+seasons = catalog.list_seasons("Champions League", "espn", cache_dir="./my-data/responses")
+for row in seasons.seasons:
+    print(row.season_id, row.name, row.year, row.source_season)
+```
+
+Select an exact returned `SeasonInfo`. `dataset_options()` returns keyword
+arguments for `load_dataset()` without making a request. For ESPN, it uses the
+reported native year. For 365Scores/Sofascore, the caller supplies a year label
+and the native season ID remains separate. No year is inferred from a name such
+as `2026/2027`:
+
+```py
+selected = next(row for row in seasons.seasons if row.season_id == "2026")
+options = catalog.dataset_options("Champions League", selected)
+dataset = esd.load_dataset(
+    **options, match_ids=[401915310], tables=["match_stats"],
+    max_match_requests=1, cache_dir="./my-data/responses",
+)
+```
+
+The above match ID was checked with the ESPN native year `2026`; select your
+own returned season and match IDs for a different query. For 365Scores, query
+its seasons separately and pass `year=2026` to `dataset_options()` when choosing
+an observed native season for that caller label. A missing history entry is not
+filled in or inferred. During the November 7, 2026 check, 365Scores returned only
+its current season in these competition indexes. An older Champions League
+date also failed to return an explicit games list. These source limits remain
+errors/limited listings rather than successful empty historical coverage.
+
+The bounded live check linked all 17 fixtures in the selected 2026 dates across
+these three competitions. An older LaLiga date returned three fixtures per
+source, with one linked match and two unresolved matches because the sample
+lacks some historical team identities. The older Premier League request to
+365Scores timed out. Twelve snapshots, including partial results and their
+errors, reopened unchanged. These checks describe the selected dates and
+environment, not complete source history or an availability guarantee.
+
+For caller-reviewed extensions, Goaloo keeps its exact `source_season` and
+BeSoccer its explicit selector year. Transfermarkt season discovery does not
+make current profiles or unfiltered histories season-specific;
+`dataset_options()` rejects that historical selection.
+
+### Link and extend identities
+
+Use the catalog explicitly with the existing linker or statistics comparator:
+
+```py
+identities = catalog.identities()
+# left/right are datasets you have downloaded or opened.
+# links = esd.link_dataset_matches(left, right, identities=identities)
+# report = esd.compare_match_statistics(left, right, identities=identities)
+```
+
+Native dataset IDs remain unchanged. An unmapped team stays unresolved. The
+catalog does not establish common metric definitions or link player identities.
+Two sources can use the same numeric ID for different teams, so IDs retain their
+source namespace.
+
+`FootballCatalog`, `CatalogCompetition`, `CatalogTeam` and `CatalogReference`
+allow applications to maintain their own reviewed entries. Each reference
+requires a source ID, evidence URL and aware review timestamp. For example, add
+a local lookup alias to an existing reviewed competition:
+
+```py
+from dataclasses import replace
+
+champions = catalog.competition("Champions League")
+custom = catalog.with_entries(
+    competitions=[replace(champions, aliases=(*champions.aliases, "My Champions"))],
+    version="my-project-1",
+)
+assert custom.competition("My Champions") == custom.competition("Champions League")
+path = custom.save_json("./my-data/catalog-1.json")
+restored = esd.open_catalog(path)
+assert restored == custom
+```
+
+Add new entities or provider references with reviewed IDs. Extensions leave the
+original catalog unchanged and reject conflicting names, source IDs or review
+metadata. Deliberate replacements require constructing a new complete catalog.
+`save_json()` stages a complete document and publishes a new file without
+overwriting existing paths. JSON format version `1` is independent of normalized
+dataset schema version `3`. Saving the catalog with your snapshots preserves
+the particular identities used for later comparisons. Catalog JSON needs no
+optional dependencies; dataset snapshots still require `[parquet]`.
+
+Run `python examples/datasets/catalog.py --list` for local selections, or
+`python examples/datasets/catalog.py --competition "Premier League" --source espn --seasons`
+for an explicit season query. The artificial
+`catalog_workflow_offline.py` example exercises all three competitions in two
+seasons, linking records and retaining cached fetch dates. Optional `--parquet`
+verifies twelve dataset snapshots using a saved catalog; `--pandas` independently
+checks report DataFrames. Its source seasons and match observations are fixtures,
+not claims about live historical coverage.
+
 ## Choose records or DataFrames
 
 Clients return each provider's models. `load_dataset()` returns normalized,
@@ -550,8 +685,9 @@ expecting a many-to-one join. Do not join standings to matches solely by a team
 name, or treat today's standings as standings at each historical kickoff.
 
 To link providers, supply an `IdentityMap` with competition and team aliases
-that you have checked. The library has no built-in alias catalogue and does not
-infer identities from names, source IDs or scores.
+that you have checked. You can use `get_catalog().identities()` for the reviewed
+sample above or maintain your own map. The linker does not infer identities from
+names, source IDs or scores.
 
 Store your own aliases wherever your application needs them. For example, a
 JSON list can contain objects with `kind`, `canonical_id`, `source`, `source_id`:

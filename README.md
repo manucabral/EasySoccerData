@@ -50,6 +50,11 @@ ESPN, 365Scores and Sofascore also provide normalized `lineups` and
 can include team match totals in the same dataset, with a request budget and
 optional cache, DataFrames or Parquet snapshots.
 
+`esd.get_catalog()` resolves reviewed competition/team identities without HTTP.
+The initial catalog covers Champions League, Premier League and LaLiga for
+ESPN/365Scores. It can query native seasons explicitly and build an `IdentityMap`.
+See [catalog selections](guides/datasets.md#reviewed-competition-and-team-catalog).
+
 `esd.list_competitions()` and `esd.list_seasons()` discover native selectors where
 implemented. Inspect `esd.get_discovery_capabilities()` before querying a source.
 Transfermarkt supports paged competition search and native season selectors;

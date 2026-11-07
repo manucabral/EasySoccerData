@@ -1,0 +1,1532 @@
+{
+  "format": "easysoccerdata-catalog",
+  "format_version": 1,
+  "version": "2026-11-07.1",
+  "competitions": [
+    {
+      "canonical_id": "champions-league",
+      "name": "UEFA Champions League",
+      "aliases": [
+        "Champions League"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "uefa.champions",
+          "source_url": "https://site.api.espn.com/apis/site/v2/leagues/dropdown?region=us&lang=en&sport=soccer",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": "775"
+        },
+        {
+          "source": "scores365",
+          "source_id": "572",
+          "source_url": "https://webws.365scores.com/web/competitions/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572&withSeasons=true",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": "572"
+        }
+      ]
+    },
+    {
+      "canonical_id": "premier-league",
+      "name": "English Premier League",
+      "aliases": [
+        "Premier League"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "eng.1",
+          "source_url": "https://site.api.espn.com/apis/site/v2/leagues/dropdown?region=us&lang=en&sport=soccer",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": "700"
+        },
+        {
+          "source": "scores365",
+          "source_id": "7",
+          "source_url": "https://webws.365scores.com/web/competitions/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=7&withSeasons=true",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": "7"
+        }
+      ]
+    },
+    {
+      "canonical_id": "la-liga",
+      "name": "Spanish LALIGA",
+      "aliases": [
+        "LaLiga",
+        "La Liga"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "esp.1",
+          "source_url": "https://site.api.espn.com/apis/site/v2/leagues/dropdown?region=us&lang=en&sport=soccer",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": "740"
+        },
+        {
+          "source": "scores365",
+          "source_id": "11",
+          "source_url": "https://webws.365scores.com/web/competitions/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=11&withSeasons=true",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": "11"
+        }
+      ]
+    }
+  ],
+  "teams": [
+    {
+      "canonical_id": "aek-athens",
+      "name": "AEK Athens",
+      "aliases": [
+        "AEK Atenas",
+        "AEK Athens"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "887",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "1024",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "arsenal",
+      "name": "Arsenal",
+      "aliases": [
+        "Arsenal"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "359",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "104",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "aston-villa",
+      "name": "Aston Villa",
+      "aliases": [
+        "Aston Villa"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "362",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "109",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "athletic-club",
+      "name": "Athletic Club",
+      "aliases": [
+        "Athletic Club"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "93",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261107&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "144",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "atletico-madrid",
+      "name": "Atlético Madrid",
+      "aliases": [
+        "Atlético de Madrid",
+        "Atlético Madrid"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "1068",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "134",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "barcelona",
+      "name": "Barcelona",
+      "aliases": [
+        "FC Barcelona",
+        "Barcelona"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "83",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "132",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "bayern",
+      "name": "Bayern Munich",
+      "aliases": [
+        "Bayern Munich"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "132",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "331",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "betis",
+      "name": "Real Betis",
+      "aliases": [
+        "Real Betis"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "244",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "146",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "bodo-glimt",
+      "name": "Bodo/Glimt",
+      "aliases": [
+        "Bodo Glimt",
+        "Bodo/Glimt"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "2980",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "1978",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "bournemouth",
+      "name": "AFC Bournemouth",
+      "aliases": [
+        "AFC Bournemouth",
+        "Bournemouth"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "349",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261108&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "50",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "brentford",
+      "name": "Brentford",
+      "aliases": [
+        "Brentford"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "337",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261108&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "63",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "brighton",
+      "name": "Brighton & Hove Albion",
+      "aliases": [
+        "Brighton & Hove Albion",
+        "Brighton"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "331",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261108&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "38",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "celta-vigo",
+      "name": "Celta Vigo",
+      "aliases": [
+        "Celta Vigo",
+        "Celta de Vigo"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "85",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261108&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "158",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=11",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "chelsea",
+      "name": "Chelsea",
+      "aliases": [
+        "Chelsea"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "363",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261108&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "106",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "club-brugge",
+      "name": "Club Brugge",
+      "aliases": [
+        "Brujas",
+        "Club Brugge"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "570",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "1169",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "como",
+      "name": "Como",
+      "aliases": [
+        "Como"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "2572",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "6117",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "crystal-palace",
+      "name": "Crystal Palace",
+      "aliases": [
+        "Crystal Palace"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "384",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261108&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "10",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "deportivo",
+      "name": "Deportivo",
+      "aliases": [
+        "Deportivo",
+        "RC Deportivo"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "90",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261107&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "148",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "dortmund",
+      "name": "Borussia Dortmund",
+      "aliases": [
+        "Borussia Dortmund"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "124",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "341",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "elche",
+      "name": "Elche",
+      "aliases": [
+        "Elche",
+        "Elche CF"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "3751",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261108&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "156",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=11",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "espanyol",
+      "name": "Espanyol",
+      "aliases": [
+        "Espanyol",
+        "RCD Espanyol"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "88",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261107&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "136",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "fenerbahce",
+      "name": "Fenerbahce",
+      "aliases": [
+        "Fenerbahce"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "436",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "946",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "feyenoord",
+      "name": "Feyenoord Rotterdam",
+      "aliases": [
+        "Feyenoord",
+        "Feyenoord Rotterdam"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "142",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "691",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "fulham",
+      "name": "Fulham",
+      "aliases": [
+        "Fulham"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "370",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261107&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "120",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=7",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "galatasaray",
+      "name": "Galatasaray",
+      "aliases": [
+        "Galatasaray"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "432",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "945",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "getafe",
+      "name": "Getafe",
+      "aliases": [
+        "Getafe",
+        "Getafe CF"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "2922",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261108&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "140",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=11",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "hull-city",
+      "name": "Hull City",
+      "aliases": [
+        "Hull City"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "306",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261107&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "11",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=7",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "inter",
+      "name": "Internazionale",
+      "aliases": [
+        "Inter Milan",
+        "Internazionale"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "110",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "224",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "ipswich-town",
+      "name": "Ipswich Town",
+      "aliases": [
+        "Ipswich Town",
+        "Ipswich"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "373",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261108&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "9",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "lask",
+      "name": "LASK Linz",
+      "aliases": [
+        "LASK Linz"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "4411",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "1743",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "leeds-united",
+      "name": "Leeds United",
+      "aliases": [
+        "Leeds United"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "357",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261107&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "36",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=7",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "leipzig",
+      "name": "RB Leipzig",
+      "aliases": [
+        "RB Leipzig"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "11420",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "7171",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "lens",
+      "name": "Lens",
+      "aliases": [
+        "Lens"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "175",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "481",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "levante",
+      "name": "Levante",
+      "aliases": [
+        "Levante",
+        "Levante UD"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "1538",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261108&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "150",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=11",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "lille",
+      "name": "Lille",
+      "aliases": [
+        "Lille"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "166",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "478",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "liverpool",
+      "name": "Liverpool",
+      "aliases": [
+        "Liverpool"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "364",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "108",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "malaga",
+      "name": "Málaga",
+      "aliases": [
+        "Málaga",
+        "Málaga CF"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "99",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261107&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "152",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "manchester-city",
+      "name": "Manchester City",
+      "aliases": [
+        "Manchester City"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "382",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "110",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "manchester-united",
+      "name": "Manchester United",
+      "aliases": [
+        "Manchester United"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "360",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "105",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "napoli",
+      "name": "Napoli",
+      "aliases": [
+        "Nápoles",
+        "Napoli"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "114",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "234",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "newcastle-united",
+      "name": "Newcastle United",
+      "aliases": [
+        "Newcastle United"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "361",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261107&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "116",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=7",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "nottingham-forest",
+      "name": "Nottingham Forest",
+      "aliases": [
+        "Nottingham Forest"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "393",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261107&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "29",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=7",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "osasuna",
+      "name": "Osasuna",
+      "aliases": [
+        "Osasuna"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "97",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261107&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "143",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "porto",
+      "name": "FC Porto",
+      "aliases": [
+        "FC Porto"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "437",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "887",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "psg",
+      "name": "Paris Saint-Germain",
+      "aliases": [
+        "PSG",
+        "Paris Saint-Germain"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "160",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "480",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "psv",
+      "name": "PSV Eindhoven",
+      "aliases": [
+        "PSV Eindhoven"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "148",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "725",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "racing-santander",
+      "name": "Racing Santander",
+      "aliases": [
+        "Racing Santander",
+        "Racing de Santander"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "87",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261107&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "137",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "rayo-vallecano",
+      "name": "Rayo Vallecano",
+      "aliases": [
+        "Rayo Vallecano"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "101",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261108&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "174",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=11",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "real-madrid",
+      "name": "Real Madrid",
+      "aliases": [
+        "Real Madrid"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "86",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "131",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "real-sociedad",
+      "name": "Real Sociedad",
+      "aliases": [
+        "Real Sociedad"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "89",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261108&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "154",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=11",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "roma",
+      "name": "AS Roma",
+      "aliases": [
+        "AS Roma"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "104",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "225",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "sabah",
+      "name": "Sabah FK",
+      "aliases": [
+        "Sabah",
+        "Sabah FK"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "21922",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "50201",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "shakhtar",
+      "name": "Shakhtar Donetsk",
+      "aliases": [
+        "Shakhtar Donetsk"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "493",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "1955",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "slavia-prague",
+      "name": "Slavia Prague",
+      "aliases": [
+        "Slavia Praga",
+        "Slavia Prague"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "494",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "1789",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "slovan-bratislava",
+      "name": "Slovan Bratislava",
+      "aliases": [
+        "Slovan Bratislava"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "521",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "2112",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "sporting",
+      "name": "Sporting CP",
+      "aliases": [
+        "Sporting CP"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "2250",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "890",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "stuttgart",
+      "name": "VfB Stuttgart",
+      "aliases": [
+        "Stuttgart",
+        "VfB Stuttgart"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "134",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "338",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "sunderland",
+      "name": "Sunderland",
+      "aliases": [
+        "Sunderland"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "366",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261108&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "117",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "tottenham",
+      "name": "Tottenham Hotspur",
+      "aliases": [
+        "Tottenham Hotspur",
+        "Tottenham"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "367",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20261107&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "114",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=7",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "valencia",
+      "name": "Valencia",
+      "aliases": [
+        "Valencia",
+        "Valencia CF"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "94",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard?dates=20261107&limit=1000",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "139",
+          "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "viking",
+      "name": "Viking FK",
+      "aliases": [
+        "Viking",
+        "Viking FK"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "510",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "1980",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    },
+    {
+      "canonical_id": "villarreal",
+      "name": "Villarreal",
+      "aliases": [
+        "Villarreal CF",
+        "Villarreal"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "102",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/teams",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        },
+        {
+          "source": "scores365",
+          "source_id": "133",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
+          "verified_at": "2026-11-07T22:47:01.072439+00:00",
+          "native_id": null
+        }
+      ]
+    }
+  ]
+}

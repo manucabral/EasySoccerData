@@ -4,6 +4,7 @@
 
 ### Added
 
+- Versioned competition/team catalog with reviewed ESPN/365Scores IDs for Champions League, Premier League and LaLiga, source evidence/dates, explicit native season selections, identity-map integration and caller-owned JSON extensions. Examples cover three competitions across two artificial seasons, cache reuse and snapshots.
 - Normalized lineups and player-match statistics for explicit ESPN, 365Scores and Sofascore match IDs, with shared response budgets, nullable roles/metrics, native member/athlete IDs and live/offline examples. Team match totals can be requested alongside them.
 - Read-only match-statistics comparisons with explicit identities, absolute metric tolerances, missing/period/model diagnostics, original source provenance and optional DataFrame export. Examples cover offline records and Champions League snapshot pairs.
 - Optional native-ID match statistics datasets for ESPN, 365Scores and Sofascore, with bounded endpoint reads, source identity checks, nullable metrics, cache provenance and live/offline examples.

@@ -18,6 +18,9 @@ snapshot. Temporary-file examples clean up after themselves.
 
 | Script | Extra | Behavior shown |
 | :--- | :--- | :--- |
+| [Reviewed catalog](datasets/catalog.py) with `--list` | Base | Local competition selectors, review metadata and team identity count |
+| [Catalog workflow](datasets/catalog_workflow_offline.py) | Base | Three competitions/two artificial seasons, source selectors, linking, catalog JSON and response cache |
+| [Catalog workflow](datasets/catalog_workflow_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Report DataFrame types or twelve snapshot round trips with saved identities |
 | [Provider contracts](datasets/providers.py) with `--list` | Base | All nine sources and supported tables |
 | [Discovery selectors and cache](datasets/discovery_offline.py) | Base | ESPN slugs, native season IDs, source labels and cache provenance |
 | [Discovery support](datasets/discover.py) with `--list` | Base | Implemented competition and season query modes for all nine providers |
@@ -196,6 +199,33 @@ applicable. Import and `--help` make no requests. The
 records and supports independent `--pandas` and `--parquet` flags.
 
 ## Live dataset queries
+
+### Resolve reviewed competition IDs and seasons
+
+[catalog.py](datasets/catalog.py) lists the bundled catalog by default, without
+source requests. It initially covers Champions League, Premier League and
+LaLiga for ESPN/365Scores, with 62 reviewed team identities. It does not assert
+complete season participation or current network availability:
+
+```sh
+python examples/datasets/catalog.py --list
+python examples/datasets/catalog.py --competition "Champions League" --source espn
+python examples/datasets/catalog.py --competition "Premier League" --source scores365 --seasons
+python examples/datasets/catalog.py --competition "Champions League" --source espn --season-id 2026 --cache-dir ./my-data/season-responses
+```
+
+`--seasons` or `--season-id` makes one explicit discovery call before transport
+retries. Select an exact returned ID. 365Scores needs `--year` as a caller label;
+ESPN uses the native year returned by its index. Labels do not determine years.
+The CLI prints arguments for `load_dataset()` and does not download a dataset.
+An index can omit historical seasons. Missing entries are errors, not inferred
+coverage. Existing discovery blocks remain source failures.
+
+`--catalog PATH` reads your own reviewed JSON. The
+[catalog guide](../guides/datasets.md#reviewed-competition-and-team-catalog)
+shows immutable extensions, identity maps and saving a catalog beside snapshots.
+The offline workflow uses artificial source seasons/fixtures for all three
+competitions and two seasons. `--pandas` and `--parquet` remain independent.
 
 ### Lineups, player statistics and match totals
 
