@@ -85,6 +85,12 @@ For a two-day Champions League download without pandas, run
 [Champions League example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/datasets/champions_league.py)
 prints records and reports failed days. Supply `--cache-dir ./my-data/champions-responses`
 to reuse validated responses, or add `--refresh` to fetch the range again.
+With `python -m pip install -e ".[parquet]"`, add
+`--output-dir ./my-data/champions-snapshot-1` to save the records to a new directory.
+Run `python examples/datasets/champions_league.py --open-dir ./my-data/champions-snapshot-1`
+to display the saved results without source requests. Empty tables, task coverage
+and errors survive export. Opening a partial snapshot still reports its failures
+and returns exit code `1`. No pandas installation is needed.
 
 ## Partial downloads
 

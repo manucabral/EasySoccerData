@@ -42,8 +42,8 @@ Install the matching extras before choosing `pandas`, `parquet` or `full`.
 
 [champions_league.py](datasets/champions_league.py) downloads matches for two UTC
 days using the base installation. It prints IDs, kickoff times, teams, scores and
-source statuses. It does not require pandas or PyArrow. It writes response files
-only when `--cache-dir` is supplied.
+source statuses. Downloads do not require pandas or PyArrow. Files are written
+only with `--cache-dir` or `--output-dir`.
 
 ```sh
 python examples/datasets/champions_league.py
@@ -68,11 +68,44 @@ The second run reports how many days came from cache. Successful days are reused
 while fresh; failed or expired days are requested again. Cached responses keep
 their original fetch times. `--refresh` fetches every selected day again and
 replaces cache entries after validation. A failed refresh leaves an existing
-entry intact and reports the failure. The script does not save a Parquet snapshot.
+entry intact and reports the failure.
+
+To save the normalized records for later use, install the Parquet extra from
+the checkout and choose a new snapshot directory:
+
+```sh
+python -m pip install -e ".[parquet]"
+python examples/datasets/champions_league.py --cache-dir "./my-data/champions-responses" --output-dir "./my-data/champions-snapshot-1"
+python examples/datasets/champions_league.py --open-dir "./my-data/champions-snapshot-1"
+```
+
+`[full]` also includes Parquet support. pandas is not needed for saving or opening
+snapshots. Each snapshot contains `matches.parquet`, `teams.parquet` and a
+`manifest.json` with coverage, errors and checksums. The output directory must
+not exist. Choose a new path for each export, even when using `--refresh`.
+
+The response cache avoids repeating source requests. A snapshot stores the
+normalized dataset at export time, including empty or partial results.
+`--open-dir` reads that snapshot without querying 365Scores or updating the cache.
+It cannot be combined with dates, season, cache, refresh or output options.
+The displayed date range comes from the saved metadata.
+
+The same snapshot can be opened in Python without network access:
+
+```py
+import esd
+
+dataset = esd.open_dataset("./my-data/champions-snapshot-1")
+print(dataset.complete, dataset.errors)
+for match in dataset.match_records:
+    print(match.match_id, match.home_team_name, match.away_team_name)
+```
 
 If a day fails, the script displays the successful days and reports the failed
-tasks on stderr, with exit code `1`. A complete request returns `0`, including
-an empty selection. Invalid arguments return `2`. `--help` works offline.
+tasks on stderr, with exit code `1`. A requested export saves those partial
+results and their errors. Opening that snapshot also returns `1`. A complete
+request or snapshot returns `0`, including an empty selection. Invalid arguments,
+missing PyArrow, and snapshot read/write failures return `2`. `--help` works offline.
 
 ### Other provider queries
 

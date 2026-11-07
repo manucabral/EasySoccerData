@@ -1,4 +1,4 @@
-"""Champions League selection, bounded downloads and record output without live HTTP."""
+"""Champions League downloads, cache reuse and offline snapshots without live HTTP."""
 
 import runpy
 from datetime import datetime, timezone
@@ -202,3 +202,137 @@ def test_cache_path_cannot_be_a_file(monkeypatch, tmp_path, capsys):
     assert "not a directory" in capsys.readouterr().err
     assert destination.read_text(encoding="utf-8") == "Keep this file"
     fetch.assert_not_called()
+
+
+@pytest.mark.parametrize("selection", ["complete", "partial", "empty"])
+def test_snapshot_export_and_offline_read_preserve_results(monkeypatch, tmp_path, capsys, selection):
+    pytest.importorskip("pyarrow")
+    main = runpy.run_path(str(EXAMPLE))["main"]
+    destination = tmp_path / "chosen snapshots" / selection
+    datasets = []
+    original_load = esd.load_dataset
+
+    def load(**kwargs):
+        dataset = original_load(**kwargs)
+        datasets.append(dataset)
+        return dataset
+
+    def fetch(url, **kwargs):
+        day = 4 if "04/11/2026" in url else 3
+        if selection == "partial" and day == 4:
+            raise SourceError("Sample failed day")
+        return {"games": [] if selection == "empty" else [{
+            "id": day,
+            "competitionId": 572,
+            "startTime": f"2026-11-{day:02d}T20:00:00Z",
+            "homeCompetitor": {"id": 10, "name": "Home", "score": 0},
+            "awayCompetitor": {"id": 20, "name": "Away", "score": None},
+        }]}
+
+    monkeypatch.setattr(esd, "load_dataset", load)
+    monkeypatch.setattr("esd._provider_datasets.get_api_json", fetch)
+    expected_exit = 1 if selection == "partial" else 0
+    assert main(["--output-dir", str(destination)]) == expected_exit
+    original = datasets[0]
+    assert esd.open_dataset(destination) == original
+    assert {path.name for path in destination.iterdir()} == {
+        "manifest.json", "matches.parquet", "teams.parquet",
+    }
+    written = capsys.readouterr()
+    assert "Saved snapshot:" in written.out
+
+    download = Mock(side_effect=AssertionError("Offline read must not download"))
+    monkeypatch.setattr(esd, "load_dataset", download)
+    monkeypatch.setattr("esd._provider_datasets.get_api_json", download)
+    assert main(["--open-dir", str(destination)]) == expected_exit
+    reopened = capsys.readouterr()
+    assert "Opened snapshot:" in reopened.out
+    assert "2026-11-03 to 2026-11-04 (UTC)" in reopened.out
+    assert f"Complete: {original.complete}" in reopened.out
+    assert reopened.err == written.err
+    if selection != "empty":
+        assert "Home 0 - ? Away" in reopened.out
+    else:
+        assert "No fixtures returned" in reopened.out
+    download.assert_not_called()
+
+
+@pytest.mark.parametrize("flag", ["--output-dir", "--open-dir"])
+def test_storage_without_pyarrow_reports_install_command(monkeypatch, tmp_path, capsys, flag):
+    main = runpy.run_path(str(EXAMPLE))["main"]
+    monkeypatch.setitem(main.__globals__, "find_spec", lambda name: None)
+    download = Mock(side_effect=AssertionError("Unexpected download"))
+    monkeypatch.setattr(esd, "load_dataset", download)
+    with pytest.raises(SystemExit) as exc:
+        main([flag, str(tmp_path / "snapshot")])
+    assert exc.value.code == 2
+    assert 'python -m pip install -e ".[parquet]"' in capsys.readouterr().err
+    assert list(tmp_path.iterdir()) == []
+    download.assert_not_called()
+
+
+@pytest.mark.parametrize("options", [
+    ["--start-date", "2026-11-03"], ["--end-date", "2026-11-04"],
+    ["--season", "2026"], ["--cache-dir", "cache"], ["--refresh"],
+    ["--output-dir", "another-snapshot"],
+])
+def test_offline_mode_rejects_download_and_output_options(monkeypatch, options):
+    download = Mock(side_effect=AssertionError("Unexpected download"))
+    monkeypatch.setattr(esd, "load_dataset", download)
+    with pytest.raises(SystemExit) as exc:
+        runpy.run_path(str(EXAMPLE))["main"](["--open-dir", "snapshot", *options])
+    assert exc.value.code == 2
+    download.assert_not_called()
+
+
+@pytest.mark.parametrize("kind", ["file", "directory"])
+def test_existing_snapshot_destination_is_untouched(monkeypatch, tmp_path, capsys, kind):
+    destination = tmp_path / "existing"
+    if kind == "directory":
+        destination.mkdir()
+        original = destination / "manifest.json"
+    else:
+        original = destination
+    original.write_text("Keep this file", encoding="utf-8")
+    download = Mock(side_effect=AssertionError("Unexpected download"))
+    monkeypatch.setattr(esd, "load_dataset", download)
+    with pytest.raises(SystemExit) as exc:
+        runpy.run_path(str(EXAMPLE))["main"](["--output-dir", str(destination)])
+    assert exc.value.code == 2
+    assert "already exists" in capsys.readouterr().err
+    assert original.read_text(encoding="utf-8") == "Keep this file"
+    download.assert_not_called()
+
+
+@pytest.mark.parametrize("kind", ["missing", "damaged", "other_competition"])
+def test_invalid_snapshot_is_reported_without_download(monkeypatch, tmp_path, capsys, kind):
+    pytest.importorskip("pyarrow")
+    destination = tmp_path / "snapshot"
+    if kind == "damaged":
+        destination.mkdir()
+        (destination / "manifest.json").write_text("invalid", encoding="utf-8")
+    elif kind == "other_competition":
+        now = datetime(2026, 11, 7, tzinfo=timezone.utc)
+        esd.SoccerDataset(esd.DatasetMetadata(
+            "scores365", "332", 2026, ("matches", "teams"), now, now,
+        )).save(destination)
+    download = Mock(side_effect=AssertionError("Unexpected download"))
+    monkeypatch.setattr(esd, "load_dataset", download)
+    with pytest.raises(SystemExit) as exc:
+        runpy.run_path(str(EXAMPLE))["main"](["--open-dir", str(destination)])
+    assert exc.value.code == 2
+    message = capsys.readouterr().err
+    assert "Traceback" not in message
+    assert {"missing": "not found", "damaged": "Invalid dataset", "other_competition": "Champions League matches snapshot"}[kind] in message
+    download.assert_not_called()
+
+
+def test_failed_snapshot_write_reports_error(monkeypatch, tmp_path, capsys):
+    pytest.importorskip("pyarrow")
+    monkeypatch.setattr("esd._provider_datasets.get_api_json", lambda *a, **k: {"games": []})
+    monkeypatch.setattr(esd.SoccerDataset, "save", Mock(side_effect=OSError("disk full")))
+    with pytest.raises(SystemExit) as exc:
+        runpy.run_path(str(EXAMPLE))["main"](["--output-dir", str(tmp_path / "snapshot")])
+    assert exc.value.code == 2
+    assert "disk full" in capsys.readouterr().err
+    assert list(tmp_path.iterdir()) == []
