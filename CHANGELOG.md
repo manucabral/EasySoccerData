@@ -4,6 +4,7 @@
 
 ### Added
 
+- Optional native-ID match statistics datasets for ESPN, 365Scores and Sofascore, with bounded endpoint reads, source identity checks, nullable metrics, cache provenance and live/offline examples.
 - Transfermarkt competition search pages and native season selectors, BeSoccer standings year discovery, source URLs and a 365Scores discovery/download/validation workflow with optional verified Parquet snapshots.
 - Native competition/season discovery for ESPN, 365Scores, Sofascore, Goaloo and dated Promiedos listings, with explicit support for all nine providers, immutable results, source scope and optional response caching.
 - Read-only `validate_dataset()` reports for normalized records and coverage across all nine providers, with contextual errors/warnings and no optional dependencies.
@@ -18,8 +19,13 @@
 - Configurable provider example CLI with selection overrides, record previews, optional snapshot output and explicit exit codes.
 - Automated offline example checks across installation extras, with HTTP and browser access blocked.
 
+### Changed
+
+- Normalized schema version 2 adds whole-match team counts, percentage-point possession and source period labels. Version 1 Parquet snapshots remain readable with new columns set to null.
+
 ### Fixed
 
+- Installed-example checks can exclude the checkout from imports and require `site-packages`, preventing source files from masking missing wheel modules in CI.
 - Transfermarkt search now reads competition grid cells and cup links (`pokalwettbewerb`), which were omitted by the previous link parser.
 - Include example identity maps in source distributions so saved-provider comparisons can run from the source archive.
 - Promiedos: convert ISO query dates to the source's `DD-MM-YYYY` URL format in clients and dataset loaders.

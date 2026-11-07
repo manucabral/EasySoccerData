@@ -256,11 +256,11 @@ The `season` argument labels the records using the caller's query context.
 | `matches` | `NormalizedMatch`, `normalize_match()` | `source`, `match_id`, `competition_id`, `season`, `source_season_id`, `stage_id`, `kickoff`, home/away team IDs, names and scores |
 | `teams` | `NormalizedTeam`, `normalize_team()` | `source`, `team_id`, `name`, `short_name` |
 | `standings` | `NormalizedStanding`, `normalize_standings(table)` | Source, competition/season, table/stage/group, team, rank, played/won/drawn/lost, goals, points and deductions |
-| `match_stats` | `NormalizedMatchStats`, `normalize_match_stats()` | Source, match ID, home/away xG and win/draw/loss forecasts |
+| `match_stats` | `NormalizedMatchStats`, `normalize_match_stats()` for Understat | Source, match ID, nullable team counts, possession, xG and forecasts; native-ID detail loaders for ESPN, 365Scores and Sofascore |
 | `player_stats` | `NormalizedPlayerStats`, `normalize_player_stats()` | Source, competition/season, player ID, native team names, counts, xG and xA |
 | `shots` | `NormalizedShot`, `normalize_shot()` | Source, shot/match/player IDs, minute, outcome, native X/Y and xG |
 
-`normalized_to_dataframe(records, table=...)` exports schema version `1`:
+`normalized_to_dataframe(records, table=...)` exports schema version `2`:
 identifiers and names use nullable `string`, counts use `Int64`, metrics use `Float64`, and `kickoff`
 uses `datetime64[ns, UTC]`. The schema version and table name are also available
 in `DataFrame.attrs`. Unknown table names or mismatched record models raise.
@@ -303,6 +303,14 @@ Unsupported model/table combinations raise `TypeError`. Original provider models
 remain available for additional fields.
 
 ## Season datasets
+
+For individual match statistics, request `tables=["match_stats"]` with explicit
+`match_ids` and a `max_match_requests` budget. ESPN, 365Scores and Sofascore return
+the chosen matches, teams and available metrics without a season-wide download.
+365Scores and Sofascore require native `season_id`. See
+[match statistics by ID](guides/datasets.md#match-statistics-by-native-id) and the
+[CLI example](examples/datasets/match_statistics.py). pandas remains optional.
+Version `1` Parquet snapshots open as schema `2`, with new metrics left null.
 
 Download an in-memory ESPN season snapshot with normalized matches and teams.
 Add `standings` to fetch the source's standings snapshot for the same season:

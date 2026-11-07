@@ -14,6 +14,7 @@ from esd import (
     DatasetIssue,
     DatasetMetadata,
     NormalizedMatch,
+    NormalizedMatchStats,
     NormalizedStanding,
     NormalizedTeam,
     SoccerDataset,
@@ -106,6 +107,47 @@ def test_older_manifest_without_cache_provenance_still_opens(dataset, tmp_path):
     write_manifest(target, manifest)
     expected = replace(dataset, metadata=replace(dataset.metadata, response_fetched_at=(), cached_tasks=()))
     assert open_dataset(target) == expected
+
+
+def test_v1_match_statistics_migrate_without_filling_absent_metrics(dataset, tmp_path):
+    dataset = replace(dataset, metadata=replace(dataset.metadata, source="understat", tables=("match_stats",)),
+                      match_records=(), team_records=(), standing_records=(),
+                      match_stat_records=(NormalizedMatchStats("understat", "1", home_xg=0.0, away_xg=1.25),))
+    target = dataset.save(tmp_path / "v1")
+    old_columns = ["source", "match_id", "home_xg", "away_xg", "forecast_win", "forecast_draw", "forecast_loss"]
+    filename = target / "match_stats.parquet"
+    with pq.ParquetFile(filename) as reader:
+        old_table = reader.read(columns=old_columns)
+    pq.write_table(old_table, filename)
+    manifest = read_manifest(target)
+    manifest["metadata"]["schema_version"] = "1"
+    manifest["tables"]["match_stats"]["sha256"] = hashlib.sha256(filename.read_bytes()).hexdigest()
+    write_manifest(target, manifest)
+    restored = open_dataset(target)
+    assert restored == dataset and restored.metadata.schema_version == "2"
+    assert restored.match_stat_records[0].home_xg == 0.0
+    assert restored.match_stat_records[0].home_shots is None
+    assert restored.match_stat_records[0].source_period is None
+    assert open_dataset(restored.save(tmp_path / "resaved-v2")) == restored
+
+
+def test_v1_other_tables_migrate_without_changing_records(dataset, tmp_path):
+    target = dataset.save(tmp_path / "v1-matches")
+    manifest = read_manifest(target)
+    manifest["metadata"]["schema_version"] = "1"
+    write_manifest(target, manifest)
+    assert open_dataset(target) == dataset
+
+
+def test_v1_manifest_rejects_unexpected_new_statistic_columns(dataset, tmp_path):
+    dataset = replace(dataset, metadata=replace(dataset.metadata, tables=("match_stats",)),
+                      match_records=(), team_records=(), standing_records=())
+    target = dataset.save(tmp_path / "mismatched-v1")
+    manifest = read_manifest(target)
+    manifest["metadata"]["schema_version"] = "1"
+    write_manifest(target, manifest)
+    with pytest.raises(DatasetFormatError, match="schema"):
+        open_dataset(target)
 
 
 def test_failed_write_publishes_no_snapshot_and_cleans_staging(dataset, tmp_path, monkeypatch):

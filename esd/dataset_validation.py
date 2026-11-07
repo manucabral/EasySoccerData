@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from ._dataset_storage import _RECORDS, _metadata, _metadata_json, _validate_records
 from .datasets import DatasetIssue, DatasetMetadata, SoccerDataset
+from .normalized.schema import MATCH_COUNT_METRICS
 
 
 @dataclass(frozen=True)
@@ -72,6 +73,8 @@ def _date(value):
 
 def _coverage(dataset, add):
     meta = dataset.metadata
+    if meta.coverage_scope == "match_ids" and not meta.requested_match_ids:
+        add("error", "missing_match_selection", "Match-ID coverage requires explicit requested_match_ids")
     successful = set(meta.successful_tasks)
     if not isinstance(dataset.errors, (tuple, list)):
         add("error", "invalid_download_issues", "Dataset errors must be a sequence of DatasetIssue records")
@@ -193,6 +196,9 @@ def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
                 add("error", "competition_mismatch", "Record competition differs from dataset league", table, index, "competition_id")
             if hasattr(row, "season") and row.season is not None and row.season != str(meta.season):
                 add("error", "season_label_mismatch", "Record caller season label differs from metadata", table, index, "season")
+            if (meta.coverage_scope == "match_ids" and table in ("matches", "match_stats")
+                    and row.match_id not in meta.requested_match_ids):
+                add("error", "unrequested_match", "Record match ID is outside the explicit selection", table, index, "match_id")
             if table == "matches":
                 for field in ("home_score", "away_score"):
                     if getattr(row, field) is not None and getattr(row, field) < 0:
@@ -206,6 +212,13 @@ def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
                         add("warning", "non_utc_kickoff", "Normalized kickoff uses an offset other than UTC", table, index, "kickoff")
                     if bounds is not None and not bounds[0] <= row.kickoff.astimezone(bounds[2]).date() <= bounds[1]:
                         add("error", "kickoff_outside_range", "Kickoff is outside the selected date range", table, index, "kickoff")
+            if table == "match_stats":
+                for side in ("home", "away"):
+                    for metric in (*MATCH_COUNT_METRICS, "xg", "possession_pct"):
+                        name = f"{side}_{metric}"
+                        value = getattr(row, name)
+                        if value is not None and (value < 0 or metric == "possession_pct" and value > 100):
+                            add("error", "invalid_match_metric", "Counts/xG must be nonnegative; possession must be 0 to 100", table, index, name)
     team_ids = {(row.source, row.team_id) for _, row in rows["teams"] if row.team_id is not None}
     match_ids = {(row.source, row.match_id) for _, row in rows["matches"] if row.match_id is not None}
     for table in ("matches", "standings", "match_stats", "shots"):

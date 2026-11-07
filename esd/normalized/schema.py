@@ -23,7 +23,13 @@ INTEGER_COLUMNS = {
     "minute", "games", "minutes", "goals", "assists", "shots", "key_passes", "yellow_cards", "red_cards",
     "market_value", "value", "fee",
 }
+MATCH_COUNT_METRICS = (
+    "shots", "shots_on_target", "corners", "fouls", "offsides", "yellow_cards", "red_cards",
+    "saves", "passes", "accurate_passes",
+)
+INTEGER_COLUMNS.update(f"{side}_{metric}" for side in ("home", "away") for metric in MATCH_COUNT_METRICS)
 FLOAT_COLUMNS = {
     "home_xg", "away_xg", "forecast_win", "forecast_draw", "forecast_loss",
     "x", "y", "xg", "xa", "npxg", "xg_chain", "xg_buildup",
+    "home_possession_pct", "away_possession_pct",
 }

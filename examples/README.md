@@ -23,6 +23,8 @@ snapshot. Temporary-file examples clean up after themselves.
 | [Discovery support](datasets/discover.py) with `--list` | Base | Implemented competition and season query modes for all nine providers |
 | [Discovery workflow](datasets/discovery_workflow_offline.py) | Base | Artificial discovery, exact native selection, download and validation |
 | [Discovery workflow](datasets/discovery_workflow_offline.py) with `--parquet` | Parquet | Same flow, temporary snapshot verification and offline reopening |
+| [Match statistics](datasets/match_statistics_offline.py) | Base | Explicit IDs/budget, away-first team groups, missing values and recorded zeros |
+| [Match statistics](datasets/match_statistics_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable DataFrame columns or a temporary snapshot round trip |
 | [Partial results](datasets/partial_results.py) | Base | `raise`, `collect`, attached records and failed days |
 | [Dataset validation](datasets/validate_dataset.py) | Base | Errors, warnings, nullable scores, partial downloads and duplicate keys |
 | [Cache reuse](datasets/cache_resume_offline.py) | Base | First download, disk reuse, original timestamps and forced refresh |
@@ -39,6 +41,9 @@ Run the applicable set with network and browser calls blocked:
 python scripts/check_examples.py --extra base
 python scripts/check_examples.py --extra full
 ```
+
+CI adds `--installed` to require the wheel from `site-packages` and exclude the
+checkout from package imports. Default checks exercise the current checkout.
 
 Install the matching extras before choosing `pandas`, `parquet` or `full`.
 The Champions League analysis needs a snapshot path. The runner checks its
@@ -138,6 +143,39 @@ Invalid arguments, mismatched snapshot ranges or storage failures return `2`.
 Import and `--help` work without source requests or optional packages.
 
 ## Live dataset queries
+
+### Match statistics for selected IDs
+
+[match_statistics.py](datasets/match_statistics.py) supports ESPN, 365Scores and
+Sofascore. It requires explicit native match IDs and never discovers a full
+calendar. Each ESPN/365Scores ID costs one endpoint read; Sofascore costs two.
+`--max-match-requests` defaults to `20`, checked before requests and transport
+retries. Repeat `--match-id` to select additional matches.
+
+```sh
+python examples/datasets/match_statistics.py --source espn --league uefa.champions --season 2026 --match-id 401915311 --max-match-requests 1
+python examples/datasets/match_statistics.py --source scores365 --league 572 --season 2026 --season-id 74 --match-id 4828447 --cache-dir ./my-data/stat-responses
+python examples/datasets/match_statistics.py --source espn --league uefa.champions --season 2026 --match-id 401915311 --output-dir ./my-data/espn-match-stats
+python examples/datasets/match_statistics.py --open-dir ./my-data/espn-match-stats
+```
+
+These IDs were verified on November 7, 2026. Select IDs for your own matches and
+source season. The output distinguishes source totals, unavailable metrics and
+recorded zeros. The [metric mapping](../guides/datasets.md#match-statistics-by-native-id)
+documents units, period scope and limitations. A successful detail download
+covers only the chosen IDs, not a season.
+
+`--output-dir` and `--open-dir` require `[parquet]`. Saving validates records and
+reopens the snapshot for comparison. `--open-dir` makes no HTTP requests.
+Add `--pandas` independently to print the DataFrame with `[pandas]`. Missing
+extras or existing output directories fail before source requests. Partial
+downloads retain source errors and return `1`; invalid arguments return `2`.
+
+```sh
+python examples/datasets/match_statistics_offline.py
+python examples/datasets/match_statistics_offline.py --pandas
+python examples/datasets/match_statistics_offline.py --parquet
+```
 
 ### Discover selectors before loading data
 

@@ -36,6 +36,19 @@ def main():
         <option value="2027">2026-27</option></select>'''):
         assert esd.list_seasons("besoccer", "champions").seasons[0].year == 2027
     assert esd.get_discovery_capabilities("transfermarkt").competitions == "search_page"
+    detail_payload = {"header": {"id": "1", "league": {"slug": "example.cup"}, "season": {"year": 2026},
+                                 "competitions": [{"id": "1", "date": "2026-11-03T20:00:00Z", "competitors": [
+                                     {"homeAway": "home", "team": {"id": "10"}},
+                                     {"homeAway": "away", "team": {"id": "20"}},
+                                 ]}]}, "boxscore": {"teams": [
+                                     {"team": {"id": "10"}, "statistics": [{"name": "totalShots", "displayValue": "0"}]},
+                                 ]}}
+    with patch("esd._provider_datasets.get_api_json", return_value=detail_payload):
+        details = esd.load_dataset(source="espn", league="example.cup", season=2026,
+                                   tables=["match_stats"], match_ids=[1], max_match_requests=1)
+    assert details.complete and details.metadata.schema_version == "2"
+    assert details.match_stat_records[0].home_shots == 0 and details.match_stat_records[0].away_shots is None
+    assert esd.validate_dataset(details).valid
     assert all(contract.tables for contract in esd.get_dataset_capabilities().values())
     now = datetime(2024, 8, 16, 19, tzinfo=timezone.utc)
     dataset = esd.SoccerDataset(
@@ -72,6 +85,7 @@ def main():
         assert cache.get("query", ttl=60).data == {"events": []}
         if wants_arrow:
             assert esd.open_dataset(dataset.save(Path(directory) / "snapshot")) == dataset
+            assert esd.open_dataset(details.save(Path(directory) / "statistics")) == details
         else:
             try:
                 dataset.save(Path(directory) / "snapshot")
@@ -85,6 +99,8 @@ def main():
         assert str(frame.kickoff.dtype) == "datetime64[ns, UTC]"
         assert frame.home_score.iloc[0] == 0
         assert frame.away_score.isna().all()
+        assert str(details.match_stats.home_shots.dtype) == "Int64"
+        assert details.match_stats.away_shots.isna().all()
     else:
         assert "pandas" not in sys.modules
         try:

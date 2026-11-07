@@ -16,7 +16,7 @@ DataFrames with fixed columns and nullable types, including empty tables.
 | Matches | `match_records` | `matches` | All except Transfermarkt |
 | Teams | `team_records` | `teams` | All nine |
 | Standings | `standing_records` | `standings` | ESPN, 365Scores, Sofascore, Goaloo, BeSoccer |
-| Match metrics | `match_stat_records` | `match_stats` | FBref, Understat |
+| Match metrics | `match_stat_records` | `match_stats` | ESPN, 365Scores, Sofascore, FBref, Understat |
 | Player-season statistics | `player_stat_records` | `player_stats` | Understat |
 | Shots | `shot_records` | `shots` | Understat |
 | Current player profiles | `player_records` | `players` | Transfermarkt |
@@ -45,6 +45,82 @@ for match in dataset.match_records[:5]:
 `None` represents an unknown score. Zero is a recorded score. Check the source
 status to determine whether a match has finished. Status fields retain native
 source codes and text.
+
+## Match statistics by native ID
+
+ESPN, 365Scores and Sofascore support an optional `match_stats` detail selection.
+Supply the exact native `match_ids`; this path also returns their matches and
+teams, without fetching a calendar, date range or season pagination:
+
+```py
+import esd
+
+dataset = esd.load_dataset(
+    source="espn", league="uefa.champions", season=2026,
+    tables=["match_stats"], match_ids=[401915311], max_match_requests=1,
+    cache_dir="./my-data/match-responses", on_error="collect",
+)
+for row in dataset.match_stat_records:
+    print(row.match_id, row.home_shots, row.away_shots, row.home_possession_pct)
+# Optional pandas: print(dataset.match_stats)
+```
+
+The ESPN ID in this example was verified on November 7, 2026. Choose match IDs
+from your provider. 365Scores and Sofascore additionally require their native
+`season_id`, separate from the caller `season` label. Event/competition/season
+identity is checked before publishing the response cache. Team statistics use
+native team IDs; ESPN group order does not determine home and away.
+
+`max_match_requests` defaults to `20` and bounds endpoint reads before normal
+transport retries. ESPN and 365Scores cost one read per unique ID; Sofascore
+needs an event response and a statistics response, so each ID costs two reads.
+Selections exceeding the budget fail before HTTP. Repeated IDs are fetched once.
+Cache hits count toward this conservative preflight budget. Details use
+`CachePolicy.live_ttl`, including completed matches, and support `refresh`.
+
+`metadata.coverage_scope="match_ids"` and `requested_match_ids` describe only the
+chosen matches. `complete=True` means their tasks succeeded, not that a season
+was downloaded. Failed tasks retain their IDs and source errors under
+`on_error="collect"`. This detail selection cannot be combined with date ranges,
+calendar anchors, standings or other entity filters; load those selections
+separately. Ordinary match/season downloads make no extra statistics requests.
+
+These fields use the source's whole-match totals, including extra time where
+the provider includes it. `source_period` retains `boxscore` (ESPN), `-1`
+(365Scores, null when its selector metadata is absent) or `ALL` (Sofascore).
+Sofascore's half-period values are not added to
+`ALL` or used to fill an absent total period. Its explicit empty statistics list
+returns null metrics; a missing list or malformed response raises instead.
+
+| Metric stem, prefixed by `home_` or `away_` | ESPN native name | 365Scores native ID | Sofascore native key |
+| :--- | :--- | :--- | :--- |
+| `possession_pct` | `possessionPct` | `10` | `ballPossession` |
+| `shots` | `totalShots` | `3` | `totalShotsOnGoal` |
+| `shots_on_target` | `shotsOnTarget` | `4` | `shotsOnGoal` |
+| `corners` | `wonCorners` | `8` | `cornerKicks` |
+| `fouls` | `foulsCommitted` | `12` | `fouls` |
+| `offsides` | `offsides` | `9` | `offsides` |
+| `yellow_cards` | `yellowCards` | `1` | `yellowCards` |
+| `red_cards` | `redCards` | `2` | `redCards` |
+| `saves` | `saves` | `23` | `goalkeeperSaves` |
+| `passes` | `totalPasses` | `21` | `passes` |
+| `accurate_passes` | `accuratePasses` | `19` | `accuratePasses` |
+| `xg` | Not mapped by this adapter | `76` | `expectedGoals` |
+
+Possession uses percentage points from `0` to `100`. Counts use nullable integers
+and xG uses nullable floats. Missing metrics remain `None`, and reported zeros
+remain zero. 365Scores' `valuePercentage` can represent a team's share of another
+metric, so it is not used as possession. Unknown native keys are not guessed from
+localized labels. Equal column names do not establish identical collection rules
+or xG models across sources. FBref and Understat retain their existing xG/forecast
+fields; the new count columns remain null for those adapters.
+
+`examples/datasets/match_statistics.py` provides live, cache and snapshot options.
+`match_statistics_offline.py` uses artificial responses and supports independent
+`--pandas` and `--parquet` flags. HTTP blocks remain source failures; no browser
+is launched. ESPN and 365Scores detail responses were verified live on November
+7, 2026. Sofascore's adapter has offline contract tests, but event/statistics
+requests returned HTTP 403 from that verification environment.
 
 ## Discover competitions and seasons
 
@@ -342,6 +418,12 @@ Saving a partial result preserves `complete=False` and its errors. Reopening a
 snapshot never resumes a download. To resume, repeat `load_dataset()` with the
 same selection and cache directory. `refresh=True` bypasses response reuse;
 it does not overwrite an existing snapshot directory.
+
+The normalized schema is version `2`. Existing version `1` Parquet snapshots
+remain readable: the reader validates their original table schemas and checksums,
+adds the new match-statistic columns as null and returns version `2` records.
+Source timestamps, IDs, values, errors and coverage are retained. Saving the
+opened dataset writes version `2`; the original snapshot is not changed.
 
 `metadata.started_at`/`finished_at` describe the current loader call.
 `dict(metadata.response_fetched_at)` preserves original fetch dates per task,

@@ -183,7 +183,8 @@ The normalized DataFrame tables are `matches`, `teams`, `standings`,
 `match_stats`, `player_stats`, `shots`, `players`, `market_values` and `transfers`. They
 have fixed columns and types even when empty: nullable strings for identifiers
 and names, `Int64` for counts, `Float64` for metrics and UTC nanosecond datetimes for `kickoff`.
-`DataFrame.attrs` reports `schema_version="1"` and the table name.
+`DataFrame.attrs` reports `schema_version="2"` and the table name.
+Version `1` Parquet snapshots remain readable; new statistic columns are null.
 
 Join entities using both `source` and their source-local ID. Adapters preserve
 names without matching entities across providers. The caller-supplied `season`
@@ -198,6 +199,12 @@ pandas and make no network requests; DataFrame export uses the optional extra.
 `esd.validate_dataset(dataset)` returns errors and warnings about normalized
 records, references and task coverage. Validation works without pandas or PyArrow
 and does not change or fetch data.
+
+ESPN, 365Scores and Sofascore accept `tables=["match_stats"]` with explicit
+`match_ids` and a `max_match_requests` budget. These detail queries return the
+selected matches and teams, nullable counts and possession without downloading
+a season calendar. 365Scores and Sofascore require native `season_id`. Counts,
+periods and xG retain their documented source semantics.
 
 `esd.get_discovery_capabilities()` lists competition and season discovery support
 for all nine providers. `list_competitions()` and `list_seasons()` return native

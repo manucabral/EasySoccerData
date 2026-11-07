@@ -8,7 +8,7 @@ import math
 import os
 import shutil
 import tempfile
-from dataclasses import asdict, fields
+from dataclasses import asdict, fields, replace
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -38,12 +38,16 @@ def _arrow():
     return pa, pq
 
 
-def _schema(pa, table):
+_V1_MATCH_STATS = ("source", "match_id", "home_xg", "away_xg", "forecast_win", "forecast_draw", "forecast_loss")
+
+
+def _schema(pa, table, version=SCHEMA_VERSION):
     return pa.schema([
         (field.name, pa.timestamp("us", tz="UTC") if field.name == "kickoff" else
          pa.int64() if field.name in INTEGER_COLUMNS else
          pa.float64() if field.name in FLOAT_COLUMNS else pa.string())
         for field in fields(TABLE_MODELS[table])
+        if version != "1" or table != "match_stats" or field.name in _V1_MATCH_STATS
     ])
 
 
@@ -62,7 +66,7 @@ def _utc(value):
     return date.astimezone(timezone.utc)
 
 
-def _metadata(data):
+def _metadata(data, *, allow_legacy=False):
     meta = dict(data)
     meta.setdefault("cached_tasks", [])
     meta.setdefault("response_fetched_at", [])
@@ -91,7 +95,7 @@ def _metadata(data):
     if not set(meta["cached_tasks"]) <= {item[0] for item in response_times}:
         raise ValueError("Cached tasks are missing their response timestamps")
     result = DatasetMetadata(**meta)
-    if result.schema_version != SCHEMA_VERSION:
+    if result.schema_version != SCHEMA_VERSION and not (allow_legacy and result.schema_version == "1"):
         raise ValueError(f"Unsupported schema version: {result.schema_version}")
     if not result.tables or any(table not in TABLE_MODELS for table in result.tables):
         raise ValueError("Invalid table selection")
@@ -112,7 +116,7 @@ def _metadata(data):
         raise ValueError("Dates exist without a loaded calendar")
     if not set(result.successful_tasks) <= set(result.expected_tasks):
         raise ValueError("Successful tasks are outside the query scope")
-    if result.coverage_scope not in ("season", "date_range", "entities"):
+    if result.coverage_scope not in ("season", "date_range", "entities", "match_ids"):
         raise ValueError("Invalid coverage scope")
     for name in ("source_season_id", "start_date", "end_date", "source_timezone", "source_season"):
         if getattr(result, name) is not None and not isinstance(getattr(result, name), str):
@@ -214,7 +218,7 @@ def read_dataset(path):
             raise ValueError("Not an EasySoccerData snapshot")
         if manifest["storage_version"] != _STORAGE_VERSION:
             raise ValueError(f"Unsupported storage version: {manifest['storage_version']}")
-        metadata = _metadata(manifest["metadata"])
+        metadata = _metadata(manifest["metadata"], allow_legacy=True)
         if set(manifest["tables"]) != set(metadata.tables):
             raise ValueError("Manifest tables do not match requested tables")
         if not isinstance(manifest["errors"], list):
@@ -232,7 +236,7 @@ def read_dataset(path):
                 raise ValueError(f"Checksum mismatch or invalid file for {table}")
             with pq.ParquetFile(filename) as reader:
                 arrow_table = reader.read()
-            if not arrow_table.schema.equals(_schema(pa, table), check_metadata=False):
+            if not arrow_table.schema.equals(_schema(pa, table, metadata.schema_version), check_metadata=False):
                 raise ValueError(f"Invalid Parquet schema for {table}")
             if type(entry["rows"]) is not int or arrow_table.num_rows != entry["rows"]:
                 raise ValueError(f"Row count mismatch for {table}")
@@ -251,6 +255,6 @@ def read_dataset(path):
             rows = tuple(TABLE_MODELS[table](**row) for row in values)
             _validate_records(rows, table)
             records[_RECORDS[table]] = rows
-        return SoccerDataset(metadata=metadata, errors=errors, **records)
+        return SoccerDataset(metadata=replace(metadata, schema_version=SCHEMA_VERSION), errors=errors, **records)
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise DatasetFormatError(f"Invalid dataset at {root}: {exc}") from exc

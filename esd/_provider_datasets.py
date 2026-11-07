@@ -90,7 +90,7 @@ class _Download:
                 started_at=self.started, finished_at=datetime.now(timezone.utc),
                 expected_tasks=tuple(self.expected), successful_tasks=tuple(self.successful),
                 response_fetched_at=tuple(self.response_times.items()), cached_tasks=tuple(self.cached_tasks),
-                coverage_scope=("entities" if opt["source"] == "transfermarkt" else "date_range"
+                coverage_scope=opt.get("coverage_scope") or ("entities" if opt["source"] == "transfermarkt" else "date_range"
                                 if opt["source"] in ("scores365", "fbref", "promiedos", "besoccer") and any(table in opt["tables"] for table in ("matches", "match_stats")) else "season"),
                 source_season_id=str(opt["season_id"]) if opt["season_id"] is not None else None,
                 start_date=opt["start_date"], end_date=opt["end_date"],

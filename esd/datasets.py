@@ -59,8 +59,8 @@ class DatasetMetadata:
 
     source/league identify the queried provider and its native competition.
     season is a caller year label; source_season_id and source_season preserve
-    provider selection separately. coverage_scope is season, date_range or
-    entities. Transfermarkt profiles are current and histories span seasons.
+    provider selection separately. coverage_scope is season, date_range,
+    match_ids or entities. Transfermarkt profiles are current and histories span seasons.
 
     ESPN reports calendar_dates/successful_dates and calendar_loaded. Other
     loaders report expected_tasks/successful_tasks. Progress totals may grow
@@ -156,7 +156,7 @@ class SoccerDataset:
 
     @property
     def match_stats(self):
-        """FBref or Understat match metrics; source xG models remain distinct."""
+        """Source match totals and optional xG/forecast values with nullable columns."""
         return self._dataframe(self.match_stat_records, "match_stats")
 
     @property
@@ -244,6 +244,7 @@ def load_dataset(
     source_season: str | None = None,
     club_ids: Sequence[int | str] | None = None,
     player_ids: Sequence[int | str] | None = None,
+    max_match_requests: int = 20,
 ) -> SoccerDataset:
     """Download normalized tables with a provider-specific selection contract.
 
@@ -270,6 +271,13 @@ def load_dataset(
 
     ESPN discovers calendar dates (July 1 by default, or anchor_date) and
     validates the source season year. Teams derive from downloaded matches.
+
+    ESPN, 365Scores and Sofascore match_stats require explicit match_ids. This
+    selection includes matches/teams, fetches no calendar or season pages and
+    cannot be combined with standings or date/entity filters. 365Scores and
+    Sofascore require native season_id. max_match_requests bounds endpoint reads
+    before transport retries (one per ESPN/365Scores ID, two per Sofascore ID).
+    Duplicate IDs are fetched once. Detail responses use CachePolicy.live_ttl.
 
     Repeated match IDs retain the newest response observation. A day's parsed
     records are committed together, so a parsing failure marks the whole day as
@@ -302,9 +310,14 @@ def load_dataset(
         table not in TABLE_MODELS for table in tables
     ):
         raise ValueError("tables must be a nonempty sequence of supported table names")
-    if "teams" in tables and "matches" not in tables and source not in ("goaloo", "transfermarkt"):
+    details = source in ("espn", "scores365", "sofascore") and "match_stats" in tables
+    if type(max_match_requests) is not int or max_match_requests < 1:
+        raise ValueError("max_match_requests must be a positive integer")
+    if not details and max_match_requests != 20:
+        raise ValueError("max_match_requests applies only to explicit match_stats selections")
+    if "teams" in tables and "matches" not in tables and not details and source not in ("goaloo", "transfermarkt"):
         raise ValueError("teams requires matches; teams are derived from downloaded matches")
-    selected = tuple(dict.fromkeys([*tables, *(["teams"] if "matches" in tables else [])]))
+    selected = tuple(dict.fromkeys([*tables, *(["matches", "teams"] if details else ["teams"] if "matches" in tables else [])]))
     if on_error not in ("raise", "collect"):
         raise ValueError("on_error must be 'raise' or 'collect'")
     if not math.isfinite(request_delay) or request_delay < 0:
@@ -317,6 +330,18 @@ def load_dataset(
         raise ValueError("refresh must be a boolean")
     if any(table not in get_dataset_capabilities(source).tables for table in selected):
         raise ValueError(f"Unsupported dataset table for {source}")
+    if details:
+        from ._match_statistics import load_match_statistics
+
+        return load_match_statistics(
+            source=source, league=league, season=year, tables=selected, proxies=proxies,
+            cache_dir=cache_dir, cache_policy=cache_policy, refresh=refresh,
+            request_delay=request_delay, on_error=on_error, progress=progress,
+            season_id=season_id, start_date=start_date, end_date=end_date,
+            source_timezone=source_timezone, match_ids=match_ids, max_pages=max_pages,
+            anchor_date=anchor_date, source_season=source_season, club_ids=club_ids,
+            player_ids=player_ids, max_match_requests=max_match_requests,
+        )
     if source != "espn":
         from ._provider_datasets import load_provider_dataset
 

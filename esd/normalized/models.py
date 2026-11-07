@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-SCHEMA_VERSION = "1"
+SCHEMA_VERSION = "2"
 
 
 @dataclass(frozen=True)
@@ -73,7 +73,12 @@ class NormalizedStanding:
 
 @dataclass(frozen=True)
 class NormalizedMatchStats:
-    """One source match's xG and forecast values, without cross-source equivalence."""
+    """One match's source totals. Missing values remain None; reported zeros stay zero.
+
+    Possession uses percentage points (0 to 100). Other added metrics are counts.
+    source_period retains the source total selector, including extra time where
+    the provider includes it. Matching columns do not establish metric equivalence.
+    """
 
     source: str
     match_id: str | None = None
@@ -82,6 +87,29 @@ class NormalizedMatchStats:
     forecast_win: float | None = None
     forecast_draw: float | None = None
     forecast_loss: float | None = None
+    source_period: str | None = None
+    home_possession_pct: float | None = None
+    away_possession_pct: float | None = None
+    home_shots: int | None = None
+    away_shots: int | None = None
+    home_shots_on_target: int | None = None
+    away_shots_on_target: int | None = None
+    home_corners: int | None = None
+    away_corners: int | None = None
+    home_fouls: int | None = None
+    away_fouls: int | None = None
+    home_offsides: int | None = None
+    away_offsides: int | None = None
+    home_yellow_cards: int | None = None
+    away_yellow_cards: int | None = None
+    home_red_cards: int | None = None
+    away_red_cards: int | None = None
+    home_saves: int | None = None
+    away_saves: int | None = None
+    home_passes: int | None = None
+    away_passes: int | None = None
+    home_accurate_passes: int | None = None
+    away_accurate_passes: int | None = None
 
 
 @dataclass(frozen=True)
