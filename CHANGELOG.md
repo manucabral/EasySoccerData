@@ -4,6 +4,7 @@
 
 ### Added
 
+- Read-only `validate_dataset()` reports for normalized records and coverage across all nine providers, with contextual errors/warnings and no optional dependencies.
 - Champions League date-range example using the base installation, with UTC bounds, nullable scores and partial-result reporting.
 - Persistent response cache and forced refresh flags in the Champions League example, with cached-day counts and failed-day recovery.
 - Champions League Parquet export and offline read flags, preserving empty tables, partial coverage and errors without pandas.
@@ -16,6 +17,7 @@
 
 ### Fixed
 
+- Include example identity maps in source distributions so saved-provider comparisons can run from the source archive.
 - Promiedos: convert ISO query dates to the source's `DD-MM-YYYY` URL format in clients and dataset loaders.
 - BeSoccer: raise `SourceBlocked` when a browser challenge persists and keep that response out of the cache.
 - Live examples: defer queries until execution, handle empty selections and unavailable statistics, select named entities by native ID and close Sofascore/FBref clients on errors and early returns.

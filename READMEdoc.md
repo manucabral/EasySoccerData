@@ -195,6 +195,10 @@ Unknown values stay null, subject to defaults already applied by provider
 parsers. Invalid or timezone-naive kickoff dates raise. Adapters require no
 pandas and make no network requests; DataFrame export uses the optional extra.
 
+`esd.validate_dataset(dataset)` returns errors and warnings about normalized
+records, references and task coverage. Validation works without pandas or PyArrow
+and does not change or fetch data.
+
 .. include:: guides/datasets.md
 
 # Contributing

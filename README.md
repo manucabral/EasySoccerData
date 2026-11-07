@@ -36,6 +36,10 @@ Start with the [dataset guide](guides/datasets.md) and
 [example index](examples/README.md). The index identifies offline examples,
 network access and required extras.
 
+`esd.validate_dataset(dataset)` checks normalized records and coverage without
+pandas or file writes. Its report separates errors from warnings and leaves
+the dataset unchanged. See [dataset validation](guides/datasets.md#validate-a-dataset).
+
 # Usage
 
 ## Sofascore

@@ -143,6 +143,54 @@ page or shot discovery, so do not assume a fixed denominator at the first event.
 
 Try [the offline partial-result example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/datasets/partial_results.py).
 
+## Validate a dataset
+
+`esd.validate_dataset(dataset)` inspects a `SoccerDataset` without network calls,
+file writes, pandas or PyArrow. It returns an immutable `DatasetValidationReport`.
+Each issue has `severity`, `code`, `message`, and optional `table`, zero-based
+`row_index` and `field`. An argument of another type raises `TypeError`.
+
+```py
+import esd
+
+report = esd.validate_dataset(dataset)
+print(report.valid, len(report.errors), len(report.warnings))
+for issue in report.issues:
+    print(issue.severity, issue.code, issue.table, issue.row_index, issue.field, issue.message)
+```
+
+`valid` means no errors were found. It does not establish complete download
+coverage or agreement with another source. Incomplete coverage and saved source
+failures are warnings. A task marked both successful and failed is an error.
+Unknown scores remain allowed, including zero for a known score on one side and
+`None` on the other. Validation never infers whether a match is finished.
+
+Errors include invalid metadata or record types, blank IDs, duplicate record keys,
+negative match scores, source/competition conflicts, invalid date bounds and
+kickoffs outside those bounds. Missing native IDs or kickoff times are warnings.
+If a referenced team or match is absent from a selected table, validation warns
+without assuming that table is a complete source catalogue. Unselected tables
+are not used for reference checks. Records in an unselected table are an error.
+
+Standings keys retain competition, season, table, stage and group context. The
+same team in two groups is allowed. Valuation keys use player, native date, club
+and source season, so repeated players across history are allowed. Native
+Transfermarkt dates and historical club references are not checked against
+current roster membership or the caller's season label. Source status codes,
+points systems and penalty conventions are not interpreted.
+
+Kickoffs must be timezone-aware. Nonzero UTC offsets generate a warning, without
+modifying the time. For dated FBref, Promiedos and BeSoccer pages, bounds are
+checked in `metadata.source_timezone`; BeSoccer defaults to UTC when unspecified.
+FBref and Promiedos bounds without a known source timezone, or IANA zones not
+available on the machine, generate a warning and skip that range check. Other
+date bounds use UTC. Cached responses may predate the current loader invocation.
+
+Run the [offline validation example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/datasets/validate_dataset.py)
+with `python examples/datasets/validate_dataset.py`. It creates artificial records
+and shows a partial download, duplicate IDs, invalid scores and unresolved teams.
+Calling validation does not automatically reject saves or alter loader behavior.
+
 ## Response caches and snapshots
 
 Choose each storage path when calling the library:

@@ -26,6 +26,11 @@ from .compatibility import (
     link_dataset_matches,
 )
 from .dataset_capabilities import DatasetCapabilities, get_dataset_capabilities
+from .dataset_validation import (
+    DatasetValidationIssue,
+    DatasetValidationReport,
+    validate_dataset,
+)
 from .datasets import (
     DatasetFormatError,
     DatasetIssue,
@@ -80,6 +85,7 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 __all__ = [
+    "DatasetValidationIssue", "DatasetValidationReport", "validate_dataset",
     "DatasetCompatibility", "EntityAlias", "IdentityMap", "MatchLink", "MatchLinkResult",
     "check_dataset_compatibility", "link_dataset_matches",
     "NormalizedPlayer", "NormalizedMarketValue", "NormalizedTransfer",

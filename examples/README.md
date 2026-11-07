@@ -20,6 +20,7 @@ snapshot. Temporary-file examples clean up after themselves.
 | :--- | :--- | :--- |
 | [Provider contracts](datasets/providers.py) with `--list` | Base | All nine sources and supported tables |
 | [Partial results](datasets/partial_results.py) | Base | `raise`, `collect`, attached records and failed days |
+| [Dataset validation](datasets/validate_dataset.py) | Base | Errors, warnings, nullable scores, partial downloads and duplicate keys |
 | [Cache reuse](datasets/cache_resume_offline.py) | Base | First download, disk reuse, original timestamps and forced refresh |
 | [Match linkage](datasets/link_matches.py) | Base | Explicit competition/team mappings and ambiguous candidates |
 | [Native models to DataFrames](pandas/matches_and_standings.py) | pandas | Flattening, nullable scores and ID joins |

@@ -1,6 +1,6 @@
 include READMEdoc.md
 recursive-include guides *.md
-recursive-include examples *.py *.md
+recursive-include examples *.py *.md *.json
 include scripts/check_install.py
 include scripts/check_examples.py
 include scripts/check_sources.py

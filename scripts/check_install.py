@@ -51,6 +51,9 @@ def main():
         ),
     )
     assert esd.link_dataset_matches(dataset, dataset).links
+    validation = esd.validate_dataset(dataset)
+    assert validation.valid and not validation.errors
+    assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
     with TemporaryDirectory(prefix="esd-install-") as directory:
         cache = esd.ResponseCache(Path(directory) / "cache")
         cache.set("query", {"events": []})
