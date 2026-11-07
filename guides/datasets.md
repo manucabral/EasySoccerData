@@ -493,6 +493,77 @@ identity map and an ambiguous case, or
 [the pandas analysis example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/pandas/dataset_analysis.py) for nullable
 scores and validated team joins.
 
+## Compare match statistics
+
+`compare_match_statistics()` reads two validated datasets selecting `matches`
+and `match_stats`. It makes no requests or file writes and needs neither pandas
+nor PyArrow. It reuses the identity and one-to-one kickoff rules above. Unmatched
+and ambiguous matches remain in `report.linkage`; they do not produce metric rows.
+
+Given two statistics snapshots and checked aliases:
+
+```py
+report = esd.compare_match_statistics(
+    left, right, identities=identities,
+    metrics=["home_shots", "away_shots", "home_possession_pct", "home_xg"],
+    tolerances={"home_possession_pct": 0.1},
+)
+for row in report.rows:
+    print(row.left_match_id, row.right_match_id, row.metric,
+          row.left_value, row.right_value, row.status, row.delta)
+print(report.linkage.unmatched_left, report.linkage.ambiguous_right)
+print(report.left_complete, report.right_complete, report.left_errors)
+# Optional: frame = report.to_dataframe()  # Requires [pandas].
+```
+
+`delta` is right minus left. A tolerance is an absolute difference in that
+field's units, with zero as default. Possession tolerances use percentage points,
+so `0.1` accepts `51.5` against `51.6`. Counts retain integer values in the report.
+The optional DataFrame uses nullable `Float64` for mixed numeric metrics,
+nullable booleans and aware UTC timestamps, including when it has no rows.
+
+| Status | Meaning |
+| :--- | :--- |
+| `equal`, `different` | Numeric observations within/outside the absolute tolerance |
+| `missing_left`, `missing_right`, `missing_both` | A metric is null in an existing statistics record |
+| `record_missing_left`, `record_missing_right`, `record_missing_both` | A linked match lacks a statistics record |
+| `period_unknown`, `period_mismatch` | A period is absent/unrecognized, or the known periods differ |
+| `source_specific` | Both values exist, but xG/forecast models belong to different providers |
+
+Only `equal` and `different` rows have a numeric delta. Missing observations are
+checked first and remain distinct from reported zeros. `report.differences`
+contains `different` rows; `report.unresolved` contains every other status except
+`equal`. Unlinked matches are separate linkage diagnostics, not unresolved rows.
+
+The native selectors ESPN `boxscore`, 365Scores `-1` and Sofascore `ALL` are
+recognized source totals. Comparing these observations does not establish equal
+extra-time rules or collection methods, and the report never chooses a correct
+provider. Same-source records can compare an identical explicit native period.
+Unknown periods, including older xG records without period metadata, remain
+unresolved. Cross-source xG/forecast values get no delta even when they agree.
+
+Per-row fetch dates come only from exact `match_stats:<native ID>` task keys.
+Calendar/batch timestamps are not attributed to individual matches. A missing
+exact timestamp stays null. The report also retains both complete metadata
+records, original errors and validation warnings. Partial downloads can produce
+comparisons for their available linked matches without becoming complete.
+
+Run `python examples/datasets/compare_statistics_offline.py` for artificial
+values, with optional `--pandas` or `--parquet`. For a real bounded Champions
+League query, use:
+
+```sh
+python examples/datasets/champions_statistics.py --espn-match-id 401915310 --scores365-match-id 4828447 --season 2026 --season-id 74
+```
+
+These IDs identified Shakhtar Donetsk vs Sporting CP on November 3, 2026 in a
+live check on November 7. The sources agreed on shots (`14`, `11`), but differed
+on home passes (`437` vs `441`) and home possession (`54.4` vs `54.0`). These
+are observations from that check, not fixed expected output. Each provider costs
+one endpoint read before retries. The included aliases are a checked sample.
+See [the example options](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#compare-match-statistics)
+for caller-selected cache/snapshot paths and offline recomputation.
+
 ## Troubleshooting
 
 | Symptom | What to check |

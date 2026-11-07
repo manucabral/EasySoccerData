@@ -25,6 +25,8 @@ snapshot. Temporary-file examples clean up after themselves.
 | [Discovery workflow](datasets/discovery_workflow_offline.py) with `--parquet` | Parquet | Same flow, temporary snapshot verification and offline reopening |
 | [Match statistics](datasets/match_statistics_offline.py) | Base | Explicit IDs/budget, away-first team groups, missing values and recorded zeros |
 | [Match statistics](datasets/match_statistics_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable DataFrame columns or a temporary snapshot round trip |
+| [Statistics comparison](datasets/compare_statistics_offline.py) | Base | Explicit identities, count differences, tolerances, zeros, missing metrics and separate xG models |
+| [Statistics comparison](datasets/compare_statistics_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable report rows or reproducible comparisons from temporary snapshots |
 | [Partial results](datasets/partial_results.py) | Base | `raise`, `collect`, attached records and failed days |
 | [Dataset validation](datasets/validate_dataset.py) | Base | Errors, warnings, nullable scores, partial downloads and duplicate keys |
 | [Cache reuse](datasets/cache_resume_offline.py) | Base | First download, disk reuse, original timestamps and forced refresh |
@@ -141,6 +143,55 @@ Exit code `0` means both downloads completed, even if records differ or remain
 unlinked. `1` means a source query failed and the report contains partial results.
 Invalid arguments, mismatched snapshot ranges or storage failures return `2`.
 Import and `--help` work without source requests or optional packages.
+
+### Compare match statistics
+
+[champions_statistics.py](datasets/champions_statistics.py) compares explicit
+Champions League match IDs, with one endpoint read per source before transport
+retries. It uses the base installation and the checked sample
+[identity file](datasets/champions_identities.json). The following IDs identified
+Shakhtar Donetsk vs Sporting CP on November 3, 2026 when checked on November 7:
+
+```sh
+python examples/datasets/champions_statistics.py --espn-match-id 401915310 --scores365-match-id 4828447 --season 2026 --season-id 74
+python examples/datasets/champions_statistics.py --espn-match-id 401915310 --scores365-match-id 4828447 --season 2026 --season-id 74 --cache-dir ./my-data/stat-responses
+```
+
+Change the IDs and native season when choosing a different match. Provide your
+own `--identities` JSON file when the sample does not cover both teams. Names
+and scores are not used to establish a link. Both datasets request UTC times.
+
+The report preserves counts, percentage-point possession, null metrics, native
+periods, original response dates and cached task keys. Deltas are right minus
+left, with a default possession tolerance of `0.1` percentage points. Override
+that with `--possession-tolerance`; other numeric fields use zero tolerance.
+`--kickoff-tolerance` controls linkage seconds, default `300`. xG/forecasts from
+different sources are never assigned a delta. Numeric differences do not select
+a correct source or establish equal extra-time or collection rules.
+
+To save the two sources, aliases and JSON report to a new directory, then
+recompute from those sources without HTTP:
+
+```sh
+python -m pip install -e ".[parquet]"
+python examples/datasets/champions_statistics.py --espn-match-id 401915310 --scores365-match-id 4828447 --season 2026 --season-id 74 --output-dir ./my-data/statistics-pair-1
+python examples/datasets/champions_statistics.py --open-dir ./my-data/statistics-pair-1
+```
+
+The output contains `espn/`, `scores365/`, `identities.json` and
+`comparison.json`. Saving verifies both snapshots before publishing the pair.
+Existing paths are not overwritten. Offline recomputation uses saved aliases
+and the current tolerance flags, without trusting the saved comparison JSON.
+`--open-dir` cannot be combined with download options or external aliases.
+`--pandas` displays `report.to_dataframe()` and requires only the pandas extra.
+
+Exit code `0` requires complete downloads, linked matches and statistics records
+on both sides. Differences and null metrics remain valid diagnostic results.
+Incomplete downloads, unmatched/ambiguous matches or absent statistics records
+return `1`. Bad arguments or missing extras return `2`, before downloads where
+applicable. Import and `--help` make no requests. The
+[offline comparison](datasets/compare_statistics_offline.py) uses artificial
+records and supports independent `--pandas` and `--parquet` flags.
 
 ## Live dataset queries
 

@@ -206,6 +206,12 @@ selected matches and teams, nullable counts and possession without downloading
 a season calendar. 365Scores and Sofascore require native `season_id`. Counts,
 periods and xG retain their documented source semantics.
 
+`esd.compare_match_statistics(left, right, identities=...)` compares statistics
+for uniquely linked matches without downloads or optional dependencies. Results
+retain missing values, source periods, original fetch times, partial errors and
+unmatched/ambiguous IDs. Cross-source xG/forecast models remain separate.
+`report.to_dataframe()` requires the pandas extra.
+
 `esd.get_discovery_capabilities()` lists competition and season discovery support
 for all nine providers. `list_competitions()` and `list_seasons()` return native
 selectors with their query scope and original fetch timestamp, without pandas.

@@ -40,6 +40,11 @@ network access and required extras.
 pandas or file writes. Its report separates errors from warnings and leaves
 the dataset unchanged. See [dataset validation](guides/datasets.md#validate-a-dataset).
 
+`esd.compare_match_statistics(left, right, identities=...)` reports observations
+for linked matches, preserving missing values, source periods and fetch times.
+Comparison requires no extras. [Examples](examples/README.md#compare-match-statistics)
+cover artificial records and a bounded Champions League query.
+
 `esd.list_competitions()` and `esd.list_seasons()` discover native selectors where
 implemented. Inspect `esd.get_discovery_capabilities()` before querying a source.
 Transfermarkt supports paged competition search and native season selectors;

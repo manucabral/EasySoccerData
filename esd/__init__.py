@@ -83,6 +83,11 @@ from .scores365 import Scores365Client
 from .scores365 import types as Scores365Types
 from .sofascore import SofascoreClient
 from .sofascore import types as SofascoreTypes
+from .statistics_comparison import (
+    MatchStatisticComparison,
+    MatchStatisticsReport,
+    compare_match_statistics,
+)
 from .transfermarkt import TransfermarktClient
 from .transfermarkt import types as TransfermarktTypes
 from .understat import UnderstatClient
@@ -95,6 +100,7 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 __all__ = [
+    "MatchStatisticComparison", "MatchStatisticsReport", "compare_match_statistics",
     "CompetitionInfo", "SeasonInfo", "DiscoveryCapabilities", "DiscoveryResult",
     "DiscoveryNotSupported", "get_discovery_capabilities", "list_competitions", "list_seasons",
     "DatasetValidationIssue", "DatasetValidationReport", "validate_dataset",

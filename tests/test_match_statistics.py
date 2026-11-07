@@ -94,6 +94,13 @@ def test_details_have_explicit_scope_native_identity_and_nullable_counts(fetch, 
     assert len(dataset.metadata.successful_tasks) == len(dataset.metadata.expected_tasks) == calls
 
 
+def test_scores365_details_request_utc_like_the_calendar(fetch):
+    fetch.return_value = scores_payload()
+    dataset = load("scores365")
+    assert "timezoneName=UTC" in fetch.call_args.args[0]
+    assert dataset.match_records[0].kickoff.isoformat() == "2026-11-03T20:00:00+00:00"
+
+
 @pytest.mark.parametrize("options", [
     {"match_ids": None}, {"match_ids": []}, {"match_ids": "1"}, {"match_ids": [True]},
     {"match_ids": [-1]}, {"match_ids": ["١"]}, {"match_ids": [1, 2], "max_match_requests": 1},

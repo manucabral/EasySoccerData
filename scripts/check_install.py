@@ -49,6 +49,9 @@ def main():
     assert details.complete and details.metadata.schema_version == "2"
     assert details.match_stat_records[0].home_shots == 0 and details.match_stat_records[0].away_shots is None
     assert esd.validate_dataset(details).valid
+    comparison = esd.compare_match_statistics(details, details, metrics=["home_shots", "away_shots"])
+    assert comparison.rows[0].status == "equal" and comparison.rows[0].delta == 0
+    assert comparison.rows[1].status == "missing_both" and comparison.rows[1].delta is None
     assert all(contract.tables for contract in esd.get_dataset_capabilities().values())
     now = datetime(2024, 8, 16, 19, tzinfo=timezone.utc)
     dataset = esd.SoccerDataset(
@@ -101,8 +104,15 @@ def main():
         assert frame.away_score.isna().all()
         assert str(details.match_stats.home_shots.dtype) == "Int64"
         assert details.match_stats.away_shots.isna().all()
+        assert str(comparison.to_dataframe().left_value.dtype) == "Float64"
     else:
         assert "pandas" not in sys.modules
+        try:
+            comparison.to_dataframe()
+        except ImportError as exc:
+            assert "EasySoccerData[pandas]" in str(exc)
+        else:
+            raise AssertionError("Comparison DataFrames without pandas must fail")
         try:
             _ = dataset.matches
         except ImportError as exc:

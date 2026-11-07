@@ -4,6 +4,7 @@
 
 ### Added
 
+- Read-only match-statistics comparisons with explicit identities, absolute metric tolerances, missing/period/model diagnostics, original source provenance and optional DataFrame export. Examples cover offline records and Champions League snapshot pairs.
 - Optional native-ID match statistics datasets for ESPN, 365Scores and Sofascore, with bounded endpoint reads, source identity checks, nullable metrics, cache provenance and live/offline examples.
 - Transfermarkt competition search pages and native season selectors, BeSoccer standings year discovery, source URLs and a 365Scores discovery/download/validation workflow with optional verified Parquet snapshots.
 - Native competition/season discovery for ESPN, 365Scores, Sofascore, Goaloo and dated Promiedos listings, with explicit support for all nine providers, immutable results, source scope and optional response caching.
@@ -25,6 +26,7 @@
 
 ### Fixed
 
+- 365Scores match-statistics datasets request UTC like calendar queries, avoiding a source-local detail timestamp that prevented otherwise valid cross-source links.
 - Installed-example checks can exclude the checkout from imports and require `site-packages`, preventing source files from masking missing wheel modules in CI.
 - Transfermarkt search now reads competition grid cells and cup links (`pokalwettbewerb`), which were omitted by the previous link parser.
 - Include example identity maps in source distributions so saved-provider comparisons can run from the source archive.

@@ -10,7 +10,7 @@ from .schema import FLOAT_COLUMNS, INTEGER_COLUMNS, TABLE_MODELS
 
 
 def normalized_to_dataframe(objects: list, *, table: str):
-    """Export normalized records with schema version 1.
+    """Export normalized records using the current normalized schema version.
 
     table selects matches, teams, standings, match_stats, player_stats, shots,
     players, market_values or transfers.

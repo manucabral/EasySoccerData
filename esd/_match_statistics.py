@@ -214,7 +214,8 @@ def load_match_statistics(**options):
         if source == "sofascore":
             download.expect("match", identifier)
         download.expect("match_stats", identifier)
-    endpoints = {"espn": ESPNEndpoints, "scores365": Scores365Endpoints, "sofascore": SofascoreEndpoints}[source]()
+    endpoints = (Scores365Endpoints(timezone_name="UTC") if source == "scores365" else
+                 {"espn": ESPNEndpoints, "sofascore": SofascoreEndpoints}[source]())
     for identifier in identifiers:
         def commit(value):
             match, stats = value
