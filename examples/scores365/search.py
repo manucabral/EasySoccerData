@@ -1,14 +1,6 @@
-"""
-In this example, we search for competitions, teams and players on 365Scores.
+"""Search 365Scores for competitions, teams and players.
 
-The output will be something like:
-
-Competitions:
-  [72] Liga Profesional
-Teams:
-  [1234] River Plate
-Athletes:
-  [56789] Franco Mastantuono
+Makes network requests when executed.
 """
 
 from __future__ import annotations

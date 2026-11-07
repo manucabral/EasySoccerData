@@ -1,6 +1,4 @@
-"""
-Represents a color object.
-"""
+"""Sofascore display colors and parser."""
 
 from dataclasses import dataclass, field
 

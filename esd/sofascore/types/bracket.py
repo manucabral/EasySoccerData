@@ -57,7 +57,6 @@ class Block:
     participants: list[Participant] = field(default_factory=list)
     events: list[int] = field(default_factory=list)
     in_progress: bool = field(default=False)
-    # hasNextRoundLink, id, events, seriesStartDateTimestamp, automaticProgression
 
 
 def parse_block(data: dict) -> Block:
@@ -91,7 +90,6 @@ class Round:
     """
 
     order: int = field(default=None)
-    # type: int = field(default=None)
     description: Optional[str] = field(default=None)
     blocks: list[Block] = field(default_factory=list)
 
@@ -108,7 +106,6 @@ def parse_round(data: dict) -> Round:
     """
     return Round(
         order=data.get("order"),
-        # type=data.get("type"),
         description=data.get("description"),
         blocks=[parse_block(b) for b in data.get("blocks", [])],
     )

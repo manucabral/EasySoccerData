@@ -1,9 +1,7 @@
-"""
-Goaloo data types and parsers.
+"""Goaloo data types and parsers.
 
-The raw payload is a list-of-lists structure. Field positions are fixed by
-Goaloo's own frontend renderer (see ``/scripts/v2/league``). We parse the
-core, stable fields and resolve team names through ``TeamInfo``.
+League payloads contain lists of positional rows. The field layouts below
+follow Goaloo's /scripts/v2/league renderer. TeamInfo maps IDs to team names.
 """
 
 from __future__ import annotations

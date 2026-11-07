@@ -1,15 +1,11 @@
-"""
-Color dataclass
-"""
+"""Promiedos display colors and parser."""
 
 from dataclasses import dataclass, field
 
 
 @dataclass
 class Color:
-    """
-    Color dataclass
-    """
+    """Background and text colors reported by Promiedos."""
 
     color: str = field(default=None)
     text_color: str = field(default=None)

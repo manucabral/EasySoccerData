@@ -1,6 +1,4 @@
-"""
-Contains the event data types and parsers (also known as matches).
-"""
+"""Sofascore match models, clock calculations and parsers."""
 
 from __future__ import annotations
 
@@ -29,9 +27,7 @@ class Season:
 
 @dataclass
 class RoundInfo:
-    """
-    Round info data class.
-    """
+    """Round number, name and cup-round type reported by Sofascore."""
 
     round: int = 0
     name: str = "n/a"
@@ -40,9 +36,7 @@ class RoundInfo:
 
 @dataclass
 class TimeEvent:
-    """
-    Time event data class, half time, extra time, etc.
-    """
+    """Period start timestamp and stoppage-time values reported by Sofascore."""
 
     first_injury_time: int = 0
     second_injury_time: int = 0
@@ -53,9 +47,7 @@ class TimeEvent:
 
 @dataclass
 class StatusTime:
-    """
-    Current status time data class.
-    """
+    """Source clock limits, timestamp and extra-time value."""
 
     initial: int = 0
     max: int = 0
@@ -65,9 +57,7 @@ class StatusTime:
 
 @dataclass
 class Event:
-    """
-    Event data class also known as match.
-    """
+    """A Sofascore match with teams, scores, status and tournament context."""
 
     id: int = field(default=0)
     status: Status = field(default_factory=Status)
@@ -84,18 +74,6 @@ class Event:
     source_season_id: int | None = None
     unique_tournament_id: int | None = None
 
-    # some fields are not included
-    # custom_id: int = field(default=0)
-    # tournament: Tournament
-    # season: Season
-    # coverage: int = 0
-    # final_result_only: bool = False
-    # feed_locked: bool = False
-    # changes: Optional[Dict] = field(default_factory=dict)
-    # has_global_highlights: bool = False
-    # is_editor: bool = False
-    # detail_id: int = 1
-    # crowdsourcingDataDisplayEnabled: bool = False
 
     @property
     def current_period_start(self) -> datetime:
@@ -163,7 +141,7 @@ def parse_time_event(data: dict) -> TimeEvent:
     return TimeEvent(
         first_injury_time=data.get(
             "injuryTime1", 0
-        ),  # example 4 -> aggregate 4 minutes
+        ),  # Stoppage time in minutes.
         second_injury_time=data.get("injuryTime2", 0),
         third_injury_time=data.get("injuryTime3", 0),
         quarter_injury_time=data.get("injuryTime4", 0),
@@ -202,10 +180,6 @@ def parse_event(data: dict) -> Event:
         id=data.get("id"),
         start_timestamp=data.get("startTimestamp", 0),
         slug=data.get("slug"),
-        # custom_id=data.get("customId"),
-        # feed_locked=data.get("feedLocked"),
-        # final_result_only=data.get("finalResultOnly"),
-        # coverage=data.get("coverage"),
         tournament=parse_tournament(data.get("tournament", {})),
         time=parse_time_event(data.get("time", {})),
         status_time=parse_status_time(data.get("statusTime", {})),

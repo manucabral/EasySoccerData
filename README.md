@@ -343,8 +343,8 @@ Multi-league `"all"` queries are not supported.
 - Records are available without pandas through `match_records`, `team_records`
   and `standing_records`. DataFrame properties require the optional pandas extra.
 
-The loader writes no files unless you call `dataset.save()` separately.
-Use `cache_dir` to persist responses and resume subsequent calls.
+Without `cache_dir`, the loader keeps records in memory. Supply `cache_dir`
+to persist responses, or call `dataset.save()` to write a Parquet snapshot.
 See the [season download example](examples/espn/season_dataset.py)
 for progress reporting and inspection of partial results.
 
@@ -386,8 +386,8 @@ understat = esd.load_dataset(
 
 365Scores downloads the requested date range. `season` is a caller label;
 the loader does not discover a full season. Supply `season_id` to check native
-IDs in returned matches; it is required for standings. Competition filtering also runs locally because
-the API can ignore that filter. Missing game lists, mismatched dates and native
+IDs in returned matches; it is required for standings. Competition filtering
+also runs locally because the API can ignore that filter. Missing game lists, mismatched dates and native
 season IDs fail explicitly. Historical dates may be unavailable.
 
 Sofascore downloads both past and upcoming pages. Each direction must reach an
@@ -481,7 +481,7 @@ Ambiguous games, unknown identities and rescheduled games outside the tolerance
 remain unlinked. Names and scores never establish identity. Native IDs and input
 records are preserved. Partial mappings can yield partial links; inspect both
 unmatched and ambiguous IDs. There is no built-in catalogue of verified entity
-equivalences. The programmer owns the mappings and can keep them outside the repo.
+equivalences. Store the mappings in a location chosen by your application.
 Source statuses, penalty conventions, xG models and pitch coordinates retain
 their semantics even when a match is linked. These utilities require no pandas.
 

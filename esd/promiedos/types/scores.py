@@ -1,15 +1,11 @@
-"""
-Scores data type.
-"""
+"""Promiedos score, shootout and aggregate-score models and parsers."""
 
 from dataclasses import dataclass, field
 
 
 @dataclass
 class Scores:
-    """
-    Scores data type.
-    """
+    """Home and away match scores."""
 
     home: int = field(default=0)
     away: int = field(default=0)
@@ -17,16 +13,12 @@ class Scores:
 
 @dataclass
 class Penalties(Scores):
-    """
-    Penalties data type.
-    """
+    """Penalty-shootout results for both sides."""
 
 
 @dataclass
 class GlobalScores(Scores):
-    """
-    Global scores data type.
-    """
+    """Home and away aggregate scores."""
 
 
 def parse_scores(data: list) -> Scores:

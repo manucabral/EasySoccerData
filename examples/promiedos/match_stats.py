@@ -1,26 +1,6 @@
-"""
-In this example, we will get all matchs stats using the PromiedosClient.
+"""Fetch Promiedos matches in progress and print their available statistics.
 
-The output will be something like:
-
-League name: Liga MX - today
-Atlas 0 - 0 Club América
-Status: Entretiempo - 45'
-Formations -> 3-1-4-2 - 4-2-3-1
-Possession -> 38% - 62%
-Shots -> 9 - 11
-Yellow/Red cards -> 0/0 - 1/0
--------------------
-League name: MLS - today
-San Jose Earthquakes 1 - 2 Colorado Rapids
-Status: Segundo Tiempo - 90'
-Formations -> 4-2-3-1 - 4-3-3
-Possession -> 64% - 36%
-Shots -> 22 - 8
-Yellow/Red cards -> 1/0 - 1/0
-
-and more...
-
+Makes network requests when executed.
 """
 
 import esd
@@ -42,7 +22,7 @@ for event in events:
         )
         print(f"Status: {match.status.name} - {match.time_to_display}")
 
-        # now we get all the match detailss
+        # Fetch details for each match still in progress.
         match = client.get_match(match.id)
 
         print(

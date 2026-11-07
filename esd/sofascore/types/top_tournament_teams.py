@@ -1,6 +1,4 @@
-"""
-Contains top tournament teams data.
-"""
+"""Sofascore tournament team rankings and parsers."""
 
 from __future__ import annotations
 
@@ -21,9 +19,7 @@ class TopTeamStat:
 
 @dataclass
 class TopTeamItem:
-    """
-    Top team item.
-    """
+    """A team and the statistics used in a tournament ranking."""
 
     team: Team = field(default_factory=Team)
     stats: TopTeamStat = field(default_factory=TopTeamStat)
@@ -31,9 +27,7 @@ class TopTeamItem:
 
 @dataclass
 class TopTournamentTeams:
-    """
-    Available top tournament teams criteria.
-    """
+    """Tournament team rankings grouped by statistical category."""
 
     average_rating: list[TopTeamItem] = field(default_factory=list)
     goals_scored: list[TopTeamItem] = field(default_factory=list)

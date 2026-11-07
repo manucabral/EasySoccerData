@@ -1,6 +1,4 @@
-"""
-Player attributes dataclass and parser.
-"""
+"""Sofascore player attribute ratings and parsers."""
 
 from dataclasses import dataclass, field
 
@@ -9,9 +7,7 @@ from ...utils import current_year
 
 @dataclass
 class Attributes:
-    """
-    Attributes dataclass
-    """
+    """Attribute ratings for one year and playing position."""
 
     attacking: int = field(default=0)
     technical: int = field(default=0)
@@ -24,9 +20,7 @@ class Attributes:
 
 @dataclass
 class PlayerAttributes:
-    """
-    Player attributes dataclass
-    """
+    """A player's average attribute ratings and yearly overviews."""
 
     average: Attributes = field(default=None)
     overview: list[Attributes] = field(default_factory=list)

@@ -39,15 +39,14 @@ class PromiedosClient:
         return self.__service.get_events(date)
 
     def get_match(self, match_id: str = None, match: Match = None) -> Match:
-        """
-        Get the match for the given slug and match ID.
+        """Get match details by source ID or an existing Match.
 
         Args:
-            match_id (str): The match ID. E.g. "ediecji".
-            Match (Match): The match object.
+            match_id: Promiedos match ID, for example "ediecji".
+            match: A Match whose ID is used when supplied. Takes precedence over match_id.
 
-        Returns:
-            Match: The match for the given slug and match ID.
+        Raises:
+            NotMatchIdProvided: Neither argument was supplied.
         """
         if not match_id and not match:
             raise NotMatchIdProvided(
@@ -58,15 +57,7 @@ class PromiedosClient:
         return self.__service.get_match(match_id)
 
     def get_tournament(self, tournament_id: str) -> Tournament:
-        """
-        Get the matches for the given tournament ID.
-
-        Args:
-            tournament_id (str): The tournament ID. E.g. "hc".
-
-        Returns:
-            Tournament: The tournament for the given tournament ID.
-        """
+        """Get league metadata and available stages for a tournament ID."""
         return self.__service.get_tournament(tournament_id)
 
     def get_tournament_matchs(

@@ -42,9 +42,7 @@ class CommentType(Enum):
 
 @dataclass
 class Comment:
-    """
-    Main comment dataclass.
-    """
+    """A Sofascore commentary entry with match time and event type."""
 
     period: str = field(default="")
     text: str = field(default="")

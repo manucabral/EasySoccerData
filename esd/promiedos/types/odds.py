@@ -1,17 +1,11 @@
-"""
-Odds data types
-
-TODO: predictions in live and more.
-"""
+"""Promiedos match odds and parsers."""
 
 from dataclasses import dataclass, field
 
 
 @dataclass
 class OddsOption:
-    """
-    The odds option.
-    """
+    """One betting outcome and its odds."""
 
     name: str = field(default=None)
     value: float = field(default=0.0)
@@ -20,9 +14,7 @@ class OddsOption:
 
 @dataclass
 class MainOdds:
-    """
-    The main odds.
-    """
+    """Home-win, draw and away-win betting outcomes."""
 
     options: list[OddsOption] = field(default_factory=list)
 

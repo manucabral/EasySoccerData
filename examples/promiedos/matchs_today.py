@@ -1,29 +1,6 @@
-"""
-In this example, we will get all the events using PromiedosClient and print them.
+"""Fetch today's Promiedos events and print scores, status and goals.
 
-The output will be something like:
-
-League name: MLS - today
-San Jose Earthquakes 1 - 2 Colorado Rapids
-Status: Segundo Tiempo - 90+5'
-Goal: Cristian Arango (45'+1, is penalty: False)
-Goal: Cole Bassett (38', is penalty: False)
-Goal: Calvin Harris (71', is penalty: False)
------------------
-San Diego FC 1 - 1 Columbus Crew
-Status: Segundo Tiempo - 90+2'
-Goal: Onni Valakari (69', is penalty: False)
-Goal: Max Arfsten (13', is penalty: False)
------------------
-Portland Timbers 0 - 0 Los Angeles Galaxy
-Status: Prog. -
------------------
-Atlanta United 0 - 0 Inter Miami
-Status: Prog. -
------------------
-
-and more...
-
+Makes network requests when executed.
 """
 
 import esd

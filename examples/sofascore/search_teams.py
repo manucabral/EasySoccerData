@@ -1,16 +1,6 @@
-"""
-This example shows how to search for teams.
-In this case, we search for teams that contain the word "Liverpool".
+"""Search Sofascore for Liverpool teams and print IDs, names and slugs.
 
-The output will be something like:
-
-44, Liverpool, liverpool
----------------------------
-66774, Liverpool FC Women, liverpool-fc-women
----------------------------
-6879, Liverpool UY, liverpool-uy
----------------------------
-.......
+Makes network requests when executed.
 """
 
 import esd

@@ -51,9 +51,7 @@ class PlayerLineup:
 
 @dataclass
 class MissingPlayer:
-    """
-    Missing player data class.
-    """
+    """An unavailable player and the source's reason code."""
 
     player: Player = field(default=None)
     reason: int = field(default=0)
@@ -73,9 +71,7 @@ class TeamColor:
 
 @dataclass
 class TeamLineup:
-    """
-    Team lineup data class.
-    """
+    """One team's players, formation, absences, staff and kit colors."""
 
     players: list[PlayerLineup] = field(default_factory=list)
     missing_players: list[MissingPlayer] = field(default_factory=list)
@@ -87,9 +83,7 @@ class TeamLineup:
 
 @dataclass
 class Lineups:
-    """
-    Lineups data class.
-    """
+    """Home and away lineups with the source's confirmation flag."""
 
     confirmed: bool = field(default=False)
     home: TeamLineup = field(default=None)

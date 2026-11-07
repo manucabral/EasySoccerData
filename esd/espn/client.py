@@ -1,6 +1,4 @@
-"""
-Client for interacting with the ESPN Soccer API.
-"""
+"""ESPN client for scoreboards, match summaries and standings."""
 
 from __future__ import annotations
 
@@ -72,10 +70,10 @@ class ESPNClient:
     def get_season_calendar(
         self, league: str, season: int, *, anchor_date: str | None = None
     ) -> ESPNSeasonCalendar:
-        """Get the source's calendar days for an ESPN season year.
+        """Get the source calendar for an ESPN season year.
 
-        Uses July 1 unless anchor_date is supplied. The returned season must
-        match the requested year. This is a snapshot, not proof of a final season.
+        Uses July 1 unless anchor_date is supplied. The returned season must match
+        the requested year. Fixtures may change after this calendar is fetched.
         """
         return self.__service.get_season_calendar(league, season, anchor_date=anchor_date)
 

@@ -1,14 +1,6 @@
-"""
-This example shows how to get live match details.
-In this case, we get the first live match and print some details.
+"""Fetch the first live Sofascore match and print its clock, score and statistics.
 
-The output will be something like:
-
-Match ID: 12637083, Status: 1st half
-Time: 28' (total: 28')
-Board: Adelaide United 0 - 0 Brisbane Roar
-Possession: 68% - 32%
-Shots: 0 - 0
+Makes network requests when executed.
 """
 
 import esd

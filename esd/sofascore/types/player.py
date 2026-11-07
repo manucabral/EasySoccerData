@@ -1,6 +1,4 @@
-"""
-Player dataclass and parser.
-"""
+"""Sofascore player profiles and parser."""
 
 from dataclasses import dataclass, field
 
@@ -12,17 +10,15 @@ from .transfer import TransferHistory
 
 @dataclass
 class Player:
-    """
-    Player dataclass
-    """
+    """A Sofascore player profile with position, contract and transfer information."""
 
     id: int = field(default=0)
     """
-    The player internal id. Useful for fetching all player data.
+    Sofascore player ID, accepted by player detail methods.
     """
     name: str = field(default=None)
     """
-    The player name.
+    Player name reported by Sofascore.
     """
     slug: str = field(default=None)
     """
@@ -42,7 +38,7 @@ class Player:
     """
     height: int = field(default=0)
     """
-    The player height in cm.
+    Height in centimetres.
     """
     preferred_foot: str = field(default=None)
     """
@@ -50,7 +46,7 @@ class Player:
     """
     gender: str = field(default=None)
     """
-    The player gender, M or F.
+    Source gender code, such as M or F.
     """
     shirt_number: int = field(default=0)
     """
@@ -58,23 +54,23 @@ class Player:
     """
     date_of_birth: int = field(default=0)
     """
-    The player date of birth in timestamp.
+    Birth date as a Unix timestamp.
     """
     contract_until: int = field(default=0)
     """
-    The player contract until in timestamp.
+    Contract end date as a Unix timestamp.
     """
-    market_value: int = field(default=0)  # proposed
+    market_value: int = field(default=0)
     """
-    The player market value (proposed).
+    Source-proposed market value.
     """
     attributes: PlayerAttributes = field(default=None)
     """
-    Contains the player attributes including the average.
+    Attribute ratings and yearly overviews.
     """
     team: Team = field(default=None)
     """
-    The current player team.
+    Current team reported by Sofascore.
     """
     country: Country = field(default=None)
     """
@@ -110,9 +106,4 @@ def parse_player(data: dict) -> Player:
         or (data.get("proposedMarketValueRaw") or {}).get("value", 0),
         team=parse_team(data.get("team", {})),
         country=parse_country(data.get("country", {})),
-        # userCount=data["userCount"],
-        # market_value_raw=parse_proposed_market_value_raw(
-        #     data["proposedMarketValueRaw"]
-        # ),
-        # fieldTranslations=data["fieldTranslations"],
     )

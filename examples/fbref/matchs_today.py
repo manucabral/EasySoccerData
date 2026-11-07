@@ -1,18 +1,6 @@
-"""
-In this example, we get today's scheduled matches using the FBref client
-and print the teams, score, expected goals, round and venue.
+"""Fetch today's FBref schedule and print scores, xG, rounds and venues.
 
-The output will be something like:
-
-Arsenal 2 - 1 Chelsea
-    xG: 1.8 - 0.9 | Round: Premier League (Matchweek 1)
-    Time: 2025-08-16 | Venue: Emirates Stadium
-
-Liverpool 0 - 0 Man City
-    xG: 1.1 - 1.4 | Round: Premier League (Matchweek 1)
-    Time: 2025-08-16 | Venue: Anfield
-
-...
+Makes network requests when executed.
 """
 
 import esd

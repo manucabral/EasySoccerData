@@ -1,12 +1,6 @@
-"""
-In this example, we fetch competition standings from BeSoccer.
+"""Fetch BeSoccer competition standings and print the first fifteen rows.
 
-The output will be something like:
-
-Pos  Team                      PJ   G   E   P   DG  PTS
-  1  Vélez Sarsfield           27  14   9   4  +22   51
-  2  Talleres                  27  13   9   5  +12   48
-...
+Makes network requests when executed.
 """
 
 from __future__ import annotations

@@ -149,7 +149,7 @@ class FBrefService:
             date (str): The date of the matches in the format "YYYY-MM-DD".
 
         Returns:
-            list[Match]: The scheduled
+            list[Match]: Scheduled matches.
         """
         try:
             if not date:

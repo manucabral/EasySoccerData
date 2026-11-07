@@ -7,9 +7,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class League:
-    """
-    The league of a match.
-    """
+    """League metadata attached to a Promiedos match."""
 
     name: str = field(default=None)
     id: str = field(default=None)

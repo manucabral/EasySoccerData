@@ -10,23 +10,13 @@ from .lineup import Lineups
 
 @dataclass
 class StatisticItem:
-    """
-    The statistic item class.
-    """
+    """One statistic's home and away values, totals and source type."""
 
     home_value: float = field(default=0.0)
     away_value: float = field(default=0.0)
     stat_type: str = field(default="")
-    home_total: Optional[int] = field(default=None)  # as always is not None
+    home_total: Optional[int] = field(default=None)
     away_total: Optional[int] = field(default=None)
-    # Unused fields
-    # name: str = field(default="")
-    # home: str = field(default="")
-    # away: str = field(default="")
-    # compareCode: int = field(default=0)
-    # valueType: str = field(default="")
-    # renderType: int = field(default=0)
-    # key: str = field(default="")
 
 
 def parse_statistic_item(item: dict[str, any]) -> StatisticItem:
@@ -34,7 +24,7 @@ def parse_statistic_item(item: dict[str, any]) -> StatisticItem:
     Parse a statistic item.
 
     Args:
-        item (Dict[str, Any]): The statistic item.
+        item (dict): The statistic item.
 
     Returns:
         StatisticItem: The parsed statistic item.
@@ -45,22 +35,12 @@ def parse_statistic_item(item: dict[str, any]) -> StatisticItem:
         away_value=item.get("awayValue", 0.0),
         home_total=item.get("homeTotal"),
         away_total=item.get("awayTotal"),
-        # Unused fields
-        # name=item.get("name", ""),
-        # home=item.get("home", ""),
-        # away=item.get("away", ""),
-        # compareCode=item.get("compareCode", 0),
-        # valueType=item.get("valueType", ""),
-        # renderType=item.get("renderType", 0),
-        # key=item.get("key", ""),
     )
 
 
 @dataclass
 class MatchOverviewStats:
-    """
-    The match overview statistics class.
-    """
+    """Possession, expected goals and big-chance totals for both teams."""
 
     ball_possession: StatisticItem = field(default_factory=StatisticItem)
     expected_goals: StatisticItem = field(default_factory=StatisticItem)
@@ -80,7 +60,7 @@ def parse_match_overview_stats(items: list[dict[str, any]]) -> MatchOverviewStat
     Parse match overview statistics.
 
     Args:
-        items (List[Dict[str, Any]]): The statistics items.
+        items (list[dict]): The statistics items.
 
     Returns:
         MatchOverviewStats: The parsed match overview statistics.
@@ -103,9 +83,7 @@ def parse_match_overview_stats(items: list[dict[str, any]]) -> MatchOverviewStat
 
 @dataclass
 class ShotsStats:
-    """
-    The shots statistics class.
-    """
+    """Shot totals and shot outcomes for both teams."""
 
     total_shots_on_goal: StatisticItem = field(default_factory=StatisticItem)
     shots_on_goal: StatisticItem = field(default_factory=StatisticItem)
@@ -121,7 +99,7 @@ def parse_shots_stats(items: list[dict[str, any]]) -> ShotsStats:
     Parse shots statistics.
 
     Args:
-        items (List[Dict[str, Any]]): The statistics items.
+        items (list[dict]): The statistics items.
 
     Returns:
         ShotsStats: The parsed shots statistics.
@@ -140,9 +118,7 @@ def parse_shots_stats(items: list[dict[str, any]]) -> ShotsStats:
 
 @dataclass
 class AttackStats:
-    """
-    The attack statistics class.
-    """
+    """Attacking statistics for both teams."""
 
     big_chance_scored: StatisticItem = field(default_factory=StatisticItem)
     big_chance_missed: StatisticItem = field(default_factory=StatisticItem)
@@ -156,10 +132,10 @@ def parse_attack_stats(items: list[dict[str, any]]) -> AttackStats:
     Parse attack statistics.
 
     Args:
-        items (List[Dict[str, Any]]): The statistics items.
+        items (list[dict]): The statistics items.
 
     Returns:
-        AttackStats: The parsed attack
+        AttackStats: Parsed attacking statistics.
     """
     mapping = {item["key"]: parse_statistic_item(item) for item in items}
     return AttackStats(
@@ -173,9 +149,7 @@ def parse_attack_stats(items: list[dict[str, any]]) -> AttackStats:
 
 @dataclass
 class PassesStats:
-    """
-    The passes statistics class.
-    """
+    """Passing totals and accuracy values for both teams."""
 
     accurate_passes: StatisticItem = field(default_factory=StatisticItem)
     throw_ins: StatisticItem = field(default_factory=StatisticItem)
@@ -190,7 +164,7 @@ def parse_passes_stats(items: list[dict[str, any]]) -> PassesStats:
     Parse passes statistics.
 
     Args:
-        items (List[Dict[str, Any]]): The statistics items.
+        items (list[dict]): The statistics items.
 
     Returns:
         PassesStats: The parsed passes statistics.
@@ -210,9 +184,7 @@ def parse_passes_stats(items: list[dict[str, any]]) -> PassesStats:
 
 @dataclass
 class DuelsStats:
-    """
-    The duels statistics class.
-    """
+    """Duel, dribble and aerial-contest statistics for both teams."""
 
     duel_won_percent: StatisticItem = field(default_factory=StatisticItem)
     dispossessed: StatisticItem = field(default_factory=StatisticItem)
@@ -226,7 +198,7 @@ def parse_duels_stats(items: list[dict[str, any]]) -> DuelsStats:
     Parse duels statistics.
 
     Args:
-        items (List[Dict[str, Any]]): The statistics items.
+        items (list[dict]): The statistics items.
 
     Returns:
         DuelsStats: The parsed duels statistics.
@@ -243,9 +215,7 @@ def parse_duels_stats(items: list[dict[str, any]]) -> DuelsStats:
 
 @dataclass
 class DefendingStats:
-    """
-    The defending statistics class.
-    """
+    """Tackles, interceptions, clearances and other defensive statistics."""
 
     won_tackle_percent: StatisticItem = field(default_factory=StatisticItem)
     total_tackle: StatisticItem = field(default_factory=StatisticItem)
@@ -259,7 +229,7 @@ def parse_defending_stats(items: list[dict[str, any]]) -> DefendingStats:
     Parse defending statistics.
 
     Args:
-        items (List[Dict[str, Any]]): The statistics items.
+        items (list[dict]): The statistics items.
 
     Returns:
         DefendingStats: The parsed defending statistics.
@@ -276,9 +246,7 @@ def parse_defending_stats(items: list[dict[str, any]]) -> DefendingStats:
 
 @dataclass
 class GoalkeepingStats:
-    """
-    The goalkeeping statistics class.
-    """
+    """Goalkeeping statistics for both teams."""
 
     goalkeeper_saves: StatisticItem = field(default_factory=StatisticItem)
     goals_prevented: StatisticItem = field(default_factory=StatisticItem)
@@ -290,7 +258,7 @@ def parse_goalkeeping_stats(items: list[dict[str, any]]) -> GoalkeepingStats:
     Parse goalkeeping statistics.
 
     Args:
-        items (List[Dict[str, Any]]): The statistics items.
+        items (list[dict]): The statistics items.
 
     Returns:
         GoalkeepingStats: The parsed goalkeeping statistics.
@@ -305,9 +273,7 @@ def parse_goalkeeping_stats(items: list[dict[str, any]]) -> GoalkeepingStats:
 
 @dataclass
 class PeriodStats:
-    """
-    The period statistics class.
-    """
+    """Statistics for one match period, grouped by category."""
 
     match_overview: MatchOverviewStats = field(default_factory=MatchOverviewStats)
     shots: ShotsStats = field(default_factory=ShotsStats)
@@ -327,7 +293,7 @@ def parse_period_stats(groups: list[dict[str, any]]) -> PeriodStats:
     Parse period statistics.
 
     Args:
-        groups (List[Dict[str, Any]]): The statistics groups.
+        groups (list[dict]): The statistics groups.
 
     Returns:
         PeriodStats: The parsed period statistics.
@@ -352,9 +318,7 @@ def parse_period_stats(groups: list[dict[str, any]]) -> PeriodStats:
 
 @dataclass
 class WinProbability:
-    """
-    The win probability class.
-    """
+    """Home-win, draw and away-win probabilities reported by Sofascore."""
 
     home: float = field(default=0.0)
     draw: float = field(default=0.0)
@@ -363,9 +327,7 @@ class WinProbability:
 
 @dataclass
 class MatchStats:
-    """
-    The match statistics class.
-    """
+    """Match statistics by period, with win probabilities and optional lineups."""
 
     all: Optional[PeriodStats] = field(default=None)
     first_half: Optional[PeriodStats] = field(default=None)
@@ -379,7 +341,7 @@ def parse_match_probabilities(data: dict[str, any]) -> WinProbability:
     Parse match probabilities.
 
     Args:
-        data (Dict[str, Any]): The match probabilities data.
+        data (dict): The match probabilities data.
 
     Returns:
         WinProbability: The parsed match probabilities.
@@ -398,16 +360,15 @@ def parse_match_stats(
     Parse match statistics.
 
     Args:
-        data (List[Dict[str, Any]]): The match statistics data.
-        win_probabilities (Dict[str, Any]): The win probabilities data.
+        data (list[dict]): The match statistics data.
+        win_probabilities (dict): The win probabilities data.
 
     Returns:
-        MatchStats: The parsed match
+        MatchStats: Parsed period statistics and win probabilities.
     """
     match_stats = MatchStats()
     match_stats.win_probability = parse_match_probabilities(win_probabilities or {})
     if not data:
-        # No data available
         return match_stats
     for stat in data:
         period = stat.get("period", "").upper()

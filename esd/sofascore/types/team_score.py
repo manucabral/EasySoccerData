@@ -1,21 +1,15 @@
-"""
-The module for parsing the team score data.
-"""
+"""Sofascore team scores by period and parser."""
 
 from dataclasses import dataclass, field
 
 
 @dataclass
 class TeamScore:
-    """
-    Team score data class.
-    """
+    """A team's current score and available period scores."""
 
     current: int = field(default=0)
     first_period: int = field(default=0)  # 1st half
     second_period: int = field(default=0)  # 2nd half
-    # display: int = field(default=0)
-    # normaltime: int = field(default=0) # Full time
 
 
 def parse_team_score(data: dict) -> TeamScore:
@@ -26,12 +20,10 @@ def parse_team_score(data: dict) -> TeamScore:
         data (dict): The team score data.
 
     Returns:
-        Score: The team score object.
+        TeamScore: Parsed current and period scores.
     """
     return TeamScore(
         current=data.get("current", 0),
-        # display=data.get("display", 0),
         first_period=data.get("period1", 0),
         second_period=data.get("period2", 0),
-        # normaltime=data.get("normaltime", 0),
     )

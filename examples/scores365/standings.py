@@ -1,15 +1,6 @@
-"""
-In this example, we get the standings tables of a competition
-using the 365Scores client and print the top rows.
+"""Fetch 365Scores competition standings and print the first ten rows.
 
-The output will be something like:
-
-Liga Profesional (Season 2025)
-Pos  Team                      PJ   G   E   P   DG  PTS
-  1  Vélez Sarsfield           27  14   9   4  +22   51
-  2  Talleres                  27  13   9   5  +12   48
-  3  Racing Club               27  14   4   9  +16   46
-...
+Makes network requests when executed.
 """
 
 from __future__ import annotations

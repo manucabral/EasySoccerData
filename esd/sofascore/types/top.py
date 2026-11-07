@@ -9,9 +9,7 @@ from .player import Player, parse_player
 
 @dataclass
 class TopPlayersMatch:
-    """
-    Top players match dataclass.
-    """
+    """Players selected by Sofascore as a match's top performers."""
 
     best: Player = field(default=None)
     home_team: list[Player] = field(default_factory=list)

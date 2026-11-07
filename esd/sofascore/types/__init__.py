@@ -1,6 +1,4 @@
-"""
-Contains the types for the Sofascore service.
-"""
+"""Sofascore models and parsers."""
 
 from .bracket import Bracket, parse_bracket, parse_brackets
 from .categories import Category

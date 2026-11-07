@@ -25,9 +25,7 @@ from .tvnetwork import TVNetwork, parse_tv_network
 
 @dataclass
 class Match:
-    """
-    The match data.
-    """
+    """A Promiedos match with teams, status, scores and optional details."""
 
     id: str = field(default=None)
     stage_round_name: str = field(default=None)

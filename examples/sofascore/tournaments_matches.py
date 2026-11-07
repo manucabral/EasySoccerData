@@ -1,8 +1,6 @@
-"""
-This example shows how to get tournament matches.
-In this case, we get the matches of the UEFA Champions League 24/25.
-If you want to get another tournament, you can use the
-search method to get the tournament id and season id.
+"""Fetch upcoming and recent Sofascore tournament matches, including a second page.
+
+Makes network requests when executed.
 """
 
 from esd.sofascore import SofascoreClient
@@ -24,7 +22,7 @@ print("Last matches")
 for event in events:
     print(event.id, event.slug)
 
-# Get last last matches (page 1, ...)
+# Fetch the second page of past matches.
 events = client.get_tournament_events(uefacl_id, last_season, page=1)
 print("Last last matches")
 for event in events:

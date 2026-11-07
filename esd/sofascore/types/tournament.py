@@ -7,18 +7,11 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Tournament:
-    """
-    Tournament dataclass.
-    """
+    """Tournament metadata reported by Sofascore."""
 
     id: int = field(default=None)
     name: str = field(default=None)
     slug: str = field(default=None)
-    # primaryColorHex: str
-    # secondaryColorHex: str
-    # category: Category
-    # userCount: int
-    # displayInverseHomeAwayTeams: bool
 
 
 def parse_tournament(data: dict) -> Tournament:
@@ -35,11 +28,6 @@ def parse_tournament(data: dict) -> Tournament:
         id=data.get("id", None),
         name=data.get("name", None),
         slug=data.get("slug", None),
-        # primaryColorHex=data.get("primaryColorHex"),
-        # secondaryColorHex=data.get("secondaryColorHex"),
-        # category=parse_category(data.get("category", {})),
-        # userCount=data.get("userCount"),
-        # displayInverseHomeAwayTeams=data.get("displayInverseHomeAwayTeams"),
     )
 
 

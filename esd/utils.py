@@ -77,11 +77,10 @@ class TTLCache:
 
 
 def _get_session(impersonate: str = "chrome") -> requests.Session:
-    """
-    Return a per-thread browser-impersonating session.
+    """Return a per-thread browser-impersonating session.
 
-    Each thread keeps its own session so concurrent requests are safe, while
-    sequential requests in the same thread reuse the connection pool.
+    Each thread owns its session. Sequential requests in that thread reuse its
+    connection pool.
     """
     sessions = getattr(_local, "sessions", None)
     if sessions is None:
@@ -150,7 +149,7 @@ def fetch_many(callables: list, max_workers: int = 8) -> list:
     """
     Run a list of zero-argument callables concurrently and return their results.
 
-    Useful for fetching multiple leagues or matches in parallel. Bind arguments
+    Bind query arguments
     with ``functools.partial``.
 
     Example:
@@ -186,7 +185,7 @@ def to_dataframe(
     Convert a list of dataclass instances to a pandas DataFrame.
 
     Install ``EasySoccerData[pandas]`` to use this function. By default, nested
-    dataclasses become dictionaries and pandas infers types as before.
+    dataclasses become dictionaries and pandas infers column types.
 
     Args:
         objects: Dataclass instances, one per output row.
@@ -248,8 +247,7 @@ class BrowserSession:
     """
     A persistent Playwright browser, reused across requests.
 
-    Launching Chrome and passing the source's challenge is expensive, so one
-    browser is shared across requests in the same thread. Call ``close()`` to
+    One browser is shared across requests in the same thread. Call ``close()`` to
     release the browser and its Chrome process.
     """
 
@@ -404,13 +402,11 @@ def get_json_playwright(
     Fetch JSON from a URL using a real browser (Playwright + system Chrome).
 
     Used as a fallback for sources that block curl_cffi with a JavaScript
-    challenge (e.g. Sofascore). The browser first opens ``start_url`` so the
-    source's challenge and cookies resolve, then navigates to ``url`` and
-    returns the parsed JSON from the body.
+    challenge (e.g. Sofascore). The browser opens ``start_url`` before navigating to ``url`` and
+    parsing JSON from its body. Cookies persist in the browser context.
 
     Args:
-        headless: Run Chrome headless (silent). Some challenges detect
-            headless, so headful is the default.
+        headless: Hide the Chrome window when True. Defaults to False.
         session: Optional :class:`BrowserSession` to reuse an existing browser.
 
     Returns ``{}`` when the fetch fails or the challenge does not resolve.
@@ -642,7 +638,7 @@ def get_document_playwright(
             instead of launching a new Chrome per call.
 
     Returns:
-        html.HtmlElement: The parsed HTML document.
+        html.HtmlElement: Parsed HTML, or None if navigation or parsing fails.
     """
     if session is not None:
         try:
@@ -664,15 +660,14 @@ def get_document_playwright(
 
 
 def is_available_date(date: str, pattern: str) -> None:
-    """
-    Check if the given date is available.
+    """Validate a date string against a pattern and YYYY-MM-DD calendar parsing.
 
     Args:
-        date (str): The date to check.
-        pattern (str): The pattern of the date.
+        date: Date string to validate.
+        pattern: Regular expression that must match the entire date string.
 
     Raises:
-        ValueError: If the date is invalid
+        ValueError: The pattern does not match or the date is invalid.
     """
     date_pattern = re.compile(pattern)
     if not date_pattern.fullmatch(date):

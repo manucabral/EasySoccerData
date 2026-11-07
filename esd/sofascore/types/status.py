@@ -25,7 +25,6 @@ class Status:
     Status data class.
     """
 
-    # code: int = 0
     type: StatusType = StatusType.UNKNOWN
     """
     The status type enum.
@@ -52,7 +51,6 @@ def parse_status(data: dict) -> Status:
     Parse status data.
     """
     return Status(
-        # code=data.get("code", 0),
         description=data.get("description"),
         type=get_status_type(data.get("type")),
     )

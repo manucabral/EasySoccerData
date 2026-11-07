@@ -1,16 +1,6 @@
-"""
-In this example, we fetch the detailed summary (boxscore stats, rosters and
-timeline events) of a match using the ESPN client.
+"""Fetch an ESPN match summary and print team statistics, players and events.
 
-The output will be something like:
-
-Match: River Plate 2 - 1 Boca Juniors
-Venue: Mâs Monumental
-
-Home Stats:
-  Possession: 58.2%
-  Shots: 15
-...
+Makes network requests when executed.
 """
 
 from __future__ import annotations

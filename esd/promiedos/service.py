@@ -73,15 +73,7 @@ class PromiedosService:
             raise exc
 
     def get_match(self, match_id: int) -> Match:
-        """
-        Get the match for the given slug and match ID.
-
-        Args:
-            match_id (int): The ID of the match.
-
-        Returns:
-            Match: The match data.
-        """
+        """Get match details for a Promiedos match ID."""
         _logger.debug("get_match(match_id=%s)", match_id)
         try:
             url = self.endpoints.match_endpoint.format(id=match_id)
@@ -96,15 +88,7 @@ class PromiedosService:
             raise exc
 
     def get_tournament(self, tournament_id: str) -> Tournament:
-        """
-        Get the matches for the given tournament ID.
-
-        Args:
-            tournament_id (str): The tournament ID. E.g. "dss".
-
-        Returns:
-            Tournament: The tournament data.
-        """
+        """Get league metadata and available stages for a tournament ID."""
         try:
             url = self.endpoints.tournament_endpoint.format(id=tournament_id)
             data = self._get_json(url)

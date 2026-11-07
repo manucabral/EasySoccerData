@@ -1,6 +1,4 @@
-"""
-Contains the country dataclass and the function to parse the country data.
-"""
+"""Sofascore country metadata and parser."""
 
 from dataclasses import dataclass, field
 
@@ -11,8 +9,6 @@ class Country:
     Country metadata reported by Sofascore.
     """
 
-    # alpha2: str = field(default="")
-    # alpha3: str = field(default="")
     name: str = field(default="")
     slug: str = field(default="")
 
@@ -28,8 +24,6 @@ def parse_country(data: dict) -> Country:
         Country: The country object.
     """
     return Country(
-        # alpha2=data.get("alpha2", ""),
-        # alpha3=data.get("alpha3", ""),
         name=data.get("name", ""),
         slug=data.get("slug", ""),
     )

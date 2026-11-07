@@ -1,14 +1,12 @@
-"""
-Logging setup for the EasySoccerData package.
+"""Logging configuration for EasySoccerData.
 
-By default, logging is **disabled** (no output). To enable it::
+Logging produces no output until enabled::
 
     from esd.logger import enable_logging
     enable_logging()
 
-Or for full debug output::
+Set the level to include debug messages::
 
-    from esd.logger import enable_logging
     enable_logging(level="DEBUG")
 """
 
@@ -81,7 +79,7 @@ def _resolve_level(level: int | str) -> int:
     return getattr(logging, level.upper(), logging.INFO)
 
 
-# ---- attach NullHandler so the library never complains about "no handlers" ----
+# Libraries leave handler configuration to the application.
 _log_root = logging.getLogger(_ROOT_LOGGER_NAME)
 _log_root.addHandler(logging.NullHandler())
 _log_root.setLevel(logging.NOTSET)

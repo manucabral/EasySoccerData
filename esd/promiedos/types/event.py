@@ -10,9 +10,7 @@ from .match import Match, parse_match
 
 @dataclass
 class Event:
-    """
-    The event of a match.
-    """
+    """A league's matches for one date."""
 
     date: str = field(default=None)
     league: League = field(default_factory=League)

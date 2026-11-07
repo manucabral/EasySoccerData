@@ -1,23 +1,6 @@
-"""
-This example shows how to get tournament brackets.
-In this case, we get the brackets of the UEFA Champions League 24/25.
-Only a few details are printed.
+"""Fetch a selected Sofascore Champions League bracket and print its current round.
 
-The output will be something like:
-
-UEFA Champions League 24/25, Knockout Phase
-Current round is 2
-
-Round: 2 Description: 1/8 has: 8 matchs
-Match: PSV Eindhoven 1 - 7 Arsenal
-
-Match: Real Madrid 2 - 1 Atlético Madrid
-
-Match: Paris Saint-Germain 0 - 1 Liverpool
-
-Match: Club Brugge KV 1 - 3 Aston Villa
-
-...........
+Makes network requests when executed.
 """
 
 import esd
@@ -25,10 +8,7 @@ import esd
 
 client = esd.SofascoreClient()
 
-"""
-Each id is obtained using the client.search() method.
-In this case we skip the search and use the ids directly.
-"""
+# Find tournament IDs with search() and season IDs with get_tournament_seasons().
 uefa_tournament_id = 7
 last_season_id = 61644
 
@@ -36,7 +16,7 @@ brackets: list[esd.sofascore.Bracket] = client.get_tournament_brackets(
     uefa_tournament_id, last_season_id
 )
 
-# Uefa has only one bracket
+# Select the first bracket returned for this season.
 unique_bracket: esd.sofascore.Bracket = brackets[0]
 
 # Print the name of the bracket (e.g. "UEFA Champions League 24/25, Knockout Phase")

@@ -1,20 +1,6 @@
-"""
-This example shows how to get match substitutions.
+"""Fetch Sofascore match incidents and print substitutions.
 
-The output will be something like:
-
-Vinícius Jr. is substituted by Endrick at 115'
-R. Mandava is substituted by C. Azpilicueta at 98'
-C. Lenglet is substituted by R. Le Normand at 91'
-R. de Paul is substituted by N. Molina at 90'
-A. Griezmann is substituted by A. Sørloth at 89'
-G. Simeone is substituted by Á. Correa at 89'
-C. Gallagher is substituted by S. Lino at 85'
-F. Mendy is substituted by F. Garcia at 83'
-Rodrygo is substituted by B. Díaz at 79'
-L. Modrić is substituted by L. Vázquez at 65'
-A. Tchouaméni is substituted by E. Camavinga at 65'
-
+Makes network requests when executed.
 """
 
 from esd.sofascore import SofascoreClient, IncidentType

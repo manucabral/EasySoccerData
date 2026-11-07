@@ -1,6 +1,4 @@
-"""
-SofaScore Standing dataclass.
-"""
+"""Sofascore standings tables, team rows and parsers."""
 
 from dataclasses import dataclass, field
 
@@ -10,9 +8,7 @@ from .tournament import Tournament, parse_tournament
 
 @dataclass
 class StandingItem:
-    """
-    StandingItem dataclass
-    """
+    """One team's rank, match counts, goals and points in a standings table."""
 
     id: int = field(default=0)
     team: Team = field(default=None)
@@ -71,14 +67,13 @@ def parse_standing_items(data: dict) -> list[StandingItem]:
 
 @dataclass
 class Standing:
-    """Standing dataclass"""
+    """A tournament standings table with its rows and update timestamp."""
 
     id: int = field(default=None)
     name: str = field(default=None)
     tournament: Tournament = field(default=None)
     last_updated: int = field(default=None)
     items: list[StandingItem] = field(default_factory=list)
-    # description: str = field(default=None)
 
 
 def parse_standing(data: dict) -> Standing:
@@ -97,7 +92,6 @@ def parse_standing(data: dict) -> Standing:
         tournament=parse_tournament(data.get("tournament", {})),
         last_updated=data.get("updatedAtTimestamp", None),
         items=parse_standing_items(data.get("rows", [])),
-        # description=data.get("description", None),
     )
 
 

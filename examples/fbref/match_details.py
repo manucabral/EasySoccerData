@@ -1,25 +1,6 @@
-"""
-In this example, we get the full match report (per-player statistics) of
-a single match using the FBref client.
+"""Fetch today's FBref schedule, then print player tables for the first match report.
 
-We first fetch today's matches, then pull the details of the first match
-that has an FBref report, and print the home/away players.
-
-The output will be something like:
-
-Match: Arsenal - Chelsea
-
-Home players:
-    Player                 Min  G  A  Sh  SoT
-    Bukayo Saka             90  1  0  3    2
-    Martin Odegaard         90  0  1  2    1
-    ...
-
-Away players:
-    Player                 Min  G  A  Sh  SoT
-    Cole Palmer             90  1  0  4    2
-    ...
-
+Makes network requests when executed.
 """
 
 import esd

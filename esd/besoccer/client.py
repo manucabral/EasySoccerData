@@ -1,6 +1,4 @@
-"""
-Client for interacting with BeSoccer.
-"""
+"""BeSoccer client for daily matches and competition standings."""
 
 from __future__ import annotations
 

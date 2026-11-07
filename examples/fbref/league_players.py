@@ -1,15 +1,6 @@
-"""
-In this example, we get the standard player statistics of a competition
-using the FBref client and print the top scorers.
+"""Fetch FBref league player statistics and print the leading scorers.
 
-The output will be something like:
-
-Player                  Team                G   A   xG   MP
-Erling Haaland          Manchester City    27   5  24.1  31
-Mohamed Salah           Liverpool           22  14  19.8  33
-Alexander Isak          Newcastle Utd       21   5  18.4  30
-...
-
+Makes network requests when executed.
 """
 
 import esd

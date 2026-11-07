@@ -1,14 +1,10 @@
-"""
-Module with all tournament categories.
-"""
+"""Sofascore tournament category IDs."""
 
 from enum import Enum
 
 
 class Category(Enum):
-    """
-    Enum with all tournament categories (Asia, Europe, World, etc).
-    """
+    """Regional and international tournament category IDs accepted by Sofascore."""
 
     AFRICA = 1466
     ASIA = 1467

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "EasySoccerData"
 version = "0.2.0"
-description = "A simple python package for extracting real-time soccer data from diverse online sources, providing essential statistics and insights."
+description = "Football fixtures, live scores, standings and player statistics from nine providers."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]

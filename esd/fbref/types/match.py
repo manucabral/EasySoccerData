@@ -154,7 +154,6 @@ def parse_matchs(data: lxml.html.HtmlElement) -> list[Match]:
             attendance=data_stat.get("attendance", ""),
             venue=data_stat.get("venue", ""),
             referee=data_stat.get("referee", ""),
-            # match_report=data_stat.get("match_report", ""),
             notes=data_stat.get("notes", ""),
             date=data_stat.get("date"),
             home_team_id=data_stat.get("home_team_id"),

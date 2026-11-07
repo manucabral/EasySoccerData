@@ -26,9 +26,6 @@ class Team:
     color: Color = field(default_factory=Color)
     manager: Optional[Manager] = field(default_factory=Manager)
     players: Optional[list] = field(default_factory=list)
-    # gender: str = field(default="")
-    # disabled: bool = field(default=False)
-    # type: int = field(default=0)
 
 
 def parse_common_team_fields(data: dict) -> dict:
@@ -51,9 +48,6 @@ def parse_common_team_fields(data: dict) -> dict:
         "country": parse_country(data.get("country", {})),
         "color": parse_color(data.get("teamColors", {})),
     }
-    # disabled=data.get("disabled", False),
-    # type=data.get("type", 0),
-    # gender=data.get("gender", ""),
 
 
 def parse_team(data: dict) -> Team:

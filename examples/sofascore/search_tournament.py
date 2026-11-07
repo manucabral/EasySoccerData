@@ -1,22 +1,6 @@
-"""
-This example shows how to search for tournaments and get the seasons.
-In this case, we search for tournaments that contain the word "uefa".
-Once we have the tournament, we get the seasons.
+"""Search Sofascore for UEFA tournaments and fetch seasons for a selected result.
 
-The output will be something like:
-
-7, UEFA Champions League, uefa-champions-league
----------------------------
-679, UEFA Europa League, uefa-europa-league
-........
-........
-
-Seasons:
-61644, UEFA Champions League 24/25
-52162, UEFA Champions League 23/24
-......
-......
-12, Champions League 03/04
+Makes network requests when executed.
 """
 
 import esd

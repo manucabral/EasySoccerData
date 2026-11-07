@@ -1,6 +1,4 @@
-"""
-The manager type. Used in the team type.
-"""
+"""Sofascore manager metadata used in team profiles."""
 
 from dataclasses import dataclass, field
 
@@ -9,9 +7,7 @@ from .country import Country, parse_country
 
 @dataclass
 class Manager:
-    """
-    The manager class.
-    """
+    """A manager's identity, nationality and profile details."""
 
     id: int = field(default=0)
     country: Country = field(default_factory=Country)

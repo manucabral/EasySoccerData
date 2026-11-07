@@ -1,14 +1,6 @@
-"""
-In this example, we fetch league matches with Expected Goals (xG) and
-win probability forecasts from Understat.
+"""Fetch Understat league matches and print scores, kickoff strings and xG.
 
-The output will be something like:
-
-Found 380 matches in EPL 2024
-
-2024-08-16 19:00:00 | Manchester United 1 - 0 Fulham (xG: 2.43 - 0.41)
-2024-08-17 11:30:00 | Ipswich 0 - 2 Liverpool (xG: 0.34 - 3.92)
-...
+Makes network requests when executed.
 """
 
 from __future__ import annotations

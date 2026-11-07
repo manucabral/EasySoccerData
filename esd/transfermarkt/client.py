@@ -1,6 +1,4 @@
-"""
-Client for interacting with Transfermarkt.
-"""
+"""Transfermarkt client for player profiles, valuations, transfers and clubs."""
 
 from __future__ import annotations
 

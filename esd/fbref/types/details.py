@@ -254,11 +254,9 @@ class PlayerStatsTableDetails(TableDetails):
 
 @dataclass
 class MatchDetails:
-    """
-    Match details for a football match.
-    """
+    """An FBref match report containing player and goalkeeper statistics tables."""
 
-    is_table_wrapper: bool = False  # maybe the name changes
+    is_table_wrapper: bool = False
     content: list[TableDetails] = field(default_factory=list)
     home_players: PlayerStatsTableDetails = field(
         default_factory=PlayerStatsTableDetails
@@ -321,7 +319,7 @@ def parse_match_details(data: lxml.html.HtmlElement) -> MatchDetails:
     is_table_wrapper = False
     content = get_switchers(data)
     if not content:
-        # so we have a simple table wrapper without switchers
+        # This report has one table wrapper instead of category switchers.
         is_table_wrapper = True
         content = get_table_wrappers(data)
 
@@ -335,7 +333,6 @@ def parse_match_details(data: lxml.html.HtmlElement) -> MatchDetails:
             continue
         found_tables = child.xpath(".//table")
         if "shots" in element_id:
-            # ... add shots parser
             continue
         if player_switcher_idx >= 2:
             continue
@@ -379,9 +376,6 @@ def parse_table(data: list[lxml.html.HtmlElement], index: int, instance: type) -
     if index >= len(data):
         return []
     table = data[index]
-    # caption = table.xpath(".//caption")
-    # table_id = table.get("id", "unknown")
-    # table_name = caption[0].text_content().strip() if caption else "unknown"
     rows = []
     tbody = table.xpath(".//tbody")
     if not tbody:
@@ -429,5 +423,4 @@ def parse_table_wrapped(
             attr = data_stat.strip()
             setattr(player, attr, _cast_field_value(player, attr, value))
         rows.append(player)
-    # header = [th.text_content().strip() for th in table.xpath(".//thead/tr/th")]
     return PlayerStatsTableDetails(id=table_id, name=table_name, rows=rows)

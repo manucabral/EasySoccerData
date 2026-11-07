@@ -1,13 +1,6 @@
-"""
-In this example, we fetch player Expected Goals (xG) and Expected Assists (xA)
-statistics for a league season from Understat.
+"""Fetch Understat league player statistics and print goals, assists, xG and xA.
 
-The output will be something like:
-
-Player                    Team                    G    xG   A    xA
-Mohamed Salah             Liverpool              29  25.4  18  14.2
-Erling Haaland            Manchester City        22  21.8   3   2.9
-...
+Makes network requests when executed.
 """
 
 from __future__ import annotations

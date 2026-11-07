@@ -16,135 +16,135 @@ class SofascoreEndpoints:
     @property
     def events_endpoint(self) -> str:
         """
-        Returns the URL of the endpoint to get the scheduled events.
+        Return the URL for the scheduled events.
 
         Returns:
-            str: The URL of the endpoint to get the scheduled events.
+            str: URL for the scheduled events.
         """
         return self.base_url + "/sport/football/scheduled-events/{date}"
 
     @property
     def live_events_endpoint(self) -> str:
         """
-        Returns the URL of the endpoint to get the live events.
+        Return the URL for the live events.
 
         Returns:
-            str: The URL of the endpoint to get the live events.
+            str: URL for the live events.
         """
         return self.base_url + "/sport/football/events/live"
 
     def event_endpoint(self, event_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the event information.
+        Return the URL for the event information.
 
         Args:
             event_id (int): The event id.
 
         Returns:
-            str: The URL of the endpoint to get the event information.
+            str: URL for the event information.
         """
         return f"{self.base_url}/event/{event_id}"
 
     def search_endpoint(self, query: str, entity_type: str) -> str:
         """
-        Returns the URL of the endpoint to search for entities.
+        Return the entity search URL.
 
         Args:
             query (str): The search query.
             entity_type (str): The entity type.
 
         Returns:
-            str: The URL of the endpoint to search for entities.
+            str: Entity search URL.
         """
         return f"{self.base_url}/search/{entity_type}?q={quote(query)}&page=0"
 
     def player_endpoint(self, player_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the player information.
+        Return the URL for the player information.
 
         Args:
             player_id (int): The player id.
 
         Returns:
-            str: The URL of the endpoint to get the player information.
+            str: URL for the player information.
         """
         return f"{self.base_url}/player/{player_id}"
 
     def player_transfer_history_endpoint(self, player_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the player transfer history.
+        Return the URL for the player transfer history.
 
         Args:
             player_id (int): The player id.
 
         Returns:
-            str: The URL of the endpoint to get the player transfer history.
+            str: URL for the player transfer history.
         """
         return f"{self.base_url}/player/{player_id}/transfer-history"
 
     def player_charac_endpoint(self, player_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the player characteristics.
+        Return the URL for the player characteristics.
 
         Args:
             player_id (int): The player id.
 
         Returns:
-            str: The URL of the endpoint to get the player characteristics.
+            str: URL for the player characteristics.
         """
         return f"{self.base_url}/player/{player_id}/characteristics"
 
     def player_attributes_endpoint(self, player_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the player attributes.
+        Return the URL for the player attributes.
 
         Args:
             player_id (int): The player id.
 
         Returns:
-            str: The URL of the endpoint to get the player attributes.
+            str: URL for the player attributes.
         """
         return f"{self.base_url}/player/{player_id}/attribute-overviews"
 
     def player_stats_endpoint(self, player_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the player statistics.
+        Return the URL for the player statistics.
 
         Args:
             player_id (int): The player id.
 
         Returns:
-            str: The URL of the endpoint to get the player statistics.
+            str: URL for the player statistics.
         """
         return f"{self.base_url}/player/{player_id}/statistics"
 
     def team_endpoint(self, team_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the team information.
+        Return the URL for the team information.
 
         Args:
             team_id (int): The team id.
 
         Returns:
-            str: The URL of the endpoint to get the team information.
+            str: URL for the team information.
         """
         return f"{self.base_url}/team/{team_id}"
 
     def team_players_endpoint(self, team_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the team players.
+        Return the URL for the team players.
 
         Args:
             team_id (int): The team id.
 
         Returns:
-            str: The URL of the endpoint to get the team players.
+            str: URL for the team players.
         """
         return self.team_endpoint(team_id) + "/players"
 
     def team_events_endpoint(self, team_id: int, upcoming: bool, page: int) -> str:
         """
-        Returns the URL of the endpoint to get the team events.
+        Return the URL for the team events.
 
         Args:
             team_id (int): The team id.
@@ -152,170 +152,170 @@ class SofascoreEndpoints:
             page (int): The page number.
 
         Returns:
-            str: The URL of the endpoint to get the team events.
+            str: URL for the team events.
         """
         _from = "last" if not upcoming else "next"
         return f"{self.base_url}/team/{team_id}/events/{_from}/{page}"
 
     def match_stats_endpoint(self, event_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the match statistics.
+        Return the URL for the match statistics.
 
         Args:
             event_id (int): The event id.
 
         Returns:
-            str: The URL of the endpoint to get the match statistics.
+            str: URL for the match statistics.
         """
         return f"{self.base_url}/event/{event_id}/statistics"
 
     def match_events_endpoint(self, event_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the match events.
+        Return the URL for the match events.
 
         Args:
             event_id (int): The event id.
 
         Returns:
-            str: The URL of the endpoint to get the match events.
+            str: URL for the match events.
         """
         return f"{self.base_url}/event/{event_id}/incidents"
 
     def match_top_players_endpoint(self, event_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the top players of a match.
+        Return the URL for the top players of a match.
 
         Args:
             event_id (int): The event id.
 
         Returns:
-            str: The URL of the endpoint to get the top players of a match.
+            str: URL for the top players of a match.
         """
         return f"{self.base_url}/event/{event_id}/best-players/summary"
 
     def match_comments_endpoint(self, event_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the comments of a match.
+        Return the URL for the comments of a match.
 
         Args:
             event_id (int): The event id.
 
         Returns:
-            str: The URL of the endpoint to get the comments of a match.
+            str: URL for the comments of a match.
         """
         return f"{self.base_url}/event/{event_id}/comments"
 
     def match_shots_endpoint(self, event_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the shots of a match.
+        Return the URL for the shots of a match.
 
         Args:
             event_id (int): The event id.
 
         Returns:
-            str: The URL of the endpoint to get the shots of a match.
+            str: URL for the shots of a match.
         """
         return f"{self.base_url}/event/{event_id}/shotmap"
 
     def match_probabilities_endpoint(self, event_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the match probabilities.
+        Return the URL for the match probabilities.
 
         Args:
             event_id (int): The event id.
 
         Returns:
-            str: The URL of the endpoint to get the match probabilities.
+            str: URL for the match probabilities.
         """
         return f"{self.base_url}/event/{event_id}/win-probability"
 
     def match_lineups_endpoint(self, event_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the match lineups.
+        Return the URL for the match lineups.
 
         Args:
             event_id (int): The event id.
 
         Returns:
-            str: The URL of the endpoint to get the match lineups.
+            str: URL for the match lineups.
         """
         return f"{self.base_url}/event/{event_id}/lineups"
 
     def tournaments_endpoint(self, category_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the tournaments of a category.
+        Return the URL for the tournaments of a category.
 
         Args:
             category_id (int): The category id. See esd.sofascore.types.categories.
 
         Returns:
-            str: The URL of the endpoint to get the tournaments of a category.
+            str: URL for the tournaments of a category.
         """
         return f"{self.base_url}/category/{category_id}/unique-tournaments"
 
     def tournament_seasons_endpoint(self, tournament_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the seasons of a tournament.
+        Return the URL for the seasons of a tournament.
 
         Args:
             tournament_id (int): The tournament id.
 
         Returns:
-            str: The URL of the endpoint to get the seasons of a tournament.
+            str: URL for the seasons of a tournament.
         """
         return f"{self.base_url}/unique-tournament/{tournament_id}/seasons"
 
     def tournament_bracket_endpoint(self, tournament_id: int, season_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the bracket of a tournament.
+        Return the URL for the bracket of a tournament.
 
         Args:
             tournament_id (int): The tournament id.
             season_id (int): The season id.
 
         Returns:
-            str: The URL of the endpoint to get the bracket of a tournament.
+            str: URL for the bracket of a tournament.
         """
         return f"{self.base_url}/unique-tournament/{tournament_id}/season/{season_id}/cuptrees"
 
     def tournament_standings_endpoint(self, tournament_id: int, season_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the standings of a tournament.
+        Return the URL for the standings of a tournament.
 
         Args:
             tournament_id (int): The tournament id.
             season_id (int): The season id.
 
         Returns:
-            str: The URL of the endpoint to get the standings of a tournament.
+            str: URL for the standings of a tournament.
         """
         base = self.base_url + "/unique-tournament"
         return f"{base}/{tournament_id}/season/{season_id}/standings/total"
 
     def tournament_topteams_endpoint(self, tournament_id: int, season_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the top teams of a tournament.
+        Return the URL for the top teams of a tournament.
 
         Args:
             tournament_id (int): The tournament id.
             season_id (int): The season id.
 
         Returns:
-            str: The URL of the endpoint to get the top teams of a tournament.
+            str: URL for the top teams of a tournament.
         """
         base = self.base_url + "/unique-tournament"
         return f"{base}/{tournament_id}/season/{season_id}/top-teams/overall"
 
     def tournament_topplayers_endpoint(self, tournament_id: int, season_id: int) -> str:
         """
-        Returns the URL of the endpoint to get the top players of a tournament.
+        Return the URL for the top players of a tournament.
 
         Args:
             tournament_id (int): The tournament id.
             season_id (int): The season id.
 
         Returns:
-            str: The URL of the endpoint to get the top players of a tournament.
+            str: URL for the top players of a tournament.
         """
         base = self.base_url + "/unique-tournament"
         return f"{base}/{tournament_id}/season/{season_id}/top-players/overall"
@@ -324,7 +324,7 @@ class SofascoreEndpoints:
         self, tournament_id: int, season_id: int, upcoming: bool, page: int
     ) -> str:
         """
-        Returns the URL of the endpoint to get the events of a tournament.
+        Return the URL for the events of a tournament.
 
         Args:
             tournament_id (int): The tournament id.
@@ -333,7 +333,7 @@ class SofascoreEndpoints:
             page (int, optional): The page number. Defaults to 0.
 
         Returns:
-            str: The URL of the endpoint to get the events of a tournament.
+            str: URL for the events of a tournament.
         """
         _from = "last" if not upcoming else "next"
         base = self.base_url + "/unique-tournament"

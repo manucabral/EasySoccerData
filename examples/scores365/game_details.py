@@ -1,18 +1,6 @@
-"""
-In this example, we get full match details (events, lineups and statistics)
-from 365Scores using the first available game of the day.
+"""Fetch today's first 365Scores game and print its events and team statistics.
 
-The output will be something like:
-
-Match: River Plate 2 - 1 Boca Juniors
-Events:
-  25' Gol - Franco Mastantuono
-  44' Gol - Miguel Borja
-  ...
-Statistics:
-  Posesión del balón (competitor 1234): 58%
-  Remates totales (competitor 1234): 14
-...
+Makes network requests when executed.
 """
 
 from __future__ import annotations

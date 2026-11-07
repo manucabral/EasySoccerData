@@ -1,6 +1,4 @@
-"""
-Contains the types for the FBRef service.
-"""
+"""FBref match, table and player-statistics models."""
 
 from .details import MatchDetails, parse_match_details
 from .league import LeaguePlayerStandard, parse_league_players

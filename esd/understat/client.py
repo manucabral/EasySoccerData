@@ -1,6 +1,4 @@
-"""
-Client for interacting with Understat.
-"""
+"""Understat client for matches, player metrics and shot locations."""
 
 from __future__ import annotations
 

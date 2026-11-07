@@ -1,6 +1,4 @@
-"""
-Contains all player types for a match.
-"""
+"""Promiedos player details, lineups and absence information."""
 
 from dataclasses import dataclass, field
 from typing import Optional
@@ -8,9 +6,7 @@ from typing import Optional
 
 @dataclass
 class PitchLocation:
-    """
-    The pitch location.
-    """
+    """Player coordinates in the source's lineup display."""
 
     x: float = field(default=0.0)
     y: float = field(default=0.0)
@@ -18,9 +14,7 @@ class PitchLocation:
 
 @dataclass
 class MissingDetails:
-    """
-    The missing details.
-    """
+    """The source's absence reason and availability status for a player."""
 
     type: int = field(default=0)
     reason: str = field(default="")
@@ -30,9 +24,7 @@ class MissingDetails:
 
 @dataclass
 class Player:
-    """
-    The player.
-    """
+    """A player's match lineup details and optional absence information."""
 
     jersey_num: int = field(default=0)
     name: str = field(default="")
@@ -48,9 +40,7 @@ class Player:
 
 @dataclass
 class LineupTeam:
-    """
-    The lineup team.
-    """
+    """One team's formation, starters, substitutes and staff."""
 
     status: str = field(default=None)
     formation: str = field(default=None)
@@ -62,20 +52,15 @@ class LineupTeam:
 
 @dataclass
 class Lineups:
-    """
-    The lineups.
-    """
+    """Home and away team lineups."""
 
-    # support_visual_lineups: bool = field(default=False)
     away_team: LineupTeam = field(default_factory=LineupTeam)
     home_team: LineupTeam = field(default_factory=LineupTeam)
 
 
 @dataclass
 class Players:
-    """
-    Players additional data.
-    """
+    """Match lineups and lists of missing players."""
 
     lineups: Lineups = field(default_factory=Lineups)
     missing_players: list[list[Player]] = field(default_factory=list)

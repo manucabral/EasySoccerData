@@ -1,22 +1,6 @@
-"""
-This example shows how to get players from a team.
-In this case, we get the players from Liverpool FC.
+"""Fetch Liverpool's Sofascore squad and print positions, shirt numbers and contracts.
 
-The output will be something like:
-
----------------------------------
-Luis Díaz, position F, number 7
-Date of birth: January 1997
-Contract until: June 2027
----------------------------------
-Darwin Núñez, position F, number 9
-Date of birth: June 1999
-Contract until: June 2028
----------------------------------
-Cody Gakpo, position F, number 18
-Date of birth: May 1999
-Contract until: June 2028
----------------------------------
+Makes network requests when executed.
 """
 
 import esd

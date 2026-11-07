@@ -10,6 +10,7 @@
 
 ### Fixed
 
+- Replace predicted live example output with descriptions of the requested data and correct incomplete API descriptions.
 - Documentation generation targets local sources and treats warnings as errors, preventing missing README includes from silently passing.
 - API documentation clarifies task coverage, source timestamps, entity scopes and compatibility preconditions.
 
@@ -73,9 +74,9 @@
 ### Changed
 
 - **HTTP layer**: unified timeout, proxy and typed error handling across `httpx` and `curl_cffi` paths.
-- FBref: headful Playwright fallback on system Chrome to pass Cloudflare, with a refreshed impersonation target.
+- FBref: optional Playwright fallback using installed Chrome, with a refreshed HTTP impersonation target.
 - Sofascore: `SourceBlocked` raised on 403 instead of a silent empty dict.
-- Enforce Ruff `FA102` (`flake8-future-annotations`) to guarantee PEP 604 type union compatibility on Python 3.9.
+- Enable Ruff `FA102` to require postponed annotations for PEP 604 unions on Python 3.9.
 - `esd.utils.get_text` now accepts custom `impersonate` targets.
 
 ### Fixed
@@ -109,8 +110,8 @@
 
 - **Build system**: migrated from `setup.py` to `pyproject.toml` (PEP 621).
 - **Version management**: `esd/__version__` now reads from package metadata via `importlib.metadata` instead of being hardcoded.
-- **HTTP layer**: replaced Playwright (Chromium headless) with `curl-cffi` for Sofascore and Promiedos APIs. Removes ~300 MB browser dependency and bypasses TLS fingerprinting via `impersonate="chrome"`.
-- **Dependencies**: `playwright>=1.58.0` replaced by `curl-cffi>=0.7`. Missing deps `lxml` and `httpx` now properly declared.
+- **HTTP layer**: replaced Playwright (Chromium headless) with `curl-cffi` for Sofascore and Promiedos APIs. Uses `impersonate="chrome"` for the HTTP browser fingerprint.
+- **Dependencies**: `playwright>=1.58.0` replaced by `curl-cffi>=0.7`. Declare `lxml` and `httpx` as dependencies.
 - **CI/CD**: workflows updated to use `pyproject.toml`-based builds (`python -m build`) and `ruff` instead of `pylint`.
 - **Type safety**: all string fields in `Team` dataclass default to `""` instead of `None`, preventing `TypeError` on `len()`.
 - **Public API**: `SofascoreClient()` no longer requires `browser_path` param; `close()` removed.

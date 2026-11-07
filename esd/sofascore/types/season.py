@@ -7,9 +7,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Season:
-    """
-    Tournament dataclass.
-    """
+    """A tournament season's name, period and source ID."""
 
     id: int = field(default=None)
     name: str = field(default=None)

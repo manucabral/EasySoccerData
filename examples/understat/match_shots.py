@@ -1,14 +1,6 @@
-"""
-In this example, we fetch the shotmap (pitch coordinates X, Y and xG)
-for a single match on Understat.
+"""Fetch Understat shots for a match and print outcomes, source coordinates and xG.
 
-The output will be something like:
-
-Found 24 shots
-
-12' [h] Bruno Fernandes - SavedShot (xG: 0.34, X: 0.88, Y: 0.49)
-87' [h] Joshua Zirkzee - Goal (xG: 0.12, X: 0.91, Y: 0.52)
-...
+Makes network requests when executed.
 """
 
 from __future__ import annotations

@@ -1,20 +1,6 @@
-"""
-In this example we will get the matches of a tournament.
+"""Fetch a Promiedos tournament and print matches in its selected stage.
 
-Output example:
-
-Champions League uefa-champions-league
-Current filter is Cuartos De Final
-Matches:
-Bayern Munich vs Inter Milan
-Arsenal vs Real Madrid
-FC Barcelona vs Borussia Dortmund
-PSG vs Aston Villa
-Borussia Dortmund vs FC Barcelona
-Aston Villa vs PSG
-Inter Milan vs Bayern Munich
-Real Madrid vs Arsenal
-
+Makes network requests when executed.
 """
 
 from esd import PromiedosClient, PromiedosTypes

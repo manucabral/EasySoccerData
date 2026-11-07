@@ -1,16 +1,6 @@
-"""
-In this example, we fetch a club's profile and squad valuation summary
-from Transfermarkt, as well as searching for entities by name.
+"""Fetch a Transfermarkt club profile and search for players, clubs and competitions.
 
-The output will be something like:
-
-Club: Manchester City (MCI)
-Squad Size: 24 | Average Age: 26.8
-Total Market Value: €1.26bn
-
-Search results for 'Messi':
-  [player] Lionel Messi (ID: 28003)
-...
+Makes network requests when executed.
 """
 
 from __future__ import annotations

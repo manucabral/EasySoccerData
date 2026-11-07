@@ -1,14 +1,6 @@
-"""
-In this example, we fetch the live/daily scoreboard for a league using
-the ESPN client.
+"""Fetch an ESPN league scoreboard and print teams, scores, status and venue.
 
-The output will be something like:
-
-Found 5 matches in Liga Profesional Argentina (arg.1)
-
-River Plate 2 - 1 Boca Juniors (FT) | Venue: Mâs Monumental
-Racing Club 1 - 0 Independiente (FT) | Venue: Presidente Perón
-...
+Makes network requests when executed.
 """
 
 from __future__ import annotations

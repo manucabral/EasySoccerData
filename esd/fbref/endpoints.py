@@ -33,11 +33,10 @@ class FBrefEndpoints:
 
     @property
     def league_players_endpoint(self) -> str:
-        """
-        Returns the URL of the endpoint to get league player stats.
-        Format args: comp_id, league_slug, stat_type.
-        stat_type selects the FBref stat category (e.g. "stats",
-        "shooting", "passing", "defense", "possession").
+        """Return the league player statistics URL.
+
+        comp_id and league_slug identify the competition. stat_type selects the
+        category, such as "stats", "shooting", "passing", "defense" or "possession".
         Example: /en/comps/9/stats/Premier-League-Stats
         """
         return self.base_url + "/comps/{comp_id}/{stat_type}/{league_slug}-Stats"

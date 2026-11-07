@@ -1,6 +1,4 @@
-"""
-FBref service module.
-"""
+"""Request rate limiting for FBref."""
 
 from __future__ import annotations
 

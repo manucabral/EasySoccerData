@@ -30,8 +30,6 @@ class Incident:
     Main incident dataclass.
     """
 
-    # id: int = d
-    # length: int = None
     time: int = field(default=None)
     reversed_period_time: int = field(default=None)
     type: str = field(default=None)

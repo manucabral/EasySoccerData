@@ -1,6 +1,4 @@
-"""
-Shot dataclass and parser.
-"""
+"""Sofascore shot events and parsers."""
 
 from dataclasses import dataclass, field
 
@@ -9,9 +7,7 @@ from .player import Player, parse_player
 
 @dataclass
 class Shot:
-    """
-    Shot dataclass.
-    """
+    """A shot with its player, goal-mouth location, outcome and expected goals."""
 
     player: Player = field(default=None)
     is_home: bool = field(default=False)

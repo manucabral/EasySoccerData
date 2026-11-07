@@ -1,21 +1,6 @@
-"""
-This example shows how to search for matchs.
-In this case, we search for matchs that contain the word "Manchester United".
+"""Search Sofascore for Manchester United matches and print their status and times.
 
-The output will be something like:
-
-Match ID: 12436602, Status: Not started
-Manchester United vs Manchester City
-Start time: 2025-04-06 12:30:00
---------------------
-Match ID: 12437005, Status: Not started
-Manchester United vs Arsenal
-Start time: 2025-03-09 13:30:00
---------------------
-Match ID: 12436625, Status: Ended
-Everton vs Manchester United
---------------------
-.......
+Makes network requests when executed.
 """
 
 import esd

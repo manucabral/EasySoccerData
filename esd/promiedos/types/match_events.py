@@ -1,6 +1,4 @@
-"""
-This module defines classes and functions for parsing and representing match events.
-"""
+"""Promiedos goals, cards, substitutions and match-phase parsers."""
 
 from dataclasses import dataclass, field
 from enum import Enum
@@ -8,9 +6,7 @@ from typing import Optional, Union
 
 
 class EventType(Enum):
-    """
-    Enumeration of possible event types in a match.
-    """
+    """Promiedos codes for goals, cards, substitutions and other incidents."""
 
     GOAL = 1
     PENALTY = 7
@@ -23,9 +19,7 @@ class EventType(Enum):
 
 @dataclass
 class Substitution:
-    """
-    Represents a substitution event in a match.
-    """
+    """The names of the incoming and outgoing players in a substitution."""
 
     player_in: str
     player_out: str
@@ -33,9 +27,7 @@ class Substitution:
 
 @dataclass
 class EventItem:
-    """
-    Represents a single event that occurred during a match.
-    """
+    """One match incident with time, team side, details and event type."""
 
     time: str
     is_home: bool
@@ -45,9 +37,7 @@ class EventItem:
 
 @dataclass
 class MatchEvents:
-    """
-    Aggregates all events that occurred during the different phases of a match.
-    """
+    """Match incidents grouped by half, extra time and penalty shootout."""
 
     first_half: list[EventItem] = field(default_factory=list)
     second_half: list[EventItem] = field(default_factory=list)
@@ -56,9 +46,7 @@ class MatchEvents:
 
 
 def get_event_type_by_id(event_id: int) -> Optional[EventType]:
-    """
-    Retrieves the EventType corresponding to a given event ID.
-    """
+    """Return the EventType for a source code, or None for an unknown code."""
     try:
         return EventType(event_id)
     except ValueError:
@@ -66,15 +54,7 @@ def get_event_type_by_id(event_id: int) -> Optional[EventType]:
 
 
 def parse_event_data(event_data: dict) -> EventItem:
-    """
-    Parses a single event data dictionary into an EventItem object.
-
-    Args:
-        event_data (dict): The dictionary containing event information.
-
-    Returns:
-        EventItem: The parsed EventItem object.
-    """
+    """Parse one source event, including substitution details."""
     event_type_value = event_data.get("type")
     event_type = get_event_type_by_id(event_type_value)
     texts = event_data.get("texts") or []
@@ -98,9 +78,7 @@ def parse_event_data(event_data: dict) -> EventItem:
 
 
 def parse_event_items(data: dict) -> list[EventItem]:
-    """
-    Parses a list of event data dictionaries into a list of EventItem objects.
-    """
+    """Parse the events in a match phase's rows."""
     events = []
     for row in data.get("rows", []):
         for event_data in row.get("events", []):
@@ -109,15 +87,7 @@ def parse_event_items(data: dict) -> list[EventItem]:
 
 
 def parse_match_events(data: list[dict]) -> MatchEvents:
-    """
-    Parses match events data into a MatchEvents object.
-
-    Args:
-        data (list[dict]): A list of dictionaries, each representing events from a match phase.
-
-    Returns:
-        MatchEvents: An object containing all parsed match events.
-    """
+    """Parse match phases into first-half, second-half, extra-time and penalty events."""
     length = len(data)
     return MatchEvents(
         first_half=parse_event_items(data[0]) if length > 0 else [],

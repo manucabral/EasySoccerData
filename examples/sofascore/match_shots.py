@@ -1,12 +1,6 @@
-"""
-This example shows how to get match shots.
-In this case, we get the shots of the first PSG vs Liverpool match.
+"""Fetch shots for a Sofascore match and print player, xG, body part and minute.
 
-The output will be something like:
-H. Elliott 0.14706888794899 0.21466222405434 left-foot 87
-O. Dembélé 0.029854614287615 0.37551274895668 left-foot 84
-Vitinha 0.026584554463625 0 right-foot 84
-and more...
+Makes network requests when executed.
 """
 
 from esd import SofascoreClient, SofascoreTypes

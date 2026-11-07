@@ -7,9 +7,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class StatsItem:
-    """
-    The stats item data.
-    """
+    """One match statistic with its home and away values."""
 
     home_value: str = field(default=0)
     home_percentage: str = field(default=0)
@@ -19,9 +17,7 @@ class StatsItem:
 
 @dataclass
 class MatchStats:
-    """
-    The match stats data.
-    """
+    """Team shot, possession, set-piece, card and foul statistics."""
 
     total_shots: StatsItem = field(default_factory=StatsItem)
     shots_on_target: StatsItem = field(default_factory=StatsItem)
@@ -54,7 +50,7 @@ def parse_match_stats(data: list[dict]) -> MatchStats:
         data (list[dict]): The match stats data.
 
     Returns:
-        MatchStats: The match stats
+        MatchStats: Parsed team statistics.
     """
     if not data or len(data) == 0:
         return MatchStats()

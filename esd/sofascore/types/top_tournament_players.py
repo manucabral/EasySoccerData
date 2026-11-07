@@ -24,9 +24,7 @@ class TopPlayerStat:
 
 @dataclass
 class TopPlayerItem:
-    """
-    Top player item.
-    """
+    """A player and the statistics used in a tournament ranking."""
 
     stat: TopPlayerStat = field(default_factory=TopPlayerStat)
     played_enough: bool = field(default=False)
@@ -36,9 +34,7 @@ class TopPlayerItem:
 
 @dataclass
 class TopTournamentPlayers:
-    """
-    Available top tournament players criteria.
-    """
+    """Tournament player rankings grouped by statistical category."""
 
     rating: list[TopPlayerItem] = field(default_factory=list)
     goals: list[TopPlayerItem] = field(default_factory=list)

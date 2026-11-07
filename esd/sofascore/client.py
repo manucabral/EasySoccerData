@@ -50,8 +50,8 @@ class SofascoreClient:
             use_playwright: If True, falls back to a real browser (system
                 Chrome) when curl_cffi is blocked by Sofascore's bot challenge.
             chrome_path: Optional path to Chrome executable.
-            headless: Run the browser headless (silent). Some challenges detect
-                headless, so headful is the default.
+            headless: Hide the Chrome window when True. Defaults to False.
+                Source challenges can block either browser mode.
         """
         self.__service = SofascoreService(
             proxies=proxies,
@@ -212,7 +212,7 @@ class SofascoreClient:
         self, team_id: int, upcoming: bool = False, page: int = 0
     ) -> list[Event]:
         """
-        Get the events (matchs) of a team.
+        Get a page of a team's past or upcoming matches.
 
         Args:
             team_id (int): The team id.

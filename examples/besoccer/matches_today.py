@@ -1,14 +1,6 @@
-"""
-In this example, we fetch today's matches from BeSoccer and print the
-competition, teams, score and match status/time.
+"""Fetch today's BeSoccer matches and print teams, scores and status.
 
-The output will be something like:
-
-Found 35 matches
-
-[Primera División Argentina] River Plate 2 - 1 Boca Juniors (Finalizado)
-[Premier League] Arsenal 3 - 0 Chelsea (Finalizado)
-...
+Makes network requests when executed.
 """
 
 from __future__ import annotations

@@ -1,6 +1,4 @@
-"""
-Client for interacting with 365Scores.
-"""
+"""365Scores client for matches, statistics, standings and search."""
 
 from __future__ import annotations
 
@@ -9,9 +7,7 @@ from .types import Game, GameStatItem, SearchResult, StandingTable
 
 
 class Scores365Client:
-    """
-    Client for interacting with the 365Scores API.
-    """
+    """Fetch matches, lineups, statistics and competition standings from 365Scores."""
 
     def __init__(
         self,

@@ -1,26 +1,6 @@
-"""
-In this example we will get all the stages of a tournament
-also we will get the matches of the first stage.
+"""Fetch Promiedos tournament stages, then print matches in the first stage.
 
-Output example:
-
-Fecha 1 False
-Fecha 2 False
-Fecha 3 False
-Fecha 4 False
-Fecha 5 False
-Fecha 6 False
-Fecha 7 False
-Fecha 8 False
-Playoff False
-Octavos de Final False
-Cuartos De Final True
-
-Monaco vs Aston Villa
-Atalanta vs Sturm Graz
-Slovan Bratislava vs Stuttgart
-and more...
-
+Makes network requests when executed.
 """
 
 from esd import PromiedosClient, PromiedosTypes

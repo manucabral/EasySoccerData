@@ -1,17 +1,6 @@
-"""
-In this example, we fetch a player's profile, current market value and
-historical market value progression from Transfermarkt.
+"""Fetch a Transfermarkt player profile and print recent market-value history.
 
-The output will be something like:
-
-Player: Lionel Messi (ID: 28003)
-Position: Right Winger | Age: 37 | Foot: left
-Current Market Value: €20.00m
-
-Market Value History (latest 5):
-  2024-12-13: €20.00m (age 37)
-  2024-06-13: €30.00m (age 36)
-...
+Makes network requests when executed.
 """
 
 from __future__ import annotations
