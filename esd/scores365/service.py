@@ -81,7 +81,10 @@ class Scores365Service:
             competition_id=competition_id,
         )
         data = self._fetch(url)
-        return parse_games(data)
+        games = parse_games(data)
+        if competition_id is not None:
+            games = [game for game in games if game.competition_id == competition_id]
+        return games
 
     def get_live_games(self, competition_id: int | None = None) -> list[Game]:
         """

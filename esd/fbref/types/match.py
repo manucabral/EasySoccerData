@@ -32,6 +32,11 @@ class Match:
     venue: str = field(default="")
     referee: str = field(default="")
     notes: str = field(default="")
+    date: str = field(default=None)
+    home_team_id: str = field(default=None)
+    away_team_id: str = field(default=None)
+    competition_id: str = field(default=None)
+    raw_score: str = field(default=None)
 
 
 def extract_text(cell: lxml.html.HtmlElement) -> str:
@@ -61,7 +66,11 @@ def extract_score(cell: lxml.html.HtmlElement) -> tuple[int, int]:
     """
     Extract the home and away scores from the cell.
     """
-    scores = _DIGITS_RE.findall(extract_text(cell))
+    text = extract_text(cell)
+    score = re.search(r"(\d+)(?:\s*\(\d+\))?\s*[–-]\s*(?:\(\d+\)\s*)?(\d+)", text)
+    if score:
+        return int(score.group(1)), int(score.group(2))
+    scores = _DIGITS_RE.findall(text)
     home = int(scores[0]) if len(scores) > 0 else 0
     away = int(scores[1]) if len(scores) > 1 else 0
     return home, away
@@ -115,7 +124,10 @@ def parse_matchs(data: lxml.html.HtmlElement) -> list[Match]:
 
             elif stat in {"home_team", "away_team"}:
                 data_stat[stat] = extract_team(cell)
+                team_link = re.search(r"/squads/([^/]+)", extract_href(cell))
+                data_stat[stat + "_id"] = team_link.group(1) if team_link else None
             elif stat == "score":
+                data_stat["raw_score"] = extract_text(cell)
                 home_score, away_score = extract_score(cell)
                 data_stat["home_score"] = home_score
                 data_stat["away_score"] = away_score
@@ -123,6 +135,9 @@ def parse_matchs(data: lxml.html.HtmlElement) -> list[Match]:
                 data_stat[stat] = extract_float(cell)
             else:
                 data_stat[stat] = extract_text(cell) or None
+                if stat == "comp":
+                    comp_link = re.search(r"/comps/(\d+)", extract_href(cell))
+                    data_stat["competition_id"] = comp_link.group(1) if comp_link else None
 
         match = Match(
             id=data_stat.get("id", ""),
@@ -141,6 +156,11 @@ def parse_matchs(data: lxml.html.HtmlElement) -> list[Match]:
             referee=data_stat.get("referee", ""),
             # match_report=data_stat.get("match_report", ""),
             notes=data_stat.get("notes", ""),
+            date=data_stat.get("date"),
+            home_team_id=data_stat.get("home_team_id"),
+            away_team_id=data_stat.get("away_team_id"),
+            competition_id=data_stat.get("competition_id"),
+            raw_score=data_stat.get("raw_score"),
         )
         matches.append(match)
 

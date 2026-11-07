@@ -26,6 +26,7 @@ class Status:
     name: str = field(default=None)
     short_name: str = field(default=None)
     symbol_name: str = field(default=None)
+    native_value: int = field(default=None)
 
 
 def parse_status(data: dict) -> Status:
@@ -42,4 +43,5 @@ def parse_status(data: dict) -> Status:
         name=data.get("name"),
         short_name=data.get("short_name"),
         symbol_name=data.get("symbol_name"),
+        native_value=raw_value,
     )

@@ -54,6 +54,7 @@ class Match:
     half_score: str = field(default="")
     home_score: int = field(default=0)
     away_score: int = field(default=0)
+    native_state: int | None = None
 
 
 @dataclass
@@ -148,6 +149,7 @@ def parse_matches(schedule: dict, team_map: dict[int, Team]) -> list[Match]:
                     half_score=_get(raw, 7, "") or "",
                     home_score=home_score,
                     away_score=away_score,
+                    native_state=_to_int(_get(raw, 2), None),
                 )
             )
     return matches

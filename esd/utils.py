@@ -174,25 +174,74 @@ def fetch_many(callables: list, max_workers: int = 8) -> list:
         return list(executor.map(_run, callables))
 
 
-def to_dataframe(objects: list):
+def to_dataframe(
+    objects: list,
+    *,
+    flatten: bool = False,
+    convert_dtypes: bool = False,
+    dtypes: dict | None = None,
+    datetime_columns: dict[str, str | None] | None = None,
+):
     """
     Convert a list of dataclass instances to a pandas DataFrame.
 
-    pandas is imported lazily, so it is only required when this function is
-    called. Nested dataclasses are flattened one level via ``dataclasses.asdict``.
+    Install ``EasySoccerData[pandas]`` to use this function. By default, nested
+    dataclasses become dictionaries and pandas infers types as before.
+
+    Args:
+        objects: Dataclass instances, one per output row.
+        flatten: Expand nested dictionaries into dot-separated columns, such
+            as ``home_team.name``. Lists remain in cells and are not exploded.
+        convert_dtypes: Infer nullable pandas types for scalar columns.
+            Inference depends on the values present. Use dtypes for a fixed schema.
+        dtypes: Optional mapping of column names to pandas types, applied after
+            inference, e.g. ``{"home_team.score": "Int64", "id": "string"}``.
+        datetime_columns: Mapping of columns to Unix timestamp units (``"s"``,
+            ``"ms"``, etc.) or None for date strings and datetime objects.
+            Dates are converted to UTC. Naive dates are treated as UTC, so
+            localize source-local times before calling. Invalid dates raise.
+
+    Empty input has no columns unless dtypes or datetime_columns define them.
+    Unknown columns in nonempty input raise KeyError. A date column cannot also
+    appear in dtypes. Missing values stay missing, while zero stays zero.
 
     Example:
         from esd import GoalooClient
         from esd.utils import to_dataframe
 
         client = GoalooClient()
-        df = to_dataframe(client.get_standings(36))
+        df = to_dataframe(client.get_standings(36), flatten=True, convert_dtypes=True)
     """
     from dataclasses import asdict
 
-    import pandas as pd
+    try:
+        import pandas as pd
+    except ModuleNotFoundError as exc:
+        if exc.name != "pandas":
+            raise
+        raise ImportError(
+            'to_dataframe requires pandas. Install it with pip install "EasySoccerData[pandas]".'
+        ) from exc
 
-    return pd.DataFrame([asdict(obj) for obj in objects])
+    dtypes = dtypes or {}
+    datetime_columns = datetime_columns or {}
+    if dtypes.keys() & datetime_columns.keys():
+        raise ValueError("Date columns must be declared only in datetime_columns")
+    records = [asdict(obj) for obj in objects]
+    frame = pd.json_normalize(records, sep=".") if flatten else pd.DataFrame(records)
+    for column in dict.fromkeys([*dtypes, *datetime_columns]):
+        if column not in frame:
+            if records:
+                raise KeyError(f"Unknown DataFrame column: {column}")
+            frame[column] = pd.Series(dtype="object")
+    if convert_dtypes:
+        frame = frame.convert_dtypes()
+    if dtypes:
+        frame = frame.astype(dtypes)
+    for column, unit in datetime_columns.items():
+        options = {"unit": unit} if unit is not None else {"format": "mixed"}
+        frame[column] = pd.to_datetime(frame[column], utc=True, errors="raise", **options)
+    return frame
 
 
 class BrowserSession:
@@ -256,9 +305,16 @@ class BrowserSession:
         if self._browser is None:
             self._launch()
         page = self._browser.new_page()
-        page.add_init_script(
-            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
-        )
+        try:
+            page.add_init_script(
+                "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+            )
+        except Exception:
+            try:
+                page.close()
+            except Exception:
+                pass
+            raise
         return page
 
     @contextmanager

@@ -2,6 +2,8 @@
 Unit tests for ESPN parsers.
 """
 
+import pytest
+
 from esd.espn.service import _normalize_espn_date
 from esd.espn.types import (
     parse_scoreboard,
@@ -15,6 +17,58 @@ def test_normalize_espn_date():
     assert _normalize_espn_date("today") is None
     assert _normalize_espn_date("2026-11-06") == "20261106"
     assert _normalize_espn_date("20261106") == "20261106"
+
+
+@pytest.mark.parametrize("away_first", [False, True])
+@pytest.mark.parametrize("identity", ["id", "homeAway", "both"])
+def test_summary_assigns_teams_independently_of_order(away_first, identity):
+    sides = ["home", "away"]
+    if away_first:
+        sides.reverse()
+    groups = []
+    rosters = []
+    for side in sides:
+        metadata = {}
+        if identity in ("id", "both"):
+            metadata["team"] = {"id": side}
+        if identity in ("homeAway", "both"):
+            metadata["homeAway"] = side
+        groups.append({
+            **metadata,
+            "statistics": [{"name": "shots", "displayValue": side}],
+        })
+        rosters.append({
+            **metadata,
+            "roster": [{"athlete": {"id": side, "fullName": side}}],
+        })
+    summary = parse_summary({
+        "header": {"competitions": [{"competitors": [
+            {"homeAway": side, "team": {"id": side}} for side in sides
+        ]}]},
+        "boxscore": {"teams": groups},
+        "rosters": rosters,
+    })
+    assert [stat.value for stat in summary.home_stats] == ["home"]
+    assert [stat.value for stat in summary.away_stats] == ["away"]
+    assert [player.id for player in summary.home_roster] == ["home"]
+    assert [player.id for player in summary.away_roster] == ["away"]
+
+
+def test_summary_uses_position_when_team_metadata_is_missing():
+    summary = parse_summary({
+        "boxscore": {"teams": [
+            {"statistics": [{"displayValue": "12"}]},
+            {"statistics": [{"displayValue": "7"}]},
+        ]},
+        "rosters": [
+            {"roster": [{"athlete": {"id": "home"}}]},
+            {"roster": [{"athlete": {"id": "away"}}]},
+        ],
+    })
+    assert summary.home_stats[0].value == "12"
+    assert summary.away_stats[0].value == "7"
+    assert summary.home_roster[0].id == "home"
+    assert summary.away_roster[0].id == "away"
 
 
 def test_parse_espn_scoreboard_and_summary():

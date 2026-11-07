@@ -49,6 +49,7 @@ class Match:
     players: Players = field(default_factory=Players)
     stats: MatchStats = field(default_factory=MatchStats)
     events: MatchEvents = field(default_factory=MatchEvents)
+    raw_start_time: str = field(default=None)
 
 
 def parse_match(data: dict) -> Match:
@@ -87,6 +88,7 @@ def parse_match(data: dict) -> Match:
         slug=data.get("url_name", ""),
         status=parse_status(data.get("status", {})),
         start_time=start_ts,
+        raw_start_time=date_str,
         current_time=data.get("game_time", 0),
         time_to_display=data.get("game_time_to_display", ""),
         time_status_to_display=data.get("game_time_status_to_display", ""),

@@ -2,6 +2,8 @@
 Contains the event data types and parsers (also known as matches).
 """
 
+from __future__ import annotations
+
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -79,6 +81,8 @@ class Event:
     start_timestamp: int = field(default=0)
     slug: str = field(default="")
     round_info: RoundInfo = field(default_factory=RoundInfo)
+    source_season_id: int | None = None
+    unique_tournament_id: int | None = None
 
     # some fields are not included
     # custom_id: int = field(default=0)
@@ -211,6 +215,8 @@ def parse_event(data: dict) -> Event:
         away_score=parse_team_score(data.get("awayScore", {})),
         status=parse_status(data.get("status", {})),
         round_info=parse_round_info(data.get("roundInfo", {})),
+        source_season_id=(data.get("season") or {}).get("id"),
+        unique_tournament_id=((data.get("tournament") or {}).get("uniqueTournament") or {}).get("id"),
     )
 
 

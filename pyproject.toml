@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=75", "wheel"]
+requires = ["setuptools>=77.0.3", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,8 @@ name = "EasySoccerData"
 version = "0.1.0"
 description = "A simple python package for extracting real-time soccer data from diverse online sources, providing essential statistics and insights."
 readme = "README.md"
-license = "GPL-3.0"
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{name = "Manuel Cabral"}]
 requires-python = ">=3.9"
 keywords = [
@@ -69,6 +70,13 @@ dev = [
 ]
 pandas = [
     "pandas>=2.0",
+]
+parquet = [
+    "pyarrow>=17.0",
+]
+full = [
+    "pandas>=2.0",
+    "pyarrow>=17.0",
 ]
 
 [tool.setuptools.packages.find]

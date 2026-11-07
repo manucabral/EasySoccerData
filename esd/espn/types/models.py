@@ -78,6 +78,19 @@ class ESPNKeyEvent:
 
 
 @dataclass
+class ESPNSeasonCalendar:
+    """Source calendar snapshot. Season is ESPN's season year, not an end year."""
+
+    league: str
+    season: int
+    dates: tuple[str, ...]
+    name: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+    calendar_type: str = "day"
+
+
+@dataclass
 class ESPNMatch:
     """
     A match from the ESPN scoreboard.
@@ -233,6 +246,20 @@ def _parse_roster_list(roster_entries: list[dict]) -> list[ESPNRosterPlayer]:
     return players
 
 
+def _summary_side(group: dict, index: int, home: ESPNTeam, away: ESPNTeam) -> str:
+    """Resolve team identity before falling back to the source's list order."""
+    team_id = (group.get("team") or {}).get("id")
+    if team_id is not None:
+        if home.id is not None and str(team_id) == home.id:
+            return "home"
+        if away.id is not None and str(team_id) == away.id:
+            return "away"
+    side = group.get("homeAway")
+    if side in ("home", "away"):
+        return side
+    return "home" if index == 0 else "away"
+
+
 def parse_summary(data: dict) -> ESPNMatchSummary:
     """
     Parse an ESPN match summary payload.
@@ -256,7 +283,6 @@ def parse_summary(data: dict) -> ESPNMatchSummary:
     home_stats: list[ESPNStatItem] = []
     away_stats: list[ESPNStatItem] = []
     for idx, bt in enumerate(box_teams):
-        t_id = str((bt.get("team") or {}).get("id") or "")
         stats = [
             ESPNStatItem(
                 name=s.get("name"),
@@ -265,7 +291,7 @@ def parse_summary(data: dict) -> ESPNMatchSummary:
             )
             for s in (bt.get("statistics") or [])
         ]
-        if (home_team.id and t_id == home_team.id) or idx == 0:
+        if _summary_side(bt, idx, home_team, away_team) == "home":
             home_stats = stats
         else:
             away_stats = stats
@@ -274,7 +300,7 @@ def parse_summary(data: dict) -> ESPNMatchSummary:
     away_roster: list[ESPNRosterPlayer] = []
     for idx, r_group in enumerate(data.get("rosters") or []):
         roster_list = _parse_roster_list(r_group.get("roster") or [])
-        if r_group.get("homeAway") == "home" or idx == 0:
+        if _summary_side(r_group, idx, home_team, away_team) == "home":
             home_roster = roster_list
         else:
             away_roster = roster_list

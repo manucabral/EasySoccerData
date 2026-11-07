@@ -20,7 +20,9 @@ class ESPNEndpoints:
         self.site_base_url = site_base_url.rstrip("/")
         self.v2_base_url = v2_base_url.rstrip("/")
 
-    def scoreboard(self, league: str = "all", dates: str | None = None) -> str:
+    def scoreboard(
+        self, league: str = "all", dates: str | None = None, *, limit: int | None = None
+    ) -> str:
         """
         Return the scoreboard URL for a league (e.g. ``"arg.1"``, ``"eng.1"``,
         ``"esp.1"``, ``"uefa.champions"``, ``"conmebol.libertadores"``, ``"all"``).
@@ -29,6 +31,8 @@ class ESPNEndpoints:
         url = f"{self.site_base_url}/{quote(league)}/scoreboard"
         if dates:
             url += f"?dates={quote(dates)}"
+        if limit is not None:
+            url += ("&" if dates else "?") + f"limit={limit}"
         return url
 
     def summary(self, event_id: int | str, league: str = "all") -> str:
