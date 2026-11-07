@@ -7,6 +7,7 @@
 - Champions League date-range example using the base installation, with UTC bounds, nullable scores and partial-result reporting.
 - Persistent response cache and forced refresh flags in the Champions League example, with cached-day counts and failed-day recovery.
 - Champions League Parquet export and offline read flags, preserving empty tables, partial coverage and errors without pandas.
+- Offline pandas analysis of Champions League snapshots, with UTC fixtures, team-ID summaries and explicit exclusions for unfinished or incomplete results.
 - Live dataset check command with per-provider time and request limits, structured results and explicit report paths.
 - Dataset guide, example index and offline examples of partial results, cache reuse, refresh, nullable analysis and ambiguous match linkage.
 - Configurable provider example CLI with selection overrides, record previews, optional snapshot output and explicit exit codes.

@@ -92,6 +92,17 @@ to display the saved results without source requests. Empty tables, task coverag
 and errors survive export. Opening a partial snapshot still reports its failures
 and returns exit code `1`. No pandas installation is needed.
 
+To analyze the saved range with pandas, install `".[pandas,parquet]"` or `".[full]"`
+and run `python examples/pandas/champions_analysis.py ./my-data/champions-snapshot-1`.
+The [analysis example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/pandas/champions_analysis.py)
+lists matches in UTC and groups finished results by source and team ID. It excludes
+unknown scores, invalid team IDs and statuses other than 365Scores group `4` from
+the summary, while retaining those matches in the fixture list. Goals remain as
+stored, without inferring shootout winners. The summary covers the saved dates
+and does not reproduce official standings. Partial downloads retain their errors.
+Use `match_records` or the download example's `--open-dir` to read the same
+fixtures without pandas.
+
 ## Partial downloads
 
 `complete` means that every requested task succeeded. It does not establish that

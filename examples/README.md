@@ -12,9 +12,9 @@ for both. The base library and identity-linking helpers require neither extra.
 
 ## Offline examples
 
-These scripts use artificial records or mocked source responses. They do not
-contact a provider or launch a browser. Temporary-file examples clean up after
-themselves.
+These scripts do not contact a provider or launch a browser. Most use artificial
+records or mocked responses. The Champions League analysis reads your saved
+snapshot. Temporary-file examples clean up after themselves.
 
 | Script | Extra | Behavior shown |
 | :--- | :--- | :--- |
@@ -26,6 +26,7 @@ themselves.
 | [Common provider tables](pandas/normalized_tables.py) | pandas | ESPN/365Scores columns and source-local identifiers |
 | [Dataset analysis](pandas/dataset_analysis.py) | pandas | Unknown scores, UTC dates and validated team joins |
 | [Snapshot round trip](datasets/parquet_roundtrip.py) | parquet | Save/open without pandas or network access |
+| [Champions League analysis](pandas/champions_analysis.py) | pandas + parquet | Read a saved snapshot and summarize finished matches by team ID |
 
 Run the applicable set with network and browser calls blocked:
 
@@ -35,6 +36,43 @@ python scripts/check_examples.py --extra full
 ```
 
 Install the matching extras before choosing `pandas`, `parquet` or `full`.
+The Champions League analysis needs a snapshot path. The runner checks its
+`--help` in every environment without requiring optional packages or a file.
+
+### Analyze a saved Champions League snapshot
+
+After exporting matches with `datasets/champions_league.py --output-dir`, run:
+
+```sh
+python -m pip install -e ".[pandas,parquet]"
+python examples/pandas/champions_analysis.py "./my-data/champions-snapshot-1"
+```
+
+`[full]` includes both dependencies. Analysis reads the snapshot without source
+requests or new files. It lists matches by UTC kickoff, keeping unknown scores
+as `<NA>`, and prints a team summary for the saved date range. The summary shows
+played, wins, draws, losses, goals for, goals against and goal difference.
+
+Only 365Scores status group `4` is counted as finished. Both scores must be
+known and nonnegative, and both teams must have distinct native IDs. Other
+matches remain in the fixture list, with counts explaining their exclusion from
+the summary. Team names are display labels. Grouping uses `(source, team_id)`,
+so two teams with the same name remain separate.
+
+Results compare the stored goals. They do not determine shootout winners or
+qualification. The summary covers only the matches in the file and is not the
+official Champions League standings. A partial snapshot still produces a summary,
+reports its saved errors on stderr and exits with `1`. Complete snapshots,
+including empty ones, return `0`. Invalid snapshots or missing extras return `2`.
+
+To read the same records without pandas, keep only the Parquet extra and run:
+
+```sh
+python examples/datasets/champions_league.py --open-dir "./my-data/champions-snapshot-1"
+```
+
+Or iterate over `esd.open_dataset(path).match_records` in Python. That path
+requires PyArrow and does not import pandas.
 
 ## Live dataset queries
 
