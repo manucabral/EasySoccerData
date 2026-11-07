@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+      - 'release/**'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -24,13 +28,27 @@ jobs:
           pip install .[dev] pdoc
 
       - name: Build docs
-        run: pdoc esd -o ./docs
+        run: >-
+          python -W error -m pdoc
+          ./esd ./esd/datasets.py ./esd/cache.py ./esd/compatibility.py
+          ./esd/dataset_capabilities.py ./esd/normalized
+          ./esd/espn ./esd/sofascore ./esd/fbref ./esd/promiedos ./esd/goaloo
+          ./esd/scores365 ./esd/understat ./esd/transfermarkt ./esd/besoccer
+          -o ./site-docs
+
+      - name: Upload documentation preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-documentation
+          path: site-docs/
 
       - uses: actions/upload-pages-artifact@v3
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
-          path: docs/
+          path: site-docs/
 
   deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     permissions:

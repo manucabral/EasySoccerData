@@ -32,7 +32,7 @@ from .normalized import (
 
 @dataclass(frozen=True)
 class DatasetIssue:
-    """A failed calendar lookup, day or standings request."""
+    """A failed source request or parsing task, including entity/history queries."""
 
     step: str
     target: str
@@ -55,7 +55,20 @@ class DatasetProgress:
 
 @dataclass(frozen=True)
 class DatasetMetadata:
-    """Query context and coverage of the source calendar snapshot."""
+    """Selection, download coverage and original response timestamps.
+
+    source/league identify the queried provider and its native competition.
+    season is a caller year label; source_season_id and source_season preserve
+    provider selection separately. coverage_scope is season, date_range or
+    entities. Transfermarkt profiles are current and histories span seasons.
+
+    ESPN reports calendar_dates/successful_dates and calendar_loaded. Other
+    loaders report expected_tasks/successful_tasks. Progress totals may grow
+    as pages or shot requests are discovered. Neither form proves that the
+    source lists every fixture. response_fetched_at pairs task keys with their
+    original UTC ISO timestamps; cached_tasks identifies reused responses.
+    started_at/finished_at describe this loader invocation, including cache hits.
+    """
 
     source: str
     league: str
@@ -111,6 +124,7 @@ class SoccerDataset:
 
     @property
     def complete(self) -> bool:
+        """Whether all requested download tasks succeeded; not season finality."""
         meta = self.metadata
         if meta.expected_tasks:
             return not self.errors and set(meta.expected_tasks) == set(meta.successful_tasks)
@@ -132,7 +146,7 @@ class SoccerDataset:
 
     @property
     def teams(self):
-        """Teams with known IDs observed in downloaded matches."""
+        """Known-ID teams from matches, Goaloo metadata or selected TM clubs."""
         return self._dataframe(self.team_records, "teams")
 
     @property
@@ -142,26 +156,32 @@ class SoccerDataset:
 
     @property
     def match_stats(self):
+        """FBref or Understat match metrics; source xG models remain distinct."""
         return self._dataframe(self.match_stat_records, "match_stats")
 
     @property
     def player_stats(self):
+        """Understat player-season aggregations, including native club-name strings."""
         return self._dataframe(self.player_stat_records, "player_stats")
 
     @property
     def shots(self):
+        """Understat shots with native coordinates, without pitch conversion."""
         return self._dataframe(self.shot_records, "shots")
 
     @property
     def players(self):
+        """Current Transfermarkt profiles, not a historical season roster."""
         return self._dataframe(self.player_records, "players")
 
     @property
     def market_values(self):
+        """Full valuation histories, retaining native dates and currencies."""
         return self._dataframe(self.market_value_records, "market_values")
 
     @property
     def transfers(self):
+        """Full transfer histories; fee currency is not inferred from display text."""
         return self._dataframe(self.transfer_records, "transfers")
 
     def save(self, path: str | PathLike, *, format: str = "parquet") -> Path:
@@ -204,7 +224,7 @@ class DatasetLoadError(ESDException):
 def load_dataset(
     *,
     source: str,
-    league: str,
+    league: str | int,
     season: int | str,
     tables: Sequence[str] = ("matches",),
     proxies: dict | None = None,

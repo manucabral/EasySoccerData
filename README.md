@@ -13,6 +13,11 @@ A simple python package for extracting real-time soccer/football data from diver
 
 
 # Installation
+
+The dataset APIs below are under development for **0.2.0**. Until that version
+is published, use the source checkout to run these examples. The PyPI command
+installs the latest published version, which may not contain these APIs.
+
 ```
 pip install EasySoccerData
 ```
@@ -21,8 +26,15 @@ pip install EasySoccerData
 ```
 git clone https://github.com/manucabral/EasySoccerData.git
 cd EasySoccerData
-pip install -e .[dev]
+git switch release/0.2.0
+python -m pip install -e ".[dev,full]"
 ```
+
+`[full]` installs optional runtime features. Use `python -m pip install -e .`
+for the base library, `".[pandas]"` for DataFrames or `".[parquet]"` for snapshots.
+Start with the [dataset cookbook](guides/datasets.md) and
+[example index](examples/README.md). The index identifies offline examples,
+network access and required extras.
 
 # Usage
 
@@ -658,11 +670,15 @@ All contributions, bug reports, fixes, and ideas are welcome.
 python -m pip install ".[dev,full]"
 python -m ruff check esd tests scripts
 python -m pytest
+python scripts/check_examples.py --extra full
 python -m build
 ```
 
 The installation workflow checks the built wheel in isolated base, pandas,
 parquet and full environments on Python 3.9–3.13, on Linux and Windows.
+The docs workflow builds the cookbook and API reference from local sources,
+including the nine provider modules. Release branches and pull requests get a
+downloadable preview artifact; only pushes to main deploy GitHub Pages.
 `scripts/check_install.py --extra base` verifies an installed distribution,
 including optional dependency boundaries; it should run in the clean environment
 being checked. Browser binaries and live provider access are not required.

@@ -7,6 +7,13 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class DatasetCapabilities:
+    """Implemented tables, selection kind and source-specific constraints.
+
+    tables lists normalized tables accepted by load_dataset(). selection names
+    the provider's query scope (season_year, native_season_id, source_season,
+    date_range or entities). notes describes required inputs and limitations.
+    This contract does not assert current network availability.
+    """
     source: str
     tables: tuple[str, ...]
     selection: str
@@ -28,7 +35,7 @@ _CAPABILITIES = {
         "Shot coordinates retain Understat's native convention; shots are opt-in.",
     )),
     "fbref": DatasetCapabilities("fbref", ("matches", "teams", "match_stats"), "date_range", (
-        "Explicit dates and numeric competition ID; minimum 3 seconds between requests.",
+        "Explicit dates and numeric competition ID; minimum 60/9 seconds between requests.",
         "Naive kickoff times need source_timezone. Unidentified fixtures fail explicitly.",
     )),
     "goaloo": DatasetCapabilities("goaloo", ("matches", "teams", "standings"), "source_season", (
@@ -51,8 +58,12 @@ _CAPABILITIES = {
 }
 
 
-def get_dataset_capabilities(source: str | None = None):
-    """Get an immutable source contract, or a copy of the full capability mapping."""
+def get_dataset_capabilities(source: str | None = None) -> DatasetCapabilities | dict[str, DatasetCapabilities]:
+    """Get one immutable source contract, or a copy of all nine contracts.
+
+    source=None returns a new mapping keyed by source name. Unknown source names
+    raise ValueError. No network request, optional import or file write occurs.
+    """
     if source is None:
         return dict(_CAPABILITIES)
     if source not in _CAPABILITIES:

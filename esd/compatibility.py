@@ -38,12 +38,19 @@ class IdentityMap:
             self._aliases[key] = alias.canonical_id
 
     def resolve(self, kind, source, source_id):
+        """Return the caller's canonical competition/team ID, or None if unmapped."""
         return self._aliases.get((kind, source, str(source_id))) if source_id is not None else None
 
 
 @dataclass(frozen=True)
 class DatasetCompatibility:
-    """Schema compatibility is distinct from verified source identities."""
+    """Schema validity, explicit identity coverage and diagnostic messages.
+
+    identity_compatible checks competition and team mappings, not player
+    identities or metric equivalence. issues also includes informational notes
+    about partial coverage and source semantics; a nonempty issues tuple does
+    not necessarily mean schema_compatible is false.
+    """
 
     shared_tables: tuple[str, ...]
     schema_compatible: bool
@@ -52,6 +59,12 @@ class DatasetCompatibility:
 
     @property
     def can_match(self):
+        """Whether schemas, match selection and identity coverage permit linkage.
+
+        This is a precondition check. It does not promise any linked games:
+        kickoff times can be absent, outside tolerance or ambiguous. The linker
+        can still produce partial links with incomplete identity coverage.
+        """
         return (
             self.schema_compatible and self.identity_compatible and "matches" in self.shared_tables
         )

@@ -2,7 +2,18 @@
 
 ## [Unreleased]
 
-## [0.2.0] - 2026-11-06
+### Added
+
+- Dataset cookbook, example index and offline demonstrations of partial results, cache reuse, refresh, nullable analysis and ambiguous match linkage.
+- Configurable provider example CLI with selection overrides, record previews, optional snapshot output and explicit exit codes.
+- Automated offline example checks across installation extras, with HTTP and browser access blocked.
+
+### Fixed
+
+- Documentation generation targets local sources and treats warnings as errors, preventing missing README includes from silently passing.
+- API documentation clarifies task coverage, source timestamps, entity scopes and compatibility preconditions.
+
+## [0.2.0] - unreleased
 
 ### Fixed
 
