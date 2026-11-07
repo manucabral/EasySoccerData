@@ -33,7 +33,7 @@ def sample(source, league, match_id, home_id, away_id):
 
 
 def main():
-    # These are artificial IDs, not a catalogue of real-world equivalences.
+    # Sample aliases for the artificial records above.
     left = sample("espn", "example-league-a", "native-match-a", "native-home-a", "native-away-a")
     right = sample(
         "understat", "example-league-b", "native-match-b", "native-home-b", "native-away-b"
@@ -55,7 +55,7 @@ def main():
         print(link.left_source, link.left_match_id, "->", link.right_source, link.right_match_id)
     print("Unmatched:", result.unmatched_left, result.unmatched_right)
     print("Ambiguous:", result.ambiguous_left, result.ambiguous_right)
-    # Two candidates are reported, rather than selecting one arbitrarily.
+    # Two candidates leave this match ambiguous and unlinked.
     duplicate = replace(right.match_records[0], match_id="second-candidate")
     ambiguous = esd.link_dataset_matches(
         left,

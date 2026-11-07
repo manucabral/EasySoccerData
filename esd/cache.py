@@ -22,7 +22,7 @@ class CacheError(ESDException):
 
 @dataclass(frozen=True)
 class CachePolicy:
-    """Freshness in seconds. Zero forces a new request; defaults are conservative.
+    """Response lifetimes in seconds. Zero forces a new request.
 
     Historical TTL applies only to empty days or events explicitly completed,
     older than recent_days. Pending/unknown events in the past use live_ttl.

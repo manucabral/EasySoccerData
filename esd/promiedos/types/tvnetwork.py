@@ -1,5 +1,5 @@
 """
-This module contains the TVNetwork class.
+Promiedos match broadcasters and parser.
 """
 
 from dataclasses import dataclass, field

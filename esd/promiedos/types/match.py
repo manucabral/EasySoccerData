@@ -1,5 +1,5 @@
 """
-This module contains the Match dataclass and its parser.
+Promiedos match details and parser.
 """
 
 from dataclasses import dataclass, field

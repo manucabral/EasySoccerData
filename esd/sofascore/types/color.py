@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 @dataclass
 class Color:
     """
-    A class to represent a color.
+    Primary, secondary and text colors reported by Sofascore.
     """
 
     primary: str = field(default="#000000")

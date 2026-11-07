@@ -1,5 +1,5 @@
 """
-This module contains the endpoints of the 365Scores API.
+365Scores match, standings and search URLs.
 """
 
 from __future__ import annotations

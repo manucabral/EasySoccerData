@@ -1,5 +1,5 @@
 """
-This module contains the client class for interacting with the FBref website.
+FBref client for schedules, match reports and player statistics.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ _logger = get_logger("fbref.client")
 
 class FBrefClient:
     """
-    A class to represent the client for interacting with the FBref website.
+    Fetch schedules, match reports and league player statistics from FBref.
     """
 
     def __init__(
@@ -39,11 +39,12 @@ class FBrefClient:
                 Defaults to False (curl_cffi is preferred for FBref).
             chrome_path: Optional path to Chrome executable.
             use_curl_cffi: If True, uses curl_cffi with browser impersonation
-                to bypass Cloudflare. Defaults to True.
+                for HTTP requests. Defaults to True.
             impersonate: Browser fingerprint for curl_cffi (default "chrome").
-            delay: Minimum seconds between requests (default 3.0).
-            headless: Run Playwright headless. Defaults to False. Headful
-                Chrome is required to pass Cloudflare's challenge.
+            delay: Backend delay in seconds (default 3.0). The service also limits
+                requests to 9 per 60 seconds.
+            headless: Hide the Chrome window when True. Defaults to False.
+                Source challenges can block either browser mode.
         """
         self.__service = FBrefService(
             language=language,
@@ -64,13 +65,13 @@ class FBrefClient:
 
     def get_matchs(self, date: str = None) -> list[Match]:
         """
-        Get the scheduled matchs.
+        Get the scheduled matches.
 
         Args:
-            date (str): The date of the matchs in the format "YYYY-MM-DD".
+            date (str): The date of the matches in the format "YYYY-MM-DD".
 
         Returns:
-            list[Match]: The scheduled matchs.
+            list[Match]: The scheduled matches.
         """
         return self.__service.get_matchs(date)
 

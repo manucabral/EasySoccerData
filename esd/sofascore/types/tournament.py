@@ -1,5 +1,5 @@
 """
-This module contains the dataclasses for the tournament data.
+Sofascore tournament metadata and parsers.
 """
 
 from dataclasses import dataclass, field

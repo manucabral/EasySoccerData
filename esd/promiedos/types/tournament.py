@@ -1,5 +1,5 @@
 """
-This module contains the
+Promiedos tournament stages and parsers.
 """
 
 from dataclasses import dataclass, field
@@ -10,7 +10,7 @@ from .league import League, parse_league
 @dataclass
 class Stage:
     """
-    The tournament filter class.
+    A tournament stage, including its selected state.
     """
 
     id: str = field(default=None)
@@ -21,7 +21,7 @@ class Stage:
 @dataclass
 class Tournament:
     """
-    The tournament class.
+    Tournament league metadata and available stages.
     """
 
     league: League = field(default_factory=League)
@@ -29,8 +29,7 @@ class Tournament:
 
     def current_stage(self) -> Stage:
         """
-        Get the current stage of the tournament.
-        Useful to get the matches.
+        Return the selected stage, or None if no stage is selected.
         """
         return next(filter(lambda f: f.selected, self.stages), None)
 

@@ -1,11 +1,11 @@
 """
-This module contains the endpoints of the Promiedos API.
+Promiedos event, match and tournament URLs.
 """
 
 
 class PromiedosEndpoints:
     """
-    A class to represent the endpoints of the Promiedos API.
+    URL builders for Promiedos requests.
     """
 
     def __init__(self, base_url: str = "https://api.promiedos.com.ar/") -> None:

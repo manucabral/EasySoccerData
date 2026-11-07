@@ -1,5 +1,5 @@
 """
-This module contains the client class for interacting with the Sofascore API.
+Sofascore client for matches, teams, players and tournaments.
 """
 
 from __future__ import annotations
@@ -32,8 +32,7 @@ _logger = get_logger("sofascore.client")
 
 class SofascoreClient:
     """
-    Client for interacting with the Sofascore website.
-    This class provides methods to access and retrieve data from Sofascore.
+    Fetch matches, teams, players and tournaments from Sofascore.
     """
 
     def __init__(
@@ -68,7 +67,7 @@ class SofascoreClient:
 
         Args:
             date (str): The date of the events in the format "YYYY-MM-DD" or "today".
-            live (bool): Whether to get the live events (more precise).
+            live (bool): Fetch live events instead of the selected date's schedule.
 
         Returns:
             list[Event]: The scheduled events.
@@ -228,7 +227,6 @@ class SofascoreClient:
     def get_tournaments(self, category_id: Category) -> list[Tournament]:
         """
         Get the tournaments by category.
-        TODO: maybe add a argument to include seasons.
 
         Args:
             category_id (Category): The category id.

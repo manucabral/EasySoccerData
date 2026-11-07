@@ -105,9 +105,9 @@ class DatasetMetadata:
 class SoccerDataset:
     """In-memory records. DataFrame properties import pandas only on access.
 
-    complete means every task for the received calendar succeeded, not that the
-    provider calendar is exhaustive or that the season has finished. Standings
-    are a source snapshot for that season, not historical standings per matchday.
+    complete reports whether every requested task succeeded. The provider may
+    list an unfinished season or omit fixtures. Standings reflect the source
+    table at download time; they are not reconstructed for each matchday.
     """
 
     metadata: DatasetMetadata
@@ -124,7 +124,7 @@ class SoccerDataset:
 
     @property
     def complete(self) -> bool:
-        """Whether all requested download tasks succeeded; not season finality."""
+        """True when every requested download task succeeded."""
         meta = self.metadata
         if meta.expected_tasks:
             return not self.errors and set(meta.expected_tasks) == set(meta.successful_tasks)
@@ -146,7 +146,7 @@ class SoccerDataset:
 
     @property
     def teams(self):
-        """Known-ID teams from matches, Goaloo metadata or selected TM clubs."""
+        """Teams with source IDs from matches, Goaloo metadata or selected Transfermarkt clubs."""
         return self._dataframe(self.team_records, "teams")
 
     @property
@@ -171,7 +171,7 @@ class SoccerDataset:
 
     @property
     def players(self):
-        """Current Transfermarkt profiles, not a historical season roster."""
+        """Transfermarkt profiles as reported at download time, across the selected players."""
         return self._dataframe(self.player_records, "players")
 
     @property
@@ -247,10 +247,11 @@ def load_dataset(
 ) -> SoccerDataset:
     """Download normalized tables with a provider-specific selection contract.
 
-    All nine sources have dataset plans. See
-    get_dataset_capabilities() for supported tables. season is a four-digit
-    year label, not a native season ID. Sofascore requires season_id and fetches
-    past/upcoming pages; max_pages limits each direction. 365Scores requires
+    For each source's required inputs and supported tables, see
+    get_dataset_capabilities(). season is a four-digit year label. Use
+    season_id or source_season for native season selection where required.
+    Sofascore requires season_id and fetches past/upcoming pages; max_pages
+    limits each direction. 365Scores requires
     explicit UTC start_date/end_date for matches and native season_id for
     standings. Its season year is a caller label. Understat offers optional
     match_stats, player_stats and shots; match_ids restricts shot downloads to

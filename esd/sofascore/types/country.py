@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 @dataclass
 class Country:
     """
-    A class to represent a country.
+    Country metadata reported by Sofascore.
     """
 
     # alpha2: str = field(default="")

@@ -1,5 +1,5 @@
 """
-This module contains utility functions that are used in the project.
+HTTP transports, response caching, browser sessions and DataFrame conversion.
 """
 
 from __future__ import annotations
@@ -624,9 +624,8 @@ def get_document_playwright(
     """
     Get the HTML document using Playwright with an existing Chrome installation.
 
-    Unlike get_document() which uses httpx, this uses Playwright to launch
-    a real browser. It requires no 'playwright install' step. It uses your
-    system's Google Chrome (or a custom path you provide).
+    Uses the installed Google Chrome, or the executable at chrome_path.
+    No browser download through Playwright is required.
 
     Args:
         url (str): The URL to fetch.
@@ -637,9 +636,8 @@ def get_document_playwright(
         timeout (int): Page navigation timeout in milliseconds (default 30000).
         wait_until (str): Navigation wait condition.
             Use "load" for Cloudflare-protected sites (default "load").
-        headless (bool): Whether to run headless. Default False. Headful is
-            required to pass Cloudflare's browser challenge. Headless is
-            faster but frequently detected.
+        headless (bool): Hide the Chrome window when True. Defaults to False.
+            Source challenges can block either mode.
         session (BrowserSession | None): Optional persistent browser to reuse
             instead of launching a new Chrome per call.
 
@@ -750,9 +748,9 @@ def get_document_impersonate(
     """
     Get the HTML document from a URL using curl_cffi with browser impersonation.
 
-    This bypasses Cloudflare anti-bot protection that blocks httpx.
-    Intended for sites like fbref.com. Requests are sequential-only
-    (never parallelize because temporary bans are likely).
+    Uses the requested browser fingerprint for HTTP requests. Source
+    challenges can still block the response. FBref callers must serialize
+    requests and respect the service rate limit.
 
     Returns None if Cloudflare challenge is detected (caller should fall back).
 

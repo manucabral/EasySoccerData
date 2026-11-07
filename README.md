@@ -8,13 +8,13 @@
 </p>
 
 <p align="center">
-A simple python package for extracting real-time soccer/football data from diverse online sources, providing essential statistics and insights.
+A Python library for football fixtures, live scores, standings and player statistics from nine providers.
 </p>
 
 
 # Installation
 
-The dataset APIs below are under development for **0.2.0**. Until that version
+The dataset APIs below are under development for 0.2.0. Until that version
 is published, use the source checkout to run these examples. The PyPI command
 installs the latest published version, which may not contain these APIs.
 
@@ -32,7 +32,7 @@ python -m pip install -e ".[dev,full]"
 
 `[full]` installs optional runtime features. Use `python -m pip install -e .`
 for the base library, `".[pandas]"` for DataFrames or `".[parquet]"` for snapshots.
-Start with the [dataset cookbook](guides/datasets.md) and
+Start with the [dataset guide](guides/datasets.md) and
 [example index](examples/README.md). The index identifies offline examples,
 network access and required extras.
 
@@ -55,7 +55,7 @@ for event in events:
 [How to get live match statistics](https://github.com/manucabral/EasySoccerData/blob/main/examples/sofascore/get_live_matchs.py)
 
 
-Check out [Sofascore module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/sofascore/)
+[Sofascore examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/sofascore/)
 
 ## FBRef
 ```py
@@ -67,7 +67,7 @@ for match in matchs:
     print(match)
 ```
 
-Check out [FBref module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/fbref/)
+[FBref examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/fbref/)
 
 ## Promiedos
 ```py
@@ -79,7 +79,7 @@ for event in events:
     print(event)
 ```
 
-Check out [Promiedos module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/promiedos/)
+[Promiedos examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/promiedos/)
 
 ## Goaloo
 ```py
@@ -92,7 +92,7 @@ for row in standings[:5]:
     print(row.rank, row.team.name, row.points)
 ```
 
-Check out [Goaloo module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/goaloo/)
+[Goaloo examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/goaloo/)
 
 ## 365Scores
 ```py
@@ -105,7 +105,7 @@ for row in standings[0].rows[:5]:
     print(row.position, row.team.name, row.points)
 ```
 
-Check out [365Scores module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/scores365/)
+[365Scores examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/scores365/)
 
 ## Understat
 ```py
@@ -116,7 +116,7 @@ matches = client.get_league_matches("EPL", 2024)
 shots = client.get_match_shots(26602)
 ```
 
-Check out [Understat module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/understat/)
+[Understat examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/understat/)
 
 ## Transfermarkt
 ```py
@@ -128,7 +128,7 @@ print(player.name, player.market_value_display)
 transfers = client.get_player_transfers(28003)
 ```
 
-Check out [Transfermarkt module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/transfermarkt/)
+[Transfermarkt examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/transfermarkt/)
 
 ## ESPN
 ```py
@@ -139,7 +139,7 @@ matches = client.get_scoreboard("arg.1")
 standings = client.get_standings("arg.1")
 ```
 
-Check out [ESPN module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/espn/)
+[ESPN examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/espn/)
 
 ## BeSoccer
 ```py
@@ -150,7 +150,7 @@ matches = client.get_matches("today")
 standings = client.get_standings("torneo_final")
 ```
 
-Check out [BeSoccer module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/besoccer/)
+[BeSoccer examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/besoccer/)
 
 ## Pandas
 
@@ -189,7 +189,7 @@ milliseconds. Output dates use UTC; naive dates are treated as UTC. Localize
 source-local times before conversion. Invalid dates raise instead of becoming
 missing values. Numeric timestamps are not interpreted automatically.
 
-For standings, convert each table's rows rather than the table container:
+For standings, pass each table's rows to `to_dataframe()`:
 
 ```py
 for table in client.get_standings("arg.1"):
@@ -254,7 +254,7 @@ identifiers and names use nullable `string`, counts use `Int64`, metrics use `Fl
 uses `datetime64[ns, UTC]`. The schema version and table name are also available
 in `DataFrame.attrs`. Unknown table names or mismatched record models raise.
 
-Keep these source differences in mind:
+Provider fields and date handling:
 
 - IDs are provider-local strings. Join matches to teams using both `source`
   and the team ID. Adapters do not match entities across providers or merge
@@ -269,7 +269,7 @@ Keep these source differences in mind:
   They are not a shared status vocabulary. Provider scores are copied without
   asserting identical treatment of extra time or penalties.
 - Kickoffs with an offset are converted to UTC. Missing dates remain missing.
-  Invalid dates or dates without a timezone raise rather than assume a timezone.
+  Invalid dates or dates without a timezone raise `ValueError`.
   Understat's naive dates require an explicit `source_timezone` in the adapter
   or loader. Choose it from your knowledge of the source's date convention.
 - Sofascore uses the unique tournament ID, separate from its regional tournament
@@ -323,8 +323,8 @@ their source table/group context and are not reconstructed for each matchday.
 
 Use ESPN's season year: `2024` selects the 2024-25 English Premier League.
 Season discovery uses July 1 by default; `anchor_date="2024-08-01"` selects
-another lookup date. A mismatched source season raises rather than relabeling
-the response. Multi-league `"all"` queries are not supported.
+another lookup date. A response for a different source season raises an error.
+Multi-league `"all"` queries are not supported.
 
 - `dataset.complete` means all tasks for the received calendar succeeded. It
   does not mean the season has finished or prove the source has every fixture.
@@ -384,9 +384,9 @@ understat = esd.load_dataset(
 )
 ```
 
-365Scores is a date-range snapshot, not a full-season discovery API. `season`
-is a caller label. Supply `season_id` to check native IDs in returned matches;
-it is required for standings. Competition filtering also runs locally because
+365Scores downloads the requested date range. `season` is a caller label;
+the loader does not discover a full season. Supply `season_id` to check native
+IDs in returned matches; it is required for standings. Competition filtering also runs locally because
 the API can ignore that filter. Missing game lists, mismatched dates and native
 season IDs fail explicitly. Historical dates may be unavailable.
 
@@ -528,7 +528,7 @@ up the temporary directory without publishing a partial snapshot.
 `open_dataset()` validates versions, filenames, checksums, row counts and table
 schemas. Invalid or damaged snapshots raise `esd.DatasetFormatError`; a missing
 directory raises `FileNotFoundError`. Opening preserves the dataset's coverage
-and errors rather than marking a partial download as complete. It makes no
+and errors, including `complete=False` for partial downloads. It makes no
 network requests. Saving/opening requires only the parquet extra; DataFrame
 properties still require pandas separately.
 
@@ -630,39 +630,27 @@ standings = fetch_many(
 Requests use a pooled HTTP session, cache recent responses briefly, and retry transient failures automatically.
 
 ## Demo
-Simple demonstration of a live table using Sofascore module (see [source code](https://github.com/manucabral/EasySoccerData/blob/main/examples/sofascore/live_table.py))
+[Live match table using Sofascore](https://github.com/manucabral/EasySoccerData/blob/main/examples/sofascore/live_table.py):
 <p align="center">
 <img src="https://github.com/manucabral/EasySoccerData/blob/main/assets/sofascore-live-table.gif" width="550" title="LiveTableUsingSofascore">
 </p>
 
 # Documentation
-For the full documentation, please visit the [Documentation Page](https://manucabral.github.io/EasySoccerData/esd.html)
+[Published API documentation](https://manucabral.github.io/EasySoccerData/esd.html).
+For the unreleased dataset API, use the guide in this checkout or generate the
+documentation from local sources.
 
-If you have any questions or need further assistance, feel free to open an issue.
+# Data sources and license
 
-## Supported modules
-| Name | PyPI version | Repository version |
-| :--- | :---: | :---: |
-| Sofascore | ✅ | ✅ |
-| Promiedos | ✅ | ✅ |
-| FBRef | ✅ | ✅ |
-| Goaloo | ✅ | ✅ |
-| 365Scores | ✅ | ✅ |
-| Understat | ✅ | ✅ |
-| Transfermarkt | ✅ | ✅ |
-| ESPN | ✅ | ✅ |
-| BeSoccer | ✅ | ✅ |
+EasySoccerData is independent of the data providers. Check each provider's terms
+before collecting or redistributing its data. The software is distributed under
+the [MIT license](LICENSE), including its warranty and liability terms.
 
-> Keep in mind that it is still under active development.
+# Contributing
 
-# Disclaimer
-The data provided in this repository is gathered from various external sources and is intended solely for informational purposes. This software is distributed "as-is," without any warranties or guarantees. Users are solely responsible for ensuring that their use of this data complies with the terms of service of the respective data sources and all applicable laws.
-
-The developers of this project assume no liability for any misuse, legal issues, or damages arising from the use of the data or software.
-
-
-# Contributions
-All contributions, bug reports, fixes, and ideas are welcome.
+For bug reports, include the provider, method, arguments and traceback. Remove
+proxy credentials and tokens from logs. Add a response fixture and an offline
+regression test when submitting a parser fix.
 
 ## Development checks
 
@@ -676,7 +664,7 @@ python -m build
 
 The installation workflow checks the built wheel in isolated base, pandas,
 parquet and full environments on Python 3.9–3.13, on Linux and Windows.
-The docs workflow builds the cookbook and API reference from local sources,
+The docs workflow builds the dataset guide and API reference from local sources,
 including the nine provider modules. Release branches and pull requests get a
 downloadable preview artifact; only pushes to main deploy GitHub Pages.
 `scripts/check_install.py --extra base` verifies an installed distribution,

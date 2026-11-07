@@ -1,4 +1,4 @@
-"""Sofascore and Understat adapters; provider semantics stay explicit."""
+"""Sofascore and Understat record adapters."""
 
 from __future__ import annotations
 

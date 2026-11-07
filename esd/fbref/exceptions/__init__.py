@@ -1,5 +1,5 @@
 """
-This module contains the exceptions that are raised by the fbref module.
+FBref request and validation exceptions.
 """
 
 

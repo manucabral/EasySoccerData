@@ -1,5 +1,5 @@
 """
-This module contains the Match dataclass which is used to store information about a match.
+FBref schedule rows and HTML parsing.
 """
 
 import re
@@ -14,7 +14,7 @@ _DIGITS_RE = re.compile(r"\d+")
 @dataclass
 class Match:
     """
-    A class to represent a match.
+    A match from an FBref schedule, with source IDs and scores.
     """
 
     id: str = field(default=None)

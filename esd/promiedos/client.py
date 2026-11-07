@@ -1,5 +1,5 @@
 """
-This module contains the client class for interacting with the Promiedos.
+Promiedos client for matches and tournaments.
 """
 
 from __future__ import annotations
@@ -14,8 +14,7 @@ _logger = get_logger("promiedos.client")
 
 class PromiedosClient:
     """
-    Client for interacting with the Promiedos website.
-    This class provides methods to access and retrieve data from Promiedos.
+    Fetch daily events, match details and tournament stages from Promiedos.
     """
 
     def __init__(self, proxies: dict = None) -> None:

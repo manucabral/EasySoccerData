@@ -50,7 +50,7 @@ _SEASONS_CACHE_TTL = 3600.0
 
 class GoalooService:
     """
-    A class to represent the Goaloo service.
+    Fetch and parse Goaloo responses.
     """
 
     def __init__(self, proxies: dict = None) -> None:

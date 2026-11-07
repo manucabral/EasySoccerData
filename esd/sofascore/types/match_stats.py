@@ -1,5 +1,5 @@
 """
-This module contains functions to parse match statistics data.
+Sofascore match statistics grouped by category and period.
 """
 
 from dataclasses import dataclass, field

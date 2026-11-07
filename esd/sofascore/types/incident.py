@@ -1,5 +1,5 @@
 """
-This module contains the dataclass for the incident object.
+Sofascore match incidents and parsers.
 """
 
 from dataclasses import dataclass, field

@@ -17,7 +17,7 @@ from .tournament import Tournament, parse_tournament
 @dataclass
 class Season:
     """
-    Season data class (also will be moved to season.py).
+    Season metadata attached to a match.
     """
 
     name: str

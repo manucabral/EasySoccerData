@@ -29,7 +29,7 @@ _CACHE_TTL = 30.0
 
 class PromiedosService:
     """
-    A class to represent the Promiedos service.
+    Fetch and parse Promiedos responses.
     """
 
     def __init__(self, proxies: dict = None):

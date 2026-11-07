@@ -1,5 +1,5 @@
 """
-This module contains the definition of the MatchStats class.
+Promiedos match statistics and parsers.
 """
 
 from dataclasses import dataclass, field

@@ -1,15 +1,15 @@
 """
-This module contains the endpoints to interact with the Goaloo data API.
+Goaloo JSON and match-page URLs.
 
 Goaloo serves its league data as static JSON under ``/jsData`` on the
-``football.goaloo.com`` host. The same data powers the public schedule,
-standings and odds pages, so no anti-bot layer is involved.
+``football.goaloo.com`` host. The endpoint methods below construct league,
+team and match URLs without making requests.
 """
 
 
 class GoalooEndpoints:
     """
-    A class to represent the endpoints to interact with the Goaloo API.
+    URL builders for Goaloo league, team and match data.
     """
 
     def __init__(self, base_url: str = "https://football.goaloo.com") -> None:

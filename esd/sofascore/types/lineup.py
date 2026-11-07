@@ -1,5 +1,5 @@
 """
-This module contains the dataclasses for the Lineups object.
+Sofascore lineups, player match statistics and parsers.
 """
 
 from dataclasses import dataclass, field
@@ -11,8 +11,7 @@ from .player import Player, parse_player
 @dataclass
 class Statistics:
     """
-    Player statistics data class.
-    Unique for each player in the lineup.
+    Match statistics for one player in a lineup.
     """
 
     total_pass: Optional[int] = field(default=None)
@@ -40,9 +39,7 @@ class Statistics:
 @dataclass
 class PlayerLineup:
     """
-    Player lineup data class.
-    It's different from the Player class.
-    Also the attribute "info" is the player object.
+    A player's match role and statistics. info contains the Player profile.
     """
 
     info: Player = field(default=None)
@@ -65,7 +62,7 @@ class MissingPlayer:
 @dataclass
 class TeamColor:
     """
-    Team color data class. Simple.
+    Kit colors for a team's players or goalkeeper.
     """
 
     primary: str = field(default="")

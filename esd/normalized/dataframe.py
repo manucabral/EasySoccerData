@@ -14,10 +14,10 @@ def normalized_to_dataframe(objects: list, *, table: str):
 
     table selects matches, teams, standings, match_stats, player_stats, shots,
     players, market_values or transfers.
-    All rows must be instances
-    of the matching normalized model. IDs/names use nullable string, counts use
-    Int64, metrics use Float64, and kickoff uses datetime64[ns, UTC]. No entity matching or deduplication
-    is performed. Source status values remain provider-specific.
+    All rows must use the normalized model for that table. IDs and names use
+    nullable string, counts use Int64, metrics use Float64, and kickoff uses
+    datetime64[ns, UTC]. Rows are exported without entity matching or
+    deduplication. Status values keep the source's codes and text.
     """
     if table not in TABLE_MODELS:
         raise ValueError(f"Unknown normalized table: {table!r}. Choose from {tuple(TABLE_MODELS)}")

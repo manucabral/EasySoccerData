@@ -1,5 +1,5 @@
 """
-This module contains the Event class for Promiedos.
+Promiedos daily league events and parsers.
 """
 
 from dataclasses import dataclass, field

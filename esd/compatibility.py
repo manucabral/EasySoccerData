@@ -1,4 +1,4 @@
-"""Explicit source identity mappings and conservative match linkage; no pandas."""
+"""Competition/team aliases and match linkage using IDs and kickoff times."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ class EntityAlias:
 
 
 class IdentityMap:
-    """Caller-owned equivalences. Names are never used as identity evidence."""
+    """Competition and team aliases supplied by the caller. Names are not matched."""
 
     def __init__(self, aliases=()):
         self._aliases = {}
@@ -61,7 +61,7 @@ class DatasetCompatibility:
     def can_match(self):
         """Whether schemas, match selection and identity coverage permit linkage.
 
-        This is a precondition check. It does not promise any linked games:
+        Matching also depends on the records:
         kickoff times can be absent, outside tolerance or ambiguous. The linker
         can still produce partial links with incomplete identity coverage.
         """
@@ -96,7 +96,7 @@ def check_dataset_compatibility(
 ) -> DatasetCompatibility:
     """Inspect schemas, selected tables and explicit competition/team mappings.
 
-    complete is download coverage, not proof that two source calendars coincide.
+    complete reports task success for each download. Source calendars can differ.
     Unknown identities, missing kickoff times and provider-specific metrics are
     reported. No names, scores, statuses or xG values establish equivalence.
     """

@@ -1,11 +1,11 @@
 """
-This module contains the endpoints to interact with the FBref website.
+FBref schedule, match-report and player-statistics URLs.
 """
 
 
 class FBrefEndpoints:
     """
-    A class to represent the endpoints to interact with the FBref website.
+    URL builders for FBref pages.
     """
 
     def __init__(
@@ -20,14 +20,14 @@ class FBrefEndpoints:
     @property
     def matchs_endpoint(self) -> str:
         """
-        Returns the URL of the endpoint to get the scheduled matchs.
+        Return the schedule URL.
         """
         return self.base_url + "/matches/{date}"
 
     @property
     def match_details_endpoint(self) -> str:
         """
-        Returns the URL of the endpoint to get the match details.
+        Return the match-report URL.
         """
         return self.base_url + "/{match_id}"
 

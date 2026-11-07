@@ -42,7 +42,7 @@ def main():
         ),
     )
     matches = dataset.matches
-    # Missing is not zero. A recorded score alone does not establish final status.
+    # Exclude unknown scores. This filter does not check match status.
     scored = matches.dropna(subset=["home_score", "away_score"]).copy()
     scored["total_goals"] = scored.home_score + scored.away_score
     assert len(scored) == 1 and scored.total_goals.iloc[0] == 1

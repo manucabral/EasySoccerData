@@ -23,7 +23,7 @@ _logger = get_logger("fbref.service")
 
 class FBrefService:
     """
-    A class to represent the FBref service.
+    Fetch and parse FBref responses.
     """
 
     def __init__(
@@ -46,13 +46,14 @@ class FBrefService:
             use_playwright: If True, uses Playwright with system Chrome.
                 Defaults to False (curl_cffi is preferred for FBref).
             use_curl_cffi: If True, uses curl_cffi with browser impersonation
-                to bypass Cloudflare. Defaults to True.
+                for HTTP requests. Defaults to True.
             chrome_path: Optional path to Chrome executable.
             impersonate: Browser fingerprint string for curl_cffi
                 (default "chrome").
-            delay: Minimum seconds between requests (default 3.0).
-            headless: Run Playwright headless. Defaults to False. Headful
-                Chrome is required to pass Cloudflare's challenge.
+            delay: Backend delay in seconds (default 3.0). The service also limits
+                requests to 9 per 60 seconds.
+            headless: Hide the Chrome window when True. Defaults to False.
+                Source challenges can block either browser mode.
         """
         self.proxies: dict = proxies or None
         self.use_playwright: bool = use_playwright
@@ -142,10 +143,10 @@ class FBrefService:
 
     def get_matchs(self, date: str = None) -> list[Match]:
         """
-        Get the scheduled matchs.
+        Get the scheduled matches.
 
         Args:
-            date (str): The date of the matchs in the format "YYYY-MM-DD".
+            date (str): The date of the matches in the format "YYYY-MM-DD".
 
         Returns:
             list[Match]: The scheduled

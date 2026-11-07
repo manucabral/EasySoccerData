@@ -63,7 +63,7 @@ _CACHE_TTL = 30.0
 
 class SofascoreService:
     """
-    A class to represent the SofaScore service.
+    Fetch and parse SofaScore responses.
     """
 
     def __init__(

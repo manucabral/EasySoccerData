@@ -1,6 +1,6 @@
 """Flat records shared by supported provider adapters.
 
-Identifiers are source-local strings, not cross-provider entity matches.
+Identifiers are strings scoped to their provider.
 Unknown values remain None. The adapters cannot recover missing values that
 a provider parser has already replaced with a default such as zero.
 """
@@ -133,7 +133,7 @@ class NormalizedPlayerStats:
 
 @dataclass(frozen=True)
 class NormalizedPlayer:
-    """Current source profile, not a historical season roster."""
+    """Player profile as reported by the source at download time."""
 
     source: str
     player_id: str | None = None

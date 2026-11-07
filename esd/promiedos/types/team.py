@@ -1,5 +1,5 @@
 """
-This module contains the Team class and its parser.
+Promiedos teams, goals and parsers.
 """
 
 from dataclasses import dataclass, field

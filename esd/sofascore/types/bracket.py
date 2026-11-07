@@ -1,5 +1,5 @@
 """
-This module contains the dataclasses for the UEFA Champions League cupTree.
+Sofascore tournament brackets and cupTree parsers.
 """
 
 from dataclasses import dataclass, field
@@ -12,7 +12,7 @@ from .tournament import Tournament, parse_tournament
 @dataclass
 class Participant:
     """
-    A class to represent a participant in a bracket.
+    A bracket participant with team, order and winner status.
     """
 
     team: Team = field(default=None)
@@ -44,7 +44,7 @@ def parse_participant(data: dict) -> Participant:
 @dataclass
 class Block:
     """
-    A class to represent a block in a bracket.
+    A bracket tie with participants, scores and event IDs.
     """
 
     block_id: int = field(default=None)
@@ -87,7 +87,7 @@ def parse_block(data: dict) -> Block:
 @dataclass
 class Round:
     """
-    A class to represent a round in a bracket.
+    An ordered bracket round containing ties.
     """
 
     order: int = field(default=None)
@@ -117,7 +117,7 @@ def parse_round(data: dict) -> Round:
 @dataclass
 class Bracket:
     """
-    A class to represent a bracket.
+    A tournament bracket containing rounds.
     """
 
     id: int = field(default=None)

@@ -1,5 +1,5 @@
 """
-This module contains the Team related data classes.
+Sofascore team profiles and parsers.
 """
 
 from dataclasses import dataclass, field
@@ -13,7 +13,7 @@ from .manager import Manager, parse_manager
 @dataclass
 class Team:
     """
-    A class to represent a team.
+    Team metadata reported by Sofascore.
     """
 
     name: str = field(default="")

@@ -16,7 +16,7 @@ These scripts use artificial records or mocked source responses. They do not
 contact a provider or launch a browser. Temporary-file examples clean up after
 themselves.
 
-| Script | Extra | What it demonstrates |
+| Script | Extra | Behavior shown |
 | :--- | :--- | :--- |
 | [Provider contracts](datasets/providers.py) with `--list` | Base | All nine sources and supported tables |
 | [Partial results](datasets/partial_results.py) | Base | `raise`, `collect`, attached records and failed days |
@@ -39,8 +39,8 @@ Install the matching extras before choosing `pandas`, `parquet` or `full`.
 ## Live dataset queries
 
 `datasets/providers.py` runs one query. `--list` and `--help` work offline;
-otherwise it makes network requests. Sample IDs/dates are starting points,
-not a guarantee of historical availability. Override them for your selection.
+otherwise it makes network requests. Use the selection flags to replace the
+sample IDs and dates. A provider may no longer serve the sample dates.
 
 ```sh
 python examples/datasets/providers.py --source espn --league eng.1 --season 2024 --preview 2
@@ -54,15 +54,16 @@ python examples/datasets/providers.py --source besoccer --tables standings
 python examples/datasets/providers.py --source transfermarkt --tables players market_values transfers --player-ids 418560
 ```
 
-Timezone examples assume that you have checked the source's timestamp convention.
-Do not use UTC to silence a timezone error if the source uses another zone.
+Set `--source-timezone` to the zone used by the source's naive timestamps.
+The UTC and Asia/Shanghai values above illustrate the flag syntax.
 IANA names require system timezone data or `python -m pip install tzdata`.
 
 `--cache-dir C:/data/esd/responses` selects persistent response storage.
 `--refresh` bypasses cached responses. `--output C:/data/esd/snapshot-1` writes
 a new Parquet snapshot and needs the parquet extra; the destination must not exist.
 On Linux/macOS use paths such as `/home/me/data/esd/responses` instead.
-Snapshots can preserve partial results, so always inspect `complete` and errors.
+Check `complete` and `errors` before using a saved dataset; snapshots can contain
+partial results.
 
 The runner exits with `0` when all requested tasks succeed, `1` for a partial
 download and `2` for invalid arguments or a failed requested snapshot write.
@@ -89,4 +90,4 @@ fields vary. Source blocks or maintenance can prevent a script from fetching dat
 | BeSoccer | [Matches and standings](besoccer/) |
 
 For configurable providers, scope, error handling and matching rules, read the
-[dataset cookbook](../guides/datasets.md).
+[dataset guide](../guides/datasets.md).

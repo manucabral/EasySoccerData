@@ -4,7 +4,7 @@
 
 ### Added
 
-- Dataset cookbook, example index and offline demonstrations of partial results, cache reuse, refresh, nullable analysis and ambiguous match linkage.
+- Dataset guide, example index and offline examples of partial results, cache reuse, refresh, nullable analysis and ambiguous match linkage.
 - Configurable provider example CLI with selection overrides, record previews, optional snapshot output and explicit exit codes.
 - Automated offline example checks across installation extras, with HTTP and browser access blocked.
 
@@ -24,7 +24,7 @@
 - Promiedos normalization: use raw source dates with an explicit timezone instead of the host-dependent parsed timestamp, preserving native status codes.
 - BeSoccer datasets: filter adjacent-day fixtures and detect mismatched canonical date pages.
 - 365Scores: filter games locally when the source ignores the requested competition ID.
-- ESPN: assign match statistics and rosters by team ID or home/away metadata before falling back to list order, preserving away-first payloads.
+- ESPN: assign match statistics and rosters by team ID or home/away metadata before falling back to list order, handling away-first payloads.
 - Browser sessions: close pages when initialization fails and preserve the original error if cleanup also fails.
 
 ### Changed
@@ -34,7 +34,7 @@
 ### Added
 
 - Installed-wheel checks for base, pandas, parquet and full environments across Python 3.9–3.13 on Linux and Windows in CI.
-- Dataset plans for FBref, Goaloo, Promiedos, BeSoccer and Transfermarkt, bringing explicit dataset contracts to all nine providers.
+- Dataset plans for FBref, Goaloo, Promiedos, BeSoccer and Transfermarkt, covering all nine providers.
 - Transfermarkt current profiles, full valuation/transfer histories and caller-selected entities, with optional DataFrames and Parquet snapshots.
 - Explicit identity maps, compatibility inspection and one-to-one cross-source match linkage with unmatched/ambiguous results, without pandas or automatic name matching.
 - Dataset loaders for 365Scores UTC date ranges, Sofascore native-season pagination and Understat season matches, xG, player statistics and opt-in shots.
@@ -49,7 +49,7 @@
 - Strict ESPN season validation for dataset scoreboards and standings, calendar coverage metadata and lazy DataFrame tables.
 - Common match, team and standings records with opt-in ESPN and 365Scores adapters, source-local identifiers, UTC kickoffs and preserved table/stage/group context.
 - Normalized DataFrame export with versioned columns and fixed nullable types for populated and empty tables, plus offline examples and adapter tests.
-- Optional DataFrame flattening, nullable type inference, explicit column types and UTC date conversion in `to_dataframe`, with the original defaults preserved.
+- Optional DataFrame flattening, nullable type inference, explicit column types and UTC date conversion in `to_dataframe`, with unchanged defaults.
 - Offline pandas examples for matches, standings and team ID joins, plus DataFrame tests and CI installation of the pandas extra.
 - Offline regression tests for ESPN team assignment and browser page cleanup.
 - HTTP transport tests for request options, permanent errors, transient retries, retry exhaustion, invalid JSON and error payloads across httpx and curl_cffi.
@@ -102,7 +102,6 @@
 ### Removed
 
 - Unused `beautifulsoup4` dependency.
-- AI-style punctuation (em dashes and semicolons) from code and docstrings.
 
 ## [0.0.9] - 2026-05-09
 

@@ -1,5 +1,5 @@
 """
-This module contains the dataclass for the comment object.
+Sofascore match commentary types and parsers.
 """
 
 from dataclasses import dataclass, field

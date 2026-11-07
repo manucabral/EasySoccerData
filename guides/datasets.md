@@ -1,8 +1,8 @@
-# Dataset cookbook
+# Dataset guide
 
 This guide describes the unreleased 0.2.0 source checkout. Run commands from
-the repository root after `python -m pip install -e .`. Examples below keep pandas
-and PyArrow optional.
+the repository root after `python -m pip install -e .`. The base installation
+returns records. Add pandas for DataFrames or PyArrow for Parquet files.
 
 ## Choose records or DataFrames
 
@@ -42,10 +42,11 @@ for match in dataset.match_records[:5]:
 # print(dataset.matches[["match_id", "kickoff", "home_score", "away_score"]])
 ```
 
-`None` means unknown; it is not a score of zero. A score alone does not prove
-that a match has finished. Status fields retain native source codes and text.
+`None` represents an unknown score. Zero is a recorded score. Check the source
+status to determine whether a match has finished. Status fields retain native
+source codes and text.
 
-## Select the source's actual scope
+## Provider selection
 
 The same Python call has provider-specific selection requirements. Inspect
 `esd.get_dataset_capabilities(source)` before constructing a query.
@@ -78,11 +79,11 @@ reaching it before an explicit end produces an error, not complete coverage.
 
 See [all nine live CLI selections](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#live-dataset-queries).
 
-## Keep partial results visible
+## Partial downloads
 
 `complete` means that every requested task succeeded. It does not establish that
-the season has finished or the provider lists every fixture. An empty successful
-selection is different from a failed request returning no records.
+the season has finished or the provider lists every fixture. Failed requests
+appear in `dataset.errors`, including those that returned no records.
 
 ```py
 try:
@@ -106,9 +107,9 @@ page or shot discovery, so do not assume a fixed denominator at the first event.
 
 Try [the offline partial-result example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/datasets/partial_results.py).
 
-## Choose storage locations and preserve age
+## Response caches and snapshots
 
-Two paths serve different purposes:
+Choose each storage path when calling the library:
 
 - `cache_dir` stores validated raw responses as JSON, including wrapped HTML for
   page sources. Repeating a query reuses fresh responses and fetches expired or
@@ -133,8 +134,8 @@ it does not overwrite an existing snapshot directory.
 
 `metadata.started_at`/`finished_at` describe the current loader call.
 `dict(metadata.response_fetched_at)` preserves original fetch dates per task,
-including cached responses; `cached_tasks` identifies reuse. A newly opened
-snapshot or a cache hit does not make the source data newer.
+including cached responses; `cached_tasks` identifies reuse. Use the original
+fetch dates to measure data age.
 
 `CachePolicy` adjusts freshness. Its date/status rules apply to ESPN/365Scores
 daily responses. Other loaders use their documented calendar/live/standings/
@@ -144,16 +145,16 @@ removes owned cache entries without deleting snapshot files.
 Try [offline cache reuse](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/datasets/cache_resume_offline.py) or
 [snapshot round trips](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/datasets/parquet_roundtrip.py).
 
-## Join data without losing identity or scope
+## Joins and match linkage
 
 Within one provider, join on both `source` and the native ID. Standings can have
 several rows for a team across groups/stages/tables: select one table before
 expecting a many-to-one join. Do not join standings to matches solely by a team
 name, or treat today's standings as standings at each historical kickoff.
 
-Across providers, common columns do not establish common identities. Build an
-`IdentityMap` from verified competition/team `EntityAlias` entries. There is no
-built-in verified catalogue. Equal names, source IDs or scores are insufficient.
+To link providers, supply an `IdentityMap` with competition and team aliases
+that you have checked. The library has no built-in alias catalogue and does not
+infer identities from names, source IDs or scores.
 
 Store your own aliases wherever your application needs them. For example, a
 JSON list can contain objects with `kind`, `canonical_id`, `source`, `source_id`:
@@ -168,8 +169,9 @@ left = esd.open_dataset("./my-data/espn-snapshot")
 right = esd.open_dataset("./my-data/other-snapshot")
 ```
 
-Those files are application inputs, not files created by the library. The two
-snapshots need the parquet extra to open; compatibility/linkage itself does not.
+Create the alias file and snapshots before running this example. Opening the
+snapshots requires `[parquet]`. The compatibility and linkage functions use
+only the base installation.
 
 ```py
 report = esd.check_dataset_compatibility(left, right, identities=identities)
@@ -185,15 +187,16 @@ The linker checks mapped competition, ordered home/away teams and kickoff
 distance (default 300 seconds). Both sides must have exactly one candidate.
 Missing dates, absent mappings, reversed teams, rescheduled games or ambiguous
 candidates remain unlinked. Partial mappings can still yield partial links.
-`can_match` checks preconditions; it does not guarantee linked games. `issues`
-can include informational source-semantic notes even for compatible schemas.
+`can_match` checks schema, table selection and identity coverage. Matching also
+requires kickoff times within the tolerance and a unique candidate on each side.
+`issues` can include notes about source fields even for compatible schemas.
 
 Linkage preserves inputs and native IDs. It does not harmonize xG models, penalty
 conventions, statuses, currencies or pitch coordinates. Understat shots stay in
 their native coordinate system. Player identity linkage is not implemented.
 
-Run [the offline linkage example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/datasets/link_matches.py) for a
-complete identity map and an ambiguous case, or
+Run [the offline linkage example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/datasets/link_matches.py) for an
+identity map and an ambiguous case, or
 [the pandas analysis example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/pandas/dataset_analysis.py) for nullable
 scores and validated team joins.
 
@@ -211,5 +214,5 @@ scores and validated team joins.
 | Snapshot destination exists | Choose a new directory; snapshots do not overwrite existing paths |
 | No cross-source links | Inspect identity mappings, source timestamps, tolerance and ambiguous IDs |
 
-Use small date ranges or explicit entity selections while debugging. Ordinary
-tests and the offline example runner require no live provider access.
+Use a small date range or a few entity IDs to reproduce download errors. Run
+`scripts/check_examples.py` to check offline examples without querying providers.

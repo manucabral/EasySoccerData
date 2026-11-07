@@ -1,5 +1,5 @@
 """
-Contains the types for the Sofascore service.
+Promiedos models and parsers.
 """
 
 from .color import Color

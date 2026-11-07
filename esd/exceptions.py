@@ -1,10 +1,9 @@
 """
 Shared exceptions raised by EasySoccerData sources.
 
-These wrap HTTP-level failures from the underlying sources so callers
-get a typed error instead of a bare ``KeyError`` or a silent
-empty dict. Source-specific exceptions (``FBrefException``,
-``PromiedosException``, ...) remain in their own submodules.
+HTTP helpers raise these exceptions for blocked, missing or failed responses.
+Provider-specific exceptions, such as ``FBrefException`` and
+``PromiedosException``, are defined in the provider submodules.
 """
 
 
@@ -16,8 +15,7 @@ class SourceBlocked(ESDException):
     """
     The source blocked the request (HTTP 403 / anti-bot).
 
-    Usually means the IP is flagged as a datacenter/VPN. Retry from a
-    residential connection or pass a proxy to the client.
+    The response alone does not identify the reason for the block.
     """
 
 

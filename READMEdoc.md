@@ -8,12 +8,9 @@
 </p>
 
 <p align="center">
-A simple python package for extracting real-time soccer/football data from diverse online sources, providing essential statistics and insights.
+A Python library for football fixtures, live scores, standings and player statistics from nine providers.
 </p>
 
-
-> [!IMPORTANT]  
-> Currently in the early development phase. Please take this into consideration.
 
 # Installation
 
@@ -43,7 +40,7 @@ for event in events:
 [How to get live match statistics](https://github.com/manucabral/EasySoccerData/blob/main/examples/sofascore/get_live_matchs.py)
 
 
-Check out [Sofascore module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/sofascore/)
+[Sofascore examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/sofascore/)
 
 ## FBRef
 ```py
@@ -55,7 +52,7 @@ for match in matchs:
     print(match)
 ```
 
-Check out [FBref module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/fbref/)
+[FBref examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/fbref/)
 
 ## Promiedos
 ```py
@@ -67,7 +64,7 @@ for event in events:
     print(event)
 ```
 
-Check out [Promiedos module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/promiedos/)
+[Promiedos examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/promiedos/)
 
 ## Goaloo
 ```py
@@ -77,7 +74,7 @@ client = esd.GoalooClient()
 standings = client.get_standings(36)
 ```
 
-Check out [Goaloo module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/goaloo/)
+[Goaloo examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/goaloo/)
 
 ## 365Scores
 ```py
@@ -87,7 +84,7 @@ client = esd.Scores365Client()
 games = client.get_games("today")
 ```
 
-Check out [365Scores module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/scores365/)
+[365Scores examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/scores365/)
 
 ## Understat
 ```py
@@ -97,7 +94,7 @@ client = esd.UnderstatClient()
 matches = client.get_league_matches("EPL", 2024)
 ```
 
-Check out [Understat module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/understat/)
+[Understat examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/understat/)
 
 ## Transfermarkt
 ```py
@@ -107,7 +104,7 @@ client = esd.TransfermarktClient()
 player = client.get_player(28003)
 ```
 
-Check out [Transfermarkt module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/transfermarkt/)
+[Transfermarkt examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/transfermarkt/)
 
 ## ESPN
 ```py
@@ -117,7 +114,7 @@ client = esd.ESPNClient()
 matches = client.get_scoreboard("arg.1")
 ```
 
-Check out [ESPN module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/espn/)
+[ESPN examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/espn/)
 
 ## BeSoccer
 ```py
@@ -127,7 +124,7 @@ client = esd.BeSoccerClient()
 matches = client.get_matches("today")
 ```
 
-Check out [BeSoccer module examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/besoccer/)
+[BeSoccer examples](https://github.com/manucabral/EasySoccerData/tree/main/examples/besoccer/)
 
 
 ## Pandas
@@ -200,21 +197,8 @@ pandas and make no network requests; DataFrame export uses the optional extra.
 
 .. include:: guides/datasets.md
 
-# Supported modules
+# Contributing
 
-| Name | Implemented |
-| :---  | :---: |
-| Sofascore   | ✔️ |
-| FBref    | ✔️ |
-| Promiedos    | ✔️ |
-| Goaloo    | ✔️ |
-| 365Scores    | ✔️ |
-| Understat    | ✔️ |
-| Transfermarkt    | ✔️ |
-| ESPN    | ✔️ |
-| BeSoccer    | ✔️ |
-...
-> Keep in mind that it is still under active development.
-
-### Contributions
-All contributions, bug reports or fixes and ideas are welcome.
+For bug reports, include the provider, method, arguments and traceback. Remove
+proxy credentials and tokens from logs. Add a response fixture and an offline
+regression test when submitting a parser fix.

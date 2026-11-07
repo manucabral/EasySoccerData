@@ -1,5 +1,5 @@
 """
-This module contains the endpoints of the SofaScore API.
+Sofascore match, player, team and tournament URLs.
 """
 
 from urllib.parse import quote
@@ -7,7 +7,7 @@ from urllib.parse import quote
 
 class SofascoreEndpoints:
     """
-    A class to represent the endpoints of the SofaScore API.
+    URL builders for Sofascore requests.
     """
 
     def __init__(self, base_url: str = "https://www.sofascore.com/api/v1") -> None:

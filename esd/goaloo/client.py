@@ -1,5 +1,5 @@
 """
-This module contains the client class for interacting with Goaloo.
+Goaloo client for league data, match events and odds.
 """
 
 from __future__ import annotations
@@ -23,10 +23,7 @@ from .types import (
 
 class GoalooClient:
     """
-    Client for interacting with Goaloo.
-
-    This class provides methods to access and retrieve football data
-    (leagues, schedules and standings) from Goaloo.
+    Fetch league schedules, standings, match events and odds from Goaloo.
     """
 
     def __init__(self, proxies: dict = None) -> None:

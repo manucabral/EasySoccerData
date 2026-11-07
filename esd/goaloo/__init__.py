@@ -1,9 +1,7 @@
 """
 Goaloo module.
 
-Note: Goaloo's live corner-count and ball-possession feeds are not
-available. Corner data was served from the retired nowgoal domain, and
-ball possession is only rendered server-side without a JSON endpoint.
+This client does not implement live corner counts or ball possession.
 """
 
 from . import types

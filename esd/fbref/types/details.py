@@ -1,5 +1,5 @@
 """
-This module contains the data types and functions for parsing match details.
+FBref match-report tables and HTML parsers.
 """
 
 from dataclasses import dataclass, field
@@ -24,7 +24,7 @@ class PlayerStatRow:
 @dataclass
 class PlayerStatsRow(PlayerStatRow):
     """
-    Player statistics for a match is not switch case.
+    Player match statistics from a single statistics table.
     """
 
     minutes: int = field(default=0)
@@ -214,7 +214,7 @@ class PlayerMiscellaneousRow(PlayerStatRow):
 @dataclass
 class KeeperStatsRow:
     """
-    Goalkeeper statistics for a match is not switch case.
+    Goalkeeper match statistics.
     """
 
     keeper_stats_id: str = field(default="")

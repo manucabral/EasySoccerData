@@ -1,7 +1,7 @@
 """
 Module with entity types.
 
-All entities are used in the search endpoint also each entity has its own baseclass.
+The search endpoint uses these values to select entity types.
 """
 
 from enum import Enum

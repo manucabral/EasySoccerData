@@ -1,5 +1,5 @@
 """
-This module contains the definition of the League class.
+Promiedos league metadata and parser.
 """
 
 from dataclasses import dataclass, field
