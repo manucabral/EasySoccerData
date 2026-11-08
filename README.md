@@ -50,7 +50,7 @@ ESPN, 365Scores and Sofascore also provide normalized `lineups` and
 can include team match totals in the same dataset, with a request budget and
 optional cache, DataFrames or Parquet snapshots.
 
-`esd.compare_match_players(left, right, identities=...)` compares ESPN/365Scores
+`esd.compare_match_players(left, right, identities=...)` compares ESPN/365Scores/Sofascore
 lineups and individual metrics using reviewed player aliases. It preserves
 unknown flags, missing statistics and ambiguous identities. Positions need
 explicit cross-source mappings; xG/xA/ratings keep their source models. See the
@@ -63,11 +63,16 @@ context and reads incidents separately. Events retain native periods,
 stoppage time, shootout flags and source annulments. See the [event examples](examples/README.md#match-events)
 and [event field contracts](guides/datasets.md#match-events).
 
-`esd.compare_match_events(left, right, identities=...)` compares ESPN/365Scores
+`esd.compare_match_events(left, right, identities=...)` compares ESPN/365Scores/Sofascore
 events using explicit player identities, known periods and unique candidates.
 It retains unknown fields, ambiguity and exact event-task provenance. See the
 [event comparison guide](guides/datasets.md#compare-match-events) and
 [Champions/offline examples](examples/README.md#compare-match-events).
+
+The [integrated Champions workflow](examples/README.md#integrated-champions-workflow)
+downloads match, lineup, team/player statistics and event tables together,
+compares selected providers and saves the sources and rules for offline reuse.
+Its `--demo` mode uses artificial responses for all three providers without HTTP.
 
 `esd.get_catalog()` resolves reviewed competition/team identities without HTTP.
 The initial catalog covers Champions League, Premier League and LaLiga for

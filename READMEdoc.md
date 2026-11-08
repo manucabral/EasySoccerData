@@ -214,7 +214,7 @@ retain missing values, source periods, original fetch times, partial errors and
 unmatched/ambiguous IDs. Cross-source xG/forecast models remain separate.
 `report.to_dataframe()` requires the pandas extra.
 
-`esd.compare_match_players(left, right, identities=...)` compares ESPN/365Scores
+`esd.compare_match_players(left, right, identities=...)` compares ESPN/365Scores/Sofascore
 lineups and player-match statistics with explicit player identities. It retains
 ambiguous aliases, nullable flags, missing records and original fetch dates.
 Positions need reviewed cross-source aliases. Cross-source xG/xA/ratings have
@@ -222,13 +222,21 @@ no numeric delta. Comparison needs no extras; the two report DataFrames use
 optional pandas. See the
 [player comparison guide](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/guides/datasets.md#compare-lineups-and-player-statistics).
 
-`compare_match_events(left, right, identities=...)` compares ESPN/365Scores
+`compare_match_events(left, right, identities=...)` compares ESPN/365Scores/Sofascore
 events after explicit match and player linkage. Known differences, unknown
 observations, ambiguous candidates and failed/empty event tasks remain separate.
 `IdentityMap` accepts caller-reviewed `player` aliases and can be extended with
 `with_aliases()` without changing the original map. The bundled catalog still
 supplies only competition/team aliases. See the
 [event comparison guide](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/guides/datasets.md#compare-match-events).
+
+The [integrated Champions workflow](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#integrated-champions-workflow)
+selects match, lineup, team/player statistics and event tables in shared detail
+downloads. It compares each selected pair and saves source snapshots, identities
+and rules for offline recomputation. `--demo` uses artificial data without HTTP.
+Sofascore's missing event periods remain unresolved by default. The explicit
+`allow_unknown_period=True` option permits candidates with unverified periods,
+which remain visible in the report. No period is inferred from a minute.
 
 ESPN, 365Scores and Sofascore expose `match_events` for explicit IDs. ESPN/365Scores
 share summary/game detail with player tables. Sofascore shares event context,

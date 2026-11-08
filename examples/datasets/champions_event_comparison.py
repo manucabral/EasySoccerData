@@ -51,13 +51,14 @@ def read_identities(path):
 def report_options(report):
     return {"format": "easysoccerdata-event-comparison", "format_version": 1,
             "minute_tolerance": report.minute_tolerance, "tolerance_seconds": report.kickoff_tolerance_seconds,
-            "event_types": list(report.event_types), "period_aliases": [list(item) for item in report.period_aliases]}
+            "event_types": list(report.event_types), "period_aliases": [list(item) for item in report.period_aliases],
+            "allow_unknown_period": report.allow_unknown_period}
 
 
 def read_options(path):
     raw = json.loads(path.read_text(encoding="utf-8"))
     expected = {"format", "format_version", "minute_tolerance", "tolerance_seconds", "event_types", "period_aliases"}
-    if (not isinstance(raw, dict) or set(raw) != expected or raw["format"] != "easysoccerdata-event-comparison"
+    if (not isinstance(raw, dict) or set(raw) not in (expected, expected | {"allow_unknown_period"}) or raw["format"] != "easysoccerdata-event-comparison"
             or type(raw["format_version"]) is not int or raw["format_version"] != 1):
         raise ValueError("Invalid event comparison options format/version")
     periods = raw["period_aliases"]
@@ -70,7 +71,8 @@ def read_options(path):
             raise ValueError("Duplicate saved period alias")
         mapping[source, native] = canonical
     return {"minute_tolerance": raw["minute_tolerance"], "tolerance_seconds": raw["tolerance_seconds"],
-            "event_types": raw["event_types"], "period_aliases": mapping}
+            "event_types": raw["event_types"], "period_aliases": mapping,
+            "allow_unknown_period": raw.get("allow_unknown_period", False)}
 
 
 def save_pair(destination, pair, identities, report):

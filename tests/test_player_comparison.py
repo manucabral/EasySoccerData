@@ -210,10 +210,10 @@ def test_invalid_datasets_and_orphan_statistics_are_rejected(pair, identities):
     no_lineups = replace(pair[0], metadata=replace(pair[0].metadata, tables=("matches",)), lineup_records=(), player_match_stat_records=())
     with pytest.raises(ValueError, match="select matches and lineups"):
         esd.compare_match_players(no_lineups, pair[1], identities=identities)
-    sofa = replace(no_lineups, metadata=replace(no_lineups.metadata, source="sofascore"),
-                   match_records=(replace(no_lineups.match_records[0], source="sofascore"),))
-    with pytest.raises(ValueError, match="supports ESPN and 365Scores"):
-        esd.compare_match_players(sofa, pair[1], identities=identities)
+    unsupported = replace(no_lineups, metadata=replace(no_lineups.metadata, source="understat"),
+                          match_records=(replace(no_lineups.match_records[0], source="understat"),))
+    with pytest.raises(ValueError, match="supports ESPN, 365Scores and Sofascore"):
+        esd.compare_match_players(unsupported, pair[1], identities=identities)
 
 
 def test_base_comparison_does_not_import_optional_dependencies(pair, identities):

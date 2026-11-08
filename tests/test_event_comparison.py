@@ -235,9 +235,9 @@ def test_invalid_datasets_and_unsupported_sources_fail(pair, change):
     elif change == "bad_clock":
         left = event(left, minute=-1)
     else:
-        left = replace(left, metadata=replace(left.metadata, source="sofascore"),
-                       match_records=(replace(left.match_records[0], source="sofascore"),),
-                       match_event_records=(replace(left.match_event_records[0], source="sofascore"),))
+        left = replace(left, metadata=replace(left.metadata, source="understat"),
+                       match_records=(replace(left.match_records[0], source="understat"),),
+                       match_event_records=(replace(left.match_event_records[0], source="understat"),))
     with pytest.raises(ValueError):
         esd.compare_match_events(left, right)
 

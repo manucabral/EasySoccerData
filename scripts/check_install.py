@@ -97,6 +97,10 @@ def main():
     assert fetch.call_count == 2 and sofa_events.complete and esd.validate_dataset(sofa_events).valid
     assert sofa_events.match_event_records[0].rescinded is True and sofa_events.match_event_records[0].team_id == "20"
     assert sofa_events.match_event_records[0].source_details_json is not None
+    sofa_events_report = esd.compare_match_events(sofa_events, sofa_events, allow_unknown_period=True)
+    assert sofa_events_report.rows[0].status == "equal" and sofa_events_report.allow_unknown_period
+    assert sofa_events_report.left_coverage[0].successful
+    assert "source_period" in sofa_events_report.rows[0].unknown_fields
     assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
     assert all(contract.tables for contract in esd.get_dataset_capabilities().values())
     now = datetime(2024, 8, 16, 19, tzinfo=timezone.utc)

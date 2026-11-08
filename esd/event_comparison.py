@@ -1,4 +1,4 @@
-"""Diagnostic comparisons of explicitly identified ESPN/365Scores match events."""
+"""Diagnostic comparisons of explicitly identified ESPN/365Scores/Sofascore events."""
 
 from __future__ import annotations
 
@@ -85,6 +85,7 @@ class MatchEventsReport:
     period_aliases: tuple[tuple[str, str, str], ...]
     event_types: tuple[str, ...]
     notes: tuple[str, ...] = ()
+    allow_unknown_period: bool = False
 
     @property
     def differences(self) -> tuple[MatchEventComparison, ...]:
@@ -132,6 +133,8 @@ class MatchEventsReport:
 
 
 def _task_keys(source, identifier):
+    if source == "sofascore":
+        return (f"match_events:{identifier}",)
     return ((f"match_details:{identifier}",) if source == "espn" else
             (f"match_events:{identifier}", f"lineups:{identifier}"))
 
@@ -163,7 +166,7 @@ def _identity(row, kind, field, identities, same_source):
     return _resolve(identities, kind, row.source, getattr(row, field), same_source)
 
 
-def _signature(row, identities, periods, same_source):
+def _signature(row, identities, periods, same_source, allow_unknown_period):
     player = _identity(row, "player", "player_id", identities, same_source)
     if player is None:
         return None, "player_identity_unknown"
@@ -172,7 +175,7 @@ def _signature(row, identities, periods, same_source):
     if row.is_shootout is None:
         return None, "shootout_unknown"
     period = _period(row, periods, same_source)
-    if period is None:
+    if period is None and not allow_unknown_period:
         return None, "period_unknown"
     outgoing = None
     if row.event_type == "substitution":
@@ -183,7 +186,14 @@ def _signature(row, identities, periods, same_source):
             return None, "related_player_identity_unknown"
     if not row.is_shootout and row.minute is None:
         return None, "minute_unknown"
-    return (_FAMILIES[row.event_type], player, outgoing, row.is_shootout, period), None
+    return (_FAMILIES[row.event_type], player, outgoing, row.is_shootout), None
+
+
+def _periods_compatible(first, second, periods, same_source, allow_unknown_period):
+    left, right = (_period(row, periods, same_source) for row in (first, second))
+    if left is None or right is None:
+        return allow_unknown_period
+    return left == right
 
 
 def _near(first, second, limit):
@@ -228,11 +238,12 @@ def compare_match_events(
     minute_tolerance: int = 1, tolerance_seconds: float = 300,
     event_types: Sequence[str] | None = None,
     period_aliases: Mapping[tuple[str, str], str] | None = None,
+    allow_unknown_period: bool = False,
 ) -> MatchEventsReport:
-    """Compare selected ESPN/365Scores events without HTTP, writes or name matching.
+    """Compare ESPN/365Scores/Sofascore events without HTTP, writes or name matching.
 
     Matches reuse the ID/kickoff linker. Cross-source events require mapped
-    players/teams, explicit shootout state and known/explicitly mapped periods.
+    players/teams, explicit shootout state and, by default, known/mapped periods.
     Non-shootout candidates also need observed minutes within minute_tolerance.
     Missing added time is never zero. Substitutions require both mapped players
     in incoming/outgoing roles. Shootouts use player/period, never match minutes.
@@ -245,13 +256,19 @@ def compare_match_events(
     stay visible, notably nullable annulments. Every selected event occurs in one
     report row; unselected/other types remain in excluded_left/excluded_right.
     period_aliases extends/overrides the explicit native period map and is saved
-    in the report. This version supports ESPN/365Scores, including same-source
-    comparisons. It does not assert equivalent source collection rules.
+    in the report. Sofascore has no built-in period aliases. Its absent periods
+    stay unknown. allow_unknown_period=True explicitly permits candidates with
+    unknown period scope; known conflicting periods still cannot pair, and
+    source_period remains in unknown_fields. Minutes never establish a period.
+    The default remains strict. Same-source comparisons are supported. Source
+    collection rules are not asserted equivalent.
     """
     if not isinstance(left, SoccerDataset) or not isinstance(right, SoccerDataset):
         raise TypeError("Expected two SoccerDataset objects")
     if type(minute_tolerance) is not int or minute_tolerance < 0:
         raise ValueError("minute_tolerance must be a nonnegative integer")
+    if type(allow_unknown_period) is not bool:
+        raise ValueError("allow_unknown_period must be boolean")
     if type(tolerance_seconds) not in (int, float) or not math.isfinite(tolerance_seconds) or tolerance_seconds < 0:
         raise ValueError("tolerance_seconds must be finite and nonnegative")
     selected = tuple(_FAMILIES) if event_types is None else event_types
@@ -264,7 +281,7 @@ def compare_match_events(
         if not isinstance(period_aliases, Mapping):
             raise ValueError("period_aliases must map (source, native period) to canonical period")
         for key, value in period_aliases.items():
-            if (not isinstance(key, tuple) or len(key) != 2 or key[0] not in ("espn", "scores365")
+            if (not isinstance(key, tuple) or len(key) != 2 or key[0] not in ("espn", "scores365", "sofascore")
                     or not all(isinstance(item, str) and item.strip() for item in (*key, value))):
                 raise ValueError("Invalid explicit period alias")
             periods[key] = value
@@ -272,8 +289,8 @@ def compare_match_events(
     for dataset, validation in zip((left, right), validations):
         if not validation.valid:
             raise ValueError(f"Invalid event dataset: {validation.errors[0].code}")
-        if dataset.metadata.source not in ("espn", "scores365"):
-            raise ValueError("Event comparison currently supports ESPN and 365Scores")
+        if dataset.metadata.source not in ("espn", "scores365", "sofascore"):
+            raise ValueError("Event comparison supports ESPN, 365Scores and Sofascore")
         if not {"matches", "match_events"} <= set(dataset.metadata.tables):
             raise ValueError("Both datasets must select matches and match_events")
         identifiers = {row.match_id for row in dataset.match_records}
@@ -311,7 +328,7 @@ def compare_match_events(
                     append(row, seconds[other], link.left_match_id, link.right_match_id, "equal", "native_event_id")
                     used_first.add(index)
                     used_second.add(other)
-        signatures = [{i: _signature(row, identities, periods, same_source) for i, row in enumerate(side) if i not in used}
+        signatures = [{i: _signature(row, identities, periods, same_source, allow_unknown_period) for i, row in enumerate(side) if i not in used}
                       for side, used in ((firsts, used_first), (seconds, used_second))]
         candidates, reverse = defaultdict(list), defaultdict(list)
         right_by_signature = defaultdict(list)
@@ -324,7 +341,8 @@ def compare_match_events(
             for j in right_by_signature[signature]:
                 if same_source and firsts[i].event_id is not None and seconds[j].event_id is not None:
                     continue
-                if _near(firsts[i], seconds[j], minute_tolerance):
+                if (_periods_compatible(firsts[i], seconds[j], periods, same_source, allow_unknown_period)
+                        and _near(firsts[i], seconds[j], minute_tolerance)):
                     candidates[i].append(j)
                     reverse[j].append(i)
         for i, possible in candidates.items():
@@ -362,6 +380,8 @@ def compare_match_events(
             "No names, list positions, nearest-event choices or separate athlete IDs establish cross-source player identity.",
             "Only explicit event-task timestamps are used; multiple conflicting timestamps leave row provenance unknown.",
             "Unmatched events do not prove source absence: collections and partial-task coverage can differ.",
-            "Shootouts use explicit player/period identity; repeated attempts by one player remain ambiguous.",
+            "Shootouts use explicit player/shootout identity and the selected period policy; repeated attempts by one player remain ambiguous.",
+            "Unknown periods admit candidates only with allow_unknown_period=True and remain unverified in paired rows.",
         ),
+        allow_unknown_period=allow_unknown_period,
     )

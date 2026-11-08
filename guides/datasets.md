@@ -944,12 +944,13 @@ for caller-selected cache/snapshot paths and offline recomputation.
 
 ## Compare match events
 
-`compare_match_events()` compares selected ESPN/365Scores observations without
+`compare_match_events()` compares selected ESPN/365Scores/Sofascore observations without
 HTTP, writes, pandas or PyArrow. Both datasets must select `matches` and
 `match_events`, pass validation and identify every event's native match.
 The existing match linker supplies unique competition/team/kickoff links.
-Sofascore event downloads remain supported, but this comparator currently
-accepts only ESPN/365Scores, including same-source snapshots.
+All three sources support same-source and cross-source comparisons. Sofascore's
+native player IDs need explicit caller-reviewed aliases; the bundled catalog
+still supplies competition/team aliases for ESPN/365Scores only.
 
 Player identity is explicit. `IdentityMap` accepts `EntityAlias(kind="player", ...)`
 for the native ID used by the normalized event. For 365Scores this is the member
@@ -979,8 +980,8 @@ continues to check competition/team coverage; it does not certify player coverag
 
 ### Candidate rules
 
-Candidates require a known player identity, a mapped event team, explicit
-shootout state and compatible known periods. Goal/own-goal/penalty observations
+By default, candidates require a known player identity, a mapped event team,
+explicit shootout state and compatible known periods. Goal/own-goal/penalty observations
 share a scoring family; yellow/red/second-yellow cards share a card family.
 Different known types within a family can therefore be reported as a difference.
 Substitutions require both mapped players in explicit incoming/outgoing roles.
@@ -1008,6 +1009,16 @@ Other native periods are unknown across sources unless the caller supplies an
 explicit `period_aliases={(source, native_code): canonical_period}` mapping.
 The final map is retained in the report. No period is inferred from a minute
 threshold. Identical explicit native periods can be used for same-source comparisons.
+
+Sofascore incident periods often are absent. No default Sofascore period mapping
+or minute-based half inference is supplied. The strict default reports those
+events as `period_unknown`. `allow_unknown_period=True` explicitly permits a
+candidate when either mapped period is unknown, while preserving
+`source_period` in `unknown_fields`. Known conflicting mapped periods still
+cannot pair. Player/team identities, explicit shootout state, clock requirements,
+substitution roles and mutual uniqueness still apply. This option broadens
+candidate scope; it does not verify the missing period. It is stored as
+`report.allow_unknown_period`, including when recomputing saved workflows.
 
 ### Report and provenance
 
@@ -1040,8 +1051,9 @@ provider omitted an event: identity coverage, timing and collection rules can di
 and original fetch date per native match. A successfully obtained empty list is
 different from a failed task with no records. Metadata, source errors, validation
 warnings, complete flags, candidate tolerance and period aliases are retained.
-Rows use exact ESPN `match_details:{id}` or 365Scores `match_events:{id}`/`lineups:{id}`
-fetch dates. Calendar/context/loader timestamps are never substitutes. Conflicting
+Rows use exact ESPN `match_details:{id}`, 365Scores `match_events:{id}`/`lineups:{id}`
+or Sofascore `match_events:{id}` fetch dates. A Sofascore lineup task cannot
+establish incident success or dates. Calendar/context/loader timestamps are never substitutes. Conflicting
 timestamps for multiple possible event tasks leave the row date unknown.
 
 `report.to_dataframe()` lazily imports pandas and returns fixed columns, including
@@ -1057,12 +1069,13 @@ minute differences, penalty outcomes, ambiguous cards and unknown players.
 
 ## Compare lineups and player statistics
 
-`compare_match_players()` compares ESPN/365Scores observations without HTTP,
+`compare_match_players()` compares ESPN/365Scores/Sofascore observations without HTTP,
 file writes, pandas or PyArrow. Both datasets must select `matches` and
 `lineups`, pass validation and identify every lineup's native match. Any
 player-statistics record must reference a selected lineup using the exact native
-match/team/player key. Sofascore downloads remain available; this comparator
-currently accepts ESPN/365Scores, including same-source comparisons.
+match/team/player key. All three sources support same-source and cross-source
+comparisons. Sofascore positions use the same caller-reviewed alias contract,
+and its xG/xA/ratings retain their source-specific models across providers.
 
 The existing match linker establishes unique competition, ordered team and UTC
 kickoff links. Within each fixture, player aliases establish a pair only when
@@ -1161,8 +1174,9 @@ that all individual metrics were observed or agreed.
 `left_coverage`/`right_coverage` retain exact player-task success, lineup and
 statistics counts, whether statistics were selected and the original fetch date
 for each native match. A successful empty response differs from a failed task.
-Only ESPN `match_details:{id}` and 365Scores `lineups:{id}` establish these
-dates. Calendar, event-only, context and loader timestamps are not substitutes.
+Only ESPN `match_details:{id}` and 365Scores/Sofascore `lineups:{id}` establish
+these dates. A successful Sofascore event/context read cannot establish lineup
+success. Calendar, event-only, context and loader timestamps are not substitutes.
 Metadata, download errors, validation warnings, complete flags and comparison
 settings remain in the report.
 
@@ -1176,6 +1190,40 @@ normalized schema 5, which remains unchanged.
 The [Champions/offline examples](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#compare-lineups-and-player-statistics)
 cover bounded downloads, partial player identities and saved source pairs with
 aliases/settings. Reopening recomputes observations from source snapshots.
+
+## Integrated Champions workflow
+
+`examples/datasets/champions_workflow.py` combines match context, team totals,
+lineups, player statistics and events. It compares every selected source pair
+using the contracts above. The three-source demo uses artificial native
+responses, verifies seven shared endpoint reads and reuses their original
+timestamps from cache:
+
+```sh
+python examples/datasets/champions_workflow.py --demo --allow-unknown-period
+python examples/datasets/champions_workflow.py --demo --allow-unknown-period --parquet
+```
+
+Live mode accepts explicit ESPN/365Scores Champions match and season selectors,
+with optional Sofascore match/season IDs and caller-reviewed aliases. It reads
+three endpoints for the two-source selection or seven with Sofascore, before
+transport retries. A source error keeps that source partial while retaining
+successful tables and other providers. The workflow does not enumerate a full
+season calendar or infer native selectors from labels.
+
+`--cache-dir` chooses response storage and `--output-dir` publishes a new bundle
+only after all source snapshots reopen unchanged. The bundle contains the
+selected sources, reviewed identities, pinned metric/period/position options and
+diagnostic reports. `--open-dir` recomputes from source snapshots and saved
+settings, ignoring saved report rows and making no HTTP requests. Base operation
+needs no extras; storage uses `[parquet]` and frames independently use `[pandas]`.
+`--parquet` verifies a temporary demo bundle without retaining files.
+
+The [example index](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#integrated-champions-workflow)
+documents live commands, partial identity coverage, exact exit codes and the
+scope of live checks. Sofascore compatibility has offline contract tests; its
+API returned HTTP 403 in this environment on November 8, 2026. This does not
+establish permanent availability or equivalent collection rules.
 
 ## Troubleshooting
 

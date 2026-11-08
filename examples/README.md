@@ -18,6 +18,8 @@ snapshot. Temporary-file examples clean up after themselves.
 
 | Script | Extra | Behavior shown |
 | :--- | :--- | :--- |
+| [Integrated Champions workflow](datasets/champions_workflow.py) with `--demo --allow-unknown-period` | Base | Artificial three-source downloads, shared read budgets, cache reuse and pairwise comparisons |
+| [Integrated Champions workflow](datasets/champions_workflow.py) with `--demo --allow-unknown-period --pandas` or `--parquet` | Corresponding extra | Comparison frames or a temporary bundle reopened with saved rules and identities |
 | [Player comparison](datasets/compare_players_offline.py) | Base | Starter/shot differences, missing minutes, source models and ambiguous player aliases |
 | [Player comparison](datasets/compare_players_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable lineup/metric frames or source snapshots reproducing the comparison |
 | [Event comparison](datasets/compare_events_offline.py) | Base | Artificial minute/penalty differences, ambiguous cards, unknown players and native phase exclusions |
@@ -232,6 +234,99 @@ coverage. Existing discovery blocks remain source failures.
 shows immutable extensions, identity maps and saving a catalog beside snapshots.
 The offline workflow uses artificial source seasons/fixtures for all three
 competitions and two seasons. `--pandas` and `--parquet` remain independent.
+
+### Integrated Champions workflow
+
+[champions_workflow.py](datasets/champions_workflow.py) requests `matches`,
+`teams`, `match_stats`, `lineups`, `player_match_stats` and `match_events` in one
+bounded plan per source. ESPN shares one summary; 365Scores shares its player
+and event detail, then reads team statistics; Sofascore shares event context and
+reads lineups, incidents and team statistics separately. Each selected source
+pair gets fixture, event, lineup, player-metric and team-metric diagnostics.
+
+The artificial demo works with the base installation and no HTTP:
+
+```sh
+python examples/datasets/champions_workflow.py --demo --allow-unknown-period
+python examples/datasets/champions_workflow.py --demo --allow-unknown-period --pandas
+python examples/datasets/champions_workflow.py --demo --allow-unknown-period --parquet
+```
+
+Demo selectors and identities are artificial. The first pass uses seven mocked
+endpoint reads across the three providers; the second pass reuses all seven
+cache tasks and their original dates without more reads. It illustrates a
+59/60 event-minute difference, a team/player shot-count difference, absent ESPN
+minutes and different source xG models. Demo cache files use a separate
+`artificial-workflow/` child when `--cache-dir` is supplied. Temporary demo caches
+and `--parquet` bundles are cleaned up after verification.
+
+Sofascore's absent event periods stay unresolved under the default strict rule.
+`--allow-unknown-period` explicitly permits otherwise unique candidates with an
+unverified period. It preserves `source_period` in the row's `unknown_fields`
+and cannot override known conflicting periods, unknown shootout state, missing
+identities or ambiguous candidates. No period is derived from a match minute.
+The Python API exposes the same `allow_unknown_period` option.
+
+For live ESPN/365Scores data, supply each native selector:
+
+```sh
+python examples/datasets/champions_workflow.py --espn-match-id 401915310 --scores365-match-id 4828447 --espn-season 2026 --year 2026 --scores365-season-id 74 --cache-dir ./my-data/champions-responses --output-dir ./my-data/champions-workflow-1
+python examples/datasets/champions_workflow.py --open-dir ./my-data/champions-workflow-1
+```
+
+This selects Shakhtar–Sporting on November 3, 2026. The November 8 live check
+used three endpoint reads and completed both source downloads. It retained one
+fixture per source, 46 lineup rows each, 46/31 player-statistics rows and 22/13
+native events. The partial identity map linked twelve players and three events,
+leaving 68 lineup and 18 event observations unresolved. Two selected team metrics
+differed. The saved sources reproduced the comparison offline. These results
+describe that check, without establishing complete player/event agreement.
+
+Sofascore can be included by adding both `--sofascore-match-id` and
+`--sofascore-season-id` with reviewed native values. Its tournament ID is `7`.
+The source's API returned HTTP 403 from this environment on November 8; live
+three-source comparisons were not verified. Its adapters, comparison rules,
+partial failures and snapshots have offline contract tests. The optional API
+failure remains a failed source task, while successful provider data is retained.
+Neither match nor season IDs are inferred from ESPN/365Scores selectors.
+
+The [workflow identity sample](datasets/champions_workflow_identities.json)
+extends the twelve-player ESPN/365Scores map with Sofascore competition/team IDs
+and three player aliases. They were reviewed November 8 against the
+[native match page](https://www.sofascore.com/football/match/shakhtar-donetsk-sporting-cp/bkbsnqb),
+linked [Shakhtar](https://www.sofascore.com/football/team/shakhtar-donetsk/3313)
+and [Sporting](https://www.sofascore.com/football/team/sporting/3001) profiles,
+and the linked players
+[Issa Doumbia](https://www.sofascore.com/football/player/issa-doumbia/1141754),
+[Maximiliano Araújo](https://www.sofascore.com/football/player/maximiliano-araujo/929193)
+and [Isaque](https://www.sofascore.com/football/player/isaque/1835892).
+This fixture sample is partial and does not change the bundled catalog. Pass
+`--identities PATH` for other reviewed equivalences. Native player/athlete IDs
+retain their separate meanings. Positions require explicit mappings in the
+Python API; the workflow's default position map is empty.
+
+`--max-match-requests` checks the total before downloading: three reads for
+ESPN/365Scores or seven with Sofascore. Transport retries can add attempts.
+`--minute-tolerance` defaults to 1 for event candidates and
+`--kickoff-tolerance` to 300 seconds for fixture linkage. Known differences still
+remain reported. `--refresh` bypasses response caches. Detail freshness uses the
+normal cache policy; a cache directory does not make expired data reusable.
+
+`--output-dir` needs `[parquet]` and a new path. The staged bundle contains one
+verified snapshot per source, `identities.json`, `options.json` and
+`comparison.json`. It is published locally after all snapshots reopen unchanged.
+Failed writes clean up staging. `--open-dir` recomputes from source snapshots,
+identities and pinned metric/period/position rules, ignoring saved report rows.
+It rejects download options or external setting overrides. Snapshot checksums
+and source selections remain validated. `[pandas]` independently enables the
+four comparison frames. No normalized schema changes are required.
+
+Exit 0 means selected downloads completed, validation passed and every selected
+source pair has unambiguous fixture linkage. Differences and unresolved player,
+event or optional metric observations remain diagnostic. It does not certify
+agreement. Partial/blocked sources or unresolved fixtures return 1; invalid
+settings, missing extras or existing output paths return 2 before downloading.
+Partial source snapshots/errors remain available in a saved bundle.
 
 ### Compare lineups and player statistics
 

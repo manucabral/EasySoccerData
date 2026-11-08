@@ -4,6 +4,7 @@
 
 ### Added
 
+- Sofascore event/lineup/player-statistics comparisons, exact per-table provenance and an explicit opt-in policy for unknown event periods. The integrated Champions workflow combines all detail tables, compares selected source pairs and reopens saved sources/identities/rules without HTTP; its artificial three-source demo verifies cache reuse.
 - Read-only ESPN/365Scores lineup and player-match metric comparisons with explicit player/position aliases, ambiguous-identity diagnostics, source-specific models and exact task coverage. Champions and offline examples retain reviewed aliases and settings beside source snapshots.
 - Read-only ESPN/365Scores event comparisons with explicit player aliases, mutual candidate uniqueness, clock/period scope, unknown annulments, task coverage and original fetch dates. New examples cover artificial ambiguity and a reviewed three-player Champions sample with saved/offline comparison pairs.
 - Sofascore match-event datasets with shared match context, bounded incident/lineup/statistic reads, nullable annulment flags and native incident details. Schema 5 reads schema 1–4 snapshots, leaving unobserved event flags null. Examples cover all three event providers and explicit Champions League selections.
@@ -32,6 +33,8 @@
 
 ### Fixed
 
+- FBref rate-limit admission is atomic across threads and uses a monotonic clock, preventing concurrent requests from exceeding a shared slot or wall-clock changes from resetting its window.
+- In-memory response reuse rejects future timestamps and nonfinite lifetimes like the persistent cache, avoiding inconsistent hits after a backward clock adjustment.
 - Match linkage accepts datasets containing match_events through the shared table registry.
 - 365Scores match-statistics datasets request UTC like calendar queries, avoiding a source-local detail timestamp that prevented otherwise valid cross-source links.
 - Installed-example checks can exclude the checkout from imports and require `site-packages`, preventing source files from masking missing wheel modules in CI.

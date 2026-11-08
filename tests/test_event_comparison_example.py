@@ -103,3 +103,13 @@ def test_saved_comparison_options_reject_unknown_format(example, tmp_path, raw):
     path.write_text(json.dumps(raw), encoding="utf-8")
     with pytest.raises(ValueError):
         module["read_options"](path)
+
+
+def test_older_saved_options_without_unknown_period_policy_stay_strict(example, tmp_path):
+    module, _, _, pair = example
+    report = esd.compare_match_events(*pair)
+    options = module["report_options"](report)
+    del options["allow_unknown_period"]
+    path = tmp_path / "options.json"
+    path.write_text(json.dumps(options), encoding="utf-8")
+    assert module["read_options"](path)["allow_unknown_period"] is False

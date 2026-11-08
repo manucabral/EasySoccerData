@@ -250,7 +250,7 @@ def compare_match_players(
     metrics: Sequence[str] | None = None, tolerances: Mapping[str, float] | None = None,
     position_aliases: Mapping[tuple[str, str], str] | None = None, tolerance_seconds: float = 300,
 ) -> MatchPlayersReport:
-    """Compare ESPN/365Scores lineups and optional player-match statistics.
+    """Compare ESPN/365Scores/Sofascore lineups and optional player-match statistics.
 
     Requires valid datasets selecting matches and lineups. Explicit cross-source
     player aliases establish identity within uniquely linked fixtures; names,
@@ -286,7 +286,7 @@ def compare_match_players(
         if not isinstance(position_aliases, Mapping):
             raise ValueError("position_aliases must map (source, native label) to canonical position")
         for key, value in position_aliases.items():
-            if (not isinstance(key, tuple) or len(key) != 2 or key[0] not in ("espn", "scores365")
+            if (not isinstance(key, tuple) or len(key) != 2 or key[0] not in ("espn", "scores365", "sofascore")
                     or not all(isinstance(item, str) and item.strip() for item in (*key, value))):
                 raise ValueError("Invalid explicit position alias")
             positions[key] = value
@@ -294,8 +294,8 @@ def compare_match_players(
     for dataset, validation in zip((left, right), validations):
         if not validation.valid:
             raise ValueError(f"Invalid player dataset: {validation.errors[0].code}")
-        if dataset.metadata.source not in ("espn", "scores365"):
-            raise ValueError("Player comparison currently supports ESPN and 365Scores")
+        if dataset.metadata.source not in ("espn", "scores365", "sofascore"):
+            raise ValueError("Player comparison supports ESPN, 365Scores and Sofascore")
         if not {"matches", "lineups"} <= set(dataset.metadata.tables):
             raise ValueError("Both datasets must select matches and lineups")
         matches = {row.match_id for row in dataset.match_records}
