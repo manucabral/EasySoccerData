@@ -320,8 +320,9 @@ class BrowserSession:
         """
         Yield a page in the shared browser.
 
-        The lock serializes access because Playwright's sync API is not
-        thread-safe. The page is always closed when the context exits.
+        The lock serializes page contexts. Create and use this session in one
+        thread, as required by Playwright's sync API. The page is always closed
+        when the context exits.
         """
         with self._lock:
             page = self.new_page()

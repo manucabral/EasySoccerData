@@ -32,7 +32,8 @@ class ResponseReader:
                 cached = self._memory.get(url)
                 if cached is not None:
                     max_age = ttl(cached.data) if callable(ttl) else ttl
-                    if time.time() - cached.fetched_at >= max_age:
+                    age = time.time() - cached.fetched_at
+                    if not math.isfinite(max_age) or max_age <= 0 or not 0 <= age < max_age:
                         cached = None
         if cached is not None:
             try:
