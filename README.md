@@ -56,6 +56,12 @@ context and reads incidents separately. Events retain native periods,
 stoppage time, shootout flags and source annulments. See the [event examples](examples/README.md#match-events)
 and [event field contracts](guides/datasets.md#match-events).
 
+`esd.compare_match_events(left, right, identities=...)` compares ESPN/365Scores
+events using explicit player identities, known periods and unique candidates.
+It retains unknown fields, ambiguity and exact event-task provenance. See the
+[event comparison guide](guides/datasets.md#compare-match-events) and
+[Champions/offline examples](examples/README.md#compare-match-events).
+
 `esd.get_catalog()` resolves reviewed competition/team identities without HTTP.
 The initial catalog covers Champions League, Premier League and LaLiga for
 ESPN/365Scores. It can query native seasons explicitly and build an `IdentityMap`.

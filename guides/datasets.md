@@ -942,6 +942,119 @@ one endpoint read before retries. The included aliases are a checked sample.
 See [the example options](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#compare-match-statistics)
 for caller-selected cache/snapshot paths and offline recomputation.
 
+## Compare match events
+
+`compare_match_events()` compares selected ESPN/365Scores observations without
+HTTP, writes, pandas or PyArrow. Both datasets must select `matches` and
+`match_events`, pass validation and identify every event's native match.
+The existing match linker supplies unique competition/team/kickoff links.
+Sofascore event downloads remain supported, but this comparator currently
+accepts only ESPN/365Scores, including same-source snapshots.
+
+Player identity is explicit. `IdentityMap` accepts `EntityAlias(kind="player", ...)`
+for the native ID used by the normalized event. For 365Scores this is the member
+ID, not `source_athlete_id`. Names, jersey numbers, descriptions and a shared
+numeric ID across different providers never establish a player link. The bundled
+catalog supplies competition/team aliases only. Extend its map independently:
+
+```py
+import esd
+
+identities = esd.get_catalog().identities().with_aliases([
+    esd.EntityAlias("player", "issa-doumbia", "espn", "386592"),
+    esd.EntityAlias("player", "issa-doumbia", "scores365", "75430996"),
+])
+# left/right are downloaded or reopened match-event datasets.
+# report = esd.compare_match_events(left, right, identities=identities)
+```
+
+These example player IDs were reviewed for Shakhtar–Sporting on November 3,
+2026. They are not a player registry. Native member IDs can change with team
+membership. Applications must review additional equivalences. `.aliases` returns
+an immutable tuple of `EntityAlias` entries; serialize them with
+`[dataclasses.asdict(alias) for alias in identities.aliases]`.
+`with_aliases()` returns a new map and rejects conflicting native-ID assignments.
+The original map and dataset IDs remain unchanged. Existing match compatibility
+continues to check competition/team coverage; it does not certify player coverage.
+
+### Candidate rules
+
+Candidates require a known player identity, a mapped event team, explicit
+shootout state and compatible known periods. Goal/own-goal/penalty observations
+share a scoring family; yellow/red/second-yellow cards share a card family.
+Different known types within a family can therefore be reported as a difference.
+Substitutions require both mapped players in explicit incoming/outgoing roles.
+Event teams are compared as source observations and can differ for own goals
+without establishing which source is correct.
+
+Non-shootout events also require observed minutes within `minute_tolerance`
+(default 1). When both added-time values are known, their minute-plus-added-time
+difference must also fit. A missing added-time value remains unknown, never zero.
+The tolerance admits candidates; a known 59 versus 60 remains a reported minute
+difference. `minute_tolerance=0` requires exact observed clocks for candidates.
+Shootout attempts use player/period identity without comparing match minutes
+or treating a 365Scores order as a persistent event ID. Repeated attempts by one
+player remain ambiguous when they cannot be identified uniquely.
+
+Only candidates unique in both directions are paired. The comparator does not
+choose a nearest event, use list position or force a one-to-one assignment to
+resolve ambiguity. Within one source and the same native match, a shared native
+event ID anchors revisions even when a player, clock or period observation has
+changed. Different known native event IDs in one source remain distinct.
+
+Default period aliases map ESPN 1/2/3/4/5 to the two halves, two extra-time
+halves and shootout, and 365Scores 7/9/11 to first half/second half/shootout.
+Other native periods are unknown across sources unless the caller supplies an
+explicit `period_aliases={(source, native_code): canonical_period}` mapping.
+The final map is retained in the report. No period is inferred from a minute
+threshold. Identical explicit native periods can be used for same-source comparisons.
+
+### Report and provenance
+
+`MatchEventsReport.rows` retains each paired or unresolved native event in full:
+
+| Status | Meaning |
+| :--- | :--- |
+| `equal` | Known comparable observations agree; `unknown_fields` remains unverified |
+| `different` | A unique pair has differing known observations, named in `differences` |
+| `unresolved_left` / `unresolved_right` | Match, player/team identity, clock, role or period evidence is missing |
+| `ambiguous_left` / `ambiguous_right` | Candidate identity is not unique in both directions; `candidate_keys` lists opposite native references |
+| `unmatched_left` / `unmatched_right` | A usable event has no candidate in the linked fixture |
+
+Compared observations are normalized type, team/player identity, shootout state,
+period, known match/added minutes, annulment flag and substitution participants/roles.
+Native descriptions, source orders, ratings and elapsed-clock precision do not
+serve as equivalence tests. Original fields remain in `left_event`/`right_event`.
+Absent annulments, including null/null, appear in `unknown_fields`. Equal observed
+fields do not prove that an event was not annulled or that both collections are complete.
+
+Every selected event appears in exactly one report row, with two observations
+in a paired row. Unselected/native `other` types are retained in `excluded_left`
+and `excluded_right`. `event_types` can restrict the default scoring/card/change
+selection. Match ambiguity/unmatched IDs remain in `report.linkage`, including
+fixtures with no selected events. `.differences` selects differing pairs;
+`.unresolved` selects all unpaired rows. Unmatched records do not prove that a
+provider omitted an event: identity coverage, timing and collection rules can differ.
+
+`left_coverage`/`right_coverage` separate exact event-task success, raw record count
+and original fetch date per native match. A successfully obtained empty list is
+different from a failed task with no records. Metadata, source errors, validation
+warnings, complete flags, candidate tolerance and period aliases are retained.
+Rows use exact ESPN `match_details:{id}` or 365Scores `match_events:{id}`/`lineups:{id}`
+fetch dates. Calendar/context/loader timestamps are never substitutes. Conflicting
+timestamps for multiple possible event tasks leave the row date unknown.
+
+`report.to_dataframe()` lazily imports pandas and returns fixed columns, including
+empty reports, nullable counts/flags and UTC timestamps. Diagnostic tuple fields
+become JSON strings in the frame; the report keeps structured tuples and full
+native event records. The report format version is 1, independent of normalized
+schema 5. No normalized columns or snapshot schemas change in this feature.
+
+The [Champions comparison example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#compare-match-events)
+downloads two bounded summaries, saves source snapshots/identities/options/report,
+and recomputes offline from the original records. An artificial example exercises
+minute differences, penalty outcomes, ambiguous cards and unknown players.
+
 ## Troubleshooting
 
 | Symptom | What to check |

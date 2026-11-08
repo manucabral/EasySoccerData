@@ -4,6 +4,7 @@
 
 ### Added
 
+- Read-only ESPN/365Scores event comparisons with explicit player aliases, mutual candidate uniqueness, clock/period scope, unknown annulments, task coverage and original fetch dates. New examples cover artificial ambiguity and a reviewed three-player Champions sample with saved/offline comparison pairs.
 - Sofascore match-event datasets with shared match context, bounded incident/lineup/statistic reads, nullable annulment flags and native incident details. Schema 5 reads schema 1–4 snapshots, leaving unobserved event flags null. Examples cover all three event providers and explicit Champions League selections.
 - Normalized ESPN/365Scores match events with native clocks, participant references, nullable IDs and separate shootout counters. Event downloads share selected lineup/player responses, respect request budgets and support cached/offline examples. Schema 4 reads existing schema 1–3 snapshots without fabricating event tables.
 - Versioned competition/team catalog with reviewed ESPN/365Scores IDs for Champions League, Premier League and LaLiga, source evidence/dates, explicit native season selections, identity-map integration and caller-owned JSON extensions. Examples cover three competitions across two artificial seasons, cache reuse and snapshots.
@@ -30,6 +31,7 @@
 
 ### Fixed
 
+- Match linkage accepts datasets containing match_events through the shared table registry.
 - 365Scores match-statistics datasets request UTC like calendar queries, avoiding a source-local detail timestamp that prevented otherwise valid cross-source links.
 - Installed-example checks can exclude the checkout from imports and require `site-packages`, preventing source files from masking missing wheel modules in CI.
 - Transfermarkt search now reads competition grid cells and cup links (`pokalwettbewerb`), which were omitted by the previous link parser.

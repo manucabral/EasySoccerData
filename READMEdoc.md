@@ -214,6 +214,14 @@ retain missing values, source periods, original fetch times, partial errors and
 unmatched/ambiguous IDs. Cross-source xG/forecast models remain separate.
 `report.to_dataframe()` requires the pandas extra.
 
+`compare_match_events(left, right, identities=...)` compares ESPN/365Scores
+events after explicit match and player linkage. Known differences, unknown
+observations, ambiguous candidates and failed/empty event tasks remain separate.
+`IdentityMap` accepts caller-reviewed `player` aliases and can be extended with
+`with_aliases()` without changing the original map. The bundled catalog still
+supplies only competition/team aliases. See the
+[event comparison guide](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/guides/datasets.md#compare-match-events).
+
 ESPN, 365Scores and Sofascore expose `match_events` for explicit IDs. ESPN/365Scores
 share summary/game detail with player tables. Sofascore shares event context,
 then reads incidents and any selected lineups/statistics separately.

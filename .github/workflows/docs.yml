@@ -35,6 +35,7 @@ jobs:
           ./esd/discovery.py
           ./esd/catalog.py
           ./esd/statistics_comparison.py
+          ./esd/event_comparison.py
           ./esd/normalized/match_players.py
           ./esd/normalized/match_events.py
           ./esd/espn ./esd/sofascore ./esd/fbref ./esd/promiedos ./esd/goaloo

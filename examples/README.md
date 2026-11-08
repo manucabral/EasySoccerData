@@ -18,6 +18,8 @@ snapshot. Temporary-file examples clean up after themselves.
 
 | Script | Extra | Behavior shown |
 | :--- | :--- | :--- |
+| [Event comparison](datasets/compare_events_offline.py) | Base | Artificial minute/penalty differences, ambiguous cards, unknown players and native phase exclusions |
+| [Event comparison](datasets/compare_events_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable report frames or comparisons recomputed from snapshots |
 | [Match events](datasets/match_events_offline.py) | Base | Artificial goals/stoppage time, shootout counters, player/context reuse and caching for ESPN/365Scores/Sofascore |
 | [Match events](datasets/match_events_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable event frames or snapshots reopened without HTTP |
 | [Reviewed catalog](datasets/catalog.py) with `--list` | Base | Local competition selectors, review metadata and team identity count |
@@ -228,6 +230,64 @@ coverage. Existing discovery blocks remain source failures.
 shows immutable extensions, identity maps and saving a catalog beside snapshots.
 The offline workflow uses artificial source seasons/fixtures for all three
 competitions and two seasons. `--pandas` and `--parquet` remain independent.
+
+### Compare match events
+
+[champions_event_comparison.py](datasets/champions_event_comparison.py) compares
+explicit ESPN/365Scores native match IDs with the event comparator. It needs
+one endpoint read per source, before transport retries, and no full calendar:
+
+```sh
+python examples/datasets/champions_event_comparison.py --espn-match-id 401915310 --scores365-match-id 4828447 --espn-season 2026 --year 2026 --season-id 74
+```
+
+The selected fixture is Shakhtar–Sporting on November 3, 2026. The sample
+[identity file](datasets/champions_event_identities.json) was reviewed November
+8, 2026 against native event/roster references from the
+[ESPN summary](https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/summary?event=401915310)
+and [365Scores game](https://webws.365scores.com/web/game/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&gameId=4828447).
+It covers the two teams and three players: Issa Doumbia (shirt 77), Maximiliano
+Araújo (20) and Isaque (14), with corresponding native roster/event IDs. For
+365Scores, those aliases use the member ID, not the separate athlete ID. The
+reviewed file is an example scoped to this fixture, not a complete player map.
+Additional equivalences must be reviewed and passed with `--identities`.
+
+The live check on November 8 linked three event pairs and retained 18 unresolved
+observations. Ten ESPN phase/delay records and one 365Scores unselected type
+were excluded from the selected comparison, while remaining in the report.
+Both source queries completed; unknown annulments and ESPN added-time values
+remained unknown. This describes that bounded check, not complete event coverage
+or provider agreement. The default sample returns exit code 1 because several
+events lack reviewed player equivalences.
+
+```sh
+python examples/datasets/champions_event_comparison.py --espn-match-id 401915310 --scores365-match-id 4828447 --espn-season 2026 --year 2026 --season-id 74 --cache-dir ./my-data/event-responses --output-dir ./my-data/event-comparison-1
+python examples/datasets/champions_event_comparison.py --open-dir ./my-data/event-comparison-1
+python examples/datasets/compare_events_offline.py
+```
+
+Cache storage needs the base install. Saving/reopening needs `[parquet]` without
+pandas. `--pandas` independently displays the comparison frame. The saved pair
+contains `espn/`, `scores365/`, `identities.json`, `options.json` and `comparison.json`.
+Offline opening reads source snapshots, aliases and settings and recomputes the
+report; saved report rows are not treated as source observations. Output paths
+must be new. Missing extras, invalid selectors/settings and existing paths fail
+before source requests. Partial source errors are saved with their datasets.
+
+`--minute-tolerance` defaults to 1 candidate minute, `--kickoff-tolerance` to 300
+seconds for fixture linkage, and `--limit` to 20 preview rows. Paired known minute
+differences stay visible even when within the candidate tolerance. Offline
+opening rejects external settings/download options; stored settings are used.
+Exit 0 requires completed sources, linked fixtures and no unresolved selected
+events; observed differences and explicitly listed unknown optional fields do
+not fail it. Exit 1 retains source failures, unresolved events or match linkage.
+Invalid arguments/settings or missing extras return 2.
+
+The artificial example needs no network or extra. Add `--pandas` for fixed nullable
+report columns or `--parquet` for temporary source snapshots and recomputation.
+The [guide](../guides/datasets.md#compare-match-events) documents identity, candidate
+uniqueness, periods, shootouts, annulments and the difference between a successful
+empty feed and a failed event task.
 
 ### Match events
 

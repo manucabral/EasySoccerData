@@ -61,6 +61,12 @@ from .discovery import (
 )
 from .espn import ESPNClient
 from .espn import types as ESPNTypes
+from .event_comparison import (
+    MatchEventComparison,
+    MatchEventCoverage,
+    MatchEventsReport,
+    compare_match_events,
+)
 from .exceptions import ESDException, SourceBlocked, SourceError, SourceNotFound
 from .fbref import FBrefClient
 from .fbref import types as FBrefTypes
@@ -114,6 +120,7 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 __all__ = [
+    "MatchEventComparison", "MatchEventCoverage", "MatchEventsReport", "compare_match_events",
     "NormalizedMatchEvent", "normalize_match_events",
     "CatalogCompetition", "CatalogReference", "CatalogTeam", "FootballCatalog", "get_catalog", "open_catalog",
     "MatchPlayerRecords", "normalize_match_players",

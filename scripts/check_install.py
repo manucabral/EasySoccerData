@@ -75,6 +75,13 @@ def main():
                                   tables=["match_events", "player_match_stats"], match_ids=[1], max_match_requests=1)
     assert fetch.call_count == 1 and events.complete and esd.validate_dataset(events).valid
     assert events.match_event_records[0].is_shootout is True and events.match_event_records[0].minute is None
+    event_comparison = esd.compare_match_events(events, events)
+    assert event_comparison.rows[0].status == "equal"
+    assert "rescinded" in event_comparison.rows[0].unknown_fields
+    assert event_comparison.left_coverage[0].successful
+    extended = catalog.identities().with_aliases([esd.EntityAlias("player", "sample-player", "espn", "101")])
+    assert extended.resolve("player", "espn", "101") == "sample-player"
+    assert esd.IdentityMap(extended.aliases).resolve("player", "espn", "101") == "sample-player"
     sofa_context = {"event": {"id": 1, "season": {"id": 228}, "tournament": {"uniqueTournament": {"id": 7}},
                               "startTimestamp": 1793736000, "homeTeam": {"id": 10}, "awayTeam": {"id": 20}}}
     sofa_incidents = {"incidents": [{"id": 2, "incidentType": "goal", "incidentClass": "regular", "time": 45,

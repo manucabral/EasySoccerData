@@ -1,4 +1,4 @@
-"""Competition/team aliases and match linkage using IDs and kickoff times."""
+"""Explicit entity aliases and match linkage using IDs and kickoff times."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from .normalized import SCHEMA_VERSION
 
 @dataclass(frozen=True)
 class EntityAlias:
-    """One native competition/team ID linked to a caller-defined identity."""
+    """One native competition/team/player ID linked to a caller-defined identity."""
 
     kind: str
     canonical_id: str
@@ -20,13 +20,18 @@ class EntityAlias:
 
 
 class IdentityMap:
-    """Competition and team aliases supplied by the caller. Names are not matched."""
+    """Caller-supplied competition/team/player aliases, without name matching.
+
+    Player source_id is the ID used by the normalized record. For 365Scores
+    events it is the member ID, not the separate athlete ID. The catalog does
+    not supply player aliases. Callers must review those equivalences.
+    """
 
     def __init__(self, aliases=()):
         self._aliases = {}
         for alias in aliases:
-            if not isinstance(alias, EntityAlias) or alias.kind not in ("competition", "team"):
-                raise ValueError("IdentityMap requires competition/team EntityAlias entries")
+            if not isinstance(alias, EntityAlias) or alias.kind not in ("competition", "team", "player"):
+                raise ValueError("IdentityMap requires competition/team/player EntityAlias entries")
             if any(
                 not isinstance(value, str) or not value
                 for value in (alias.canonical_id, alias.source, alias.source_id)
@@ -38,8 +43,18 @@ class IdentityMap:
             self._aliases[key] = alias.canonical_id
 
     def resolve(self, kind, source, source_id):
-        """Return the caller's canonical competition/team ID, or None if unmapped."""
+        """Return the caller's canonical entity ID, or None if unmapped."""
         return self._aliases.get((kind, source, str(source_id))) if source_id is not None else None
+
+    @property
+    def aliases(self) -> tuple[EntityAlias, ...]:
+        """Immutable entries suitable for saving or extending this map."""
+        return tuple(EntityAlias(kind, canonical, source, native)
+                     for (kind, source, native), canonical in self._aliases.items())
+
+    def with_aliases(self, aliases) -> IdentityMap:
+        """Return an independent extended map, rejecting conflicting native IDs."""
+        return IdentityMap((*self.aliases, *aliases))
 
 
 @dataclass(frozen=True)
@@ -100,7 +115,7 @@ def check_dataset_compatibility(
     Unknown identities, missing kickoff times and provider-specific metrics are
     reported. No names, scores, statuses or xG values establish equivalence.
     """
-    from ._dataset_storage import _validate_records
+    from ._dataset_storage import _RECORDS, _validate_records
     from .datasets import SoccerDataset
     from .normalized.schema import TABLE_MODELS
 
@@ -117,18 +132,7 @@ def check_dataset_compatibility(
     valid = left.metadata.schema_version == right.metadata.schema_version == SCHEMA_VERSION
     if not valid:
         issues.append("Unsupported or different schema versions")
-    attributes = {
-        "lineups": "lineup_records", "player_match_stats": "player_match_stat_records",
-        "matches": "match_records",
-        "teams": "team_records",
-        "standings": "standing_records",
-        "match_stats": "match_stat_records",
-        "shots": "shot_records",
-        "player_stats": "player_stat_records",
-        "players": "player_records",
-        "market_values": "market_value_records",
-        "transfers": "transfer_records",
-    }
+    attributes = _RECORDS
     for dataset in (left, right):
         try:
             if any(table not in attributes for table in dataset.metadata.tables):

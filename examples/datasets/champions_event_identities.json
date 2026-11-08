@@ -1,0 +1,14 @@
+[
+  {"kind": "competition", "canonical_id": "champions-league", "source": "espn", "source_id": "uefa.champions"},
+  {"kind": "competition", "canonical_id": "champions-league", "source": "scores365", "source_id": "572"},
+  {"kind": "team", "canonical_id": "shakhtar", "source": "espn", "source_id": "493"},
+  {"kind": "team", "canonical_id": "shakhtar", "source": "scores365", "source_id": "1955"},
+  {"kind": "team", "canonical_id": "sporting", "source": "espn", "source_id": "2250"},
+  {"kind": "team", "canonical_id": "sporting", "source": "scores365", "source_id": "890"},
+  {"kind": "player", "canonical_id": "issa-doumbia", "source": "espn", "source_id": "386592"},
+  {"kind": "player", "canonical_id": "issa-doumbia", "source": "scores365", "source_id": "75430996"},
+  {"kind": "player", "canonical_id": "maximiliano-araujo", "source": "espn", "source_id": "287025"},
+  {"kind": "player", "canonical_id": "maximiliano-araujo", "source": "scores365", "source_id": "7244055"},
+  {"kind": "player", "canonical_id": "isaque", "source": "espn", "source_id": "382970"},
+  {"kind": "player", "canonical_id": "isaque", "source": "scores365", "source_id": "76831892"}
+]
