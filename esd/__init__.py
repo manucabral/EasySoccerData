@@ -58,6 +58,12 @@ from .datasets import (
     load_dataset,
     open_dataset,
 )
+from .derived_statistics import (
+    DerivedMetric,
+    DerivedStatistics,
+    derive_statistics,
+    derived_statistics_to_dataframe,
+)
 from .discovery import (
     CompetitionInfo,
     DiscoveryCapabilities,
@@ -137,6 +143,7 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 __all__ = [
+    "DerivedMetric", "DerivedStatistics", "derive_statistics", "derived_statistics_to_dataframe",
     "DatasetFieldCapability", "get_dataset_field_capabilities", "DatasetCoverageReport",
     "DatasetFieldCoverage", "DatasetTableCoverage", "DatasetTaskCoverage", "inspect_dataset_coverage",
     "MatchPlayerComparison", "MatchPlayerCoverage", "MatchPlayersReport",

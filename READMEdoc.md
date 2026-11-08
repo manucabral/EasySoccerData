@@ -313,3 +313,20 @@ Requires `[parquet]`; pandas remains optional. Match IDs are exact native string
 Tables without `match_id` retain all rows. Original download coverage and errors
 remain available, and `complete` still describes that download. See the dataset
 guide for local selection metadata and integrity checks.
+
+### Derived statistics
+
+```python
+from esd import NormalizedPlayerMatchStats, derive_statistics
+
+# Invented observations. A loaded player_match_stat_records row works here too.
+row = NormalizedPlayerMatchStats("scores365", minutes=45, goals=1)
+result = derive_statistics(row)
+goals_per90 = next(metric for metric in result.metrics if metric.name == "goals_per90")
+assert goals_per90.value == 2.0
+```
+
+Calculates player per-90 rates, pass/shot accuracy and xG per shot when their
+inputs exist. Each result retains its formula, inputs and a null reason when
+unavailable. Original rows remain unchanged. Calculations and JSON use the base
+installation; `derived_statistics_to_dataframe()` requires `[pandas]`.

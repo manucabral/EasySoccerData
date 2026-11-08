@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 
 BASE = (
+    ("examples/datasets/derived_statistics.py",),
+    ("examples/datasets/derived_statistics.py", "--json"),
     ("examples/datasets/coverage.py", "--source", "espn", "--table", "shots"),
     ("examples/datasets/coverage_offline.py",),
     ("examples/datasets/scoped_players_offline.py",),
@@ -41,6 +43,7 @@ BASE = (
     ("examples/datasets/cache_resume_offline.py",),
 )
 PANDAS = (
+    ("examples/datasets/derived_statistics.py", "--pandas"),
     ("examples/datasets/coverage_offline.py", "--pandas"),
     ("examples/datasets/match_shots_offline.py", "--pandas"),
     ("examples/datasets/champions_workflow.py", "--demo", "--allow-unknown-period", "--pandas"),

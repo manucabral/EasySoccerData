@@ -4,6 +4,8 @@
 
 ### Added
 
+- Row-level derived statistics retain formulas, observed inputs and null reasons for player per-90 rates, pass/shot accuracy and source-model xG per shot. JSON works in the base installation, with independent optional pandas frames and offline/snapshot examples. Original normalized rows and schema remain unchanged.
+
 - Read snapshots by table and native match ID with batched filtering, full file integrity checks and preserved download provenance.
 
 - Read-only field contracts for all nine dataset providers, with nullable types, unavailable columns and source-specific model/coordinate labels. Coverage inspection separates normalized non-null/missing/zero/False counts from per-table task outcomes, retaining errors, cache dates and query scope without optional dependencies. New CLI/offline examples cover contract lookup, snapshots, JSON reports and optional pandas frames.

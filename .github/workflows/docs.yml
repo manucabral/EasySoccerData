@@ -32,7 +32,7 @@ jobs:
           python -W error -m pdoc
           ./esd ./esd/datasets.py ./esd/cache.py ./esd/compatibility.py
           ./esd/dataset_capabilities.py ./esd/dataset_validation.py ./esd/normalized
-          ./esd/dataset_fields.py ./esd/dataset_coverage.py
+          ./esd/dataset_fields.py ./esd/dataset_coverage.py ./esd/derived_statistics.py
           ./esd/discovery.py
           ./esd/catalog.py
           ./esd/statistics_comparison.py

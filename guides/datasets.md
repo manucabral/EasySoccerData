@@ -1494,3 +1494,84 @@ Older snapshots without selection metadata remain supported, including their
 schema migrations. Reading does not modify the source directory.
 
 Run `python examples/datasets/select_snapshot.py --help` for an offline reader.
+
+## Derived statistics
+
+`derive_statistics(record)` accepts `NormalizedPlayerMatchStats`,
+`NormalizedPlayerStats` or `NormalizedMatchStats`. It performs no requests and
+requires neither pandas nor PyArrow. Apply it to the corresponding record tuples
+from a download or a reopened snapshot:
+
+```python
+from esd import derive_statistics, derived_statistics_to_dataframe
+
+results = tuple(derive_statistics(row) for row in dataset.player_match_stat_records)
+# Optional [pandas], one row per metric with native source/match/player IDs:
+frame = derived_statistics_to_dataframe(results)
+# JSON-compatible definitions, input observations and results:
+documents = [result.to_dict() for result in results]
+```
+
+Each `DerivedStatistics` retains the original frozen row in `record`. Its
+`metrics` tuple contains `DerivedMetric` objects with the numerator/denominator
+field names, their observed values, scale, unit, result and status. JSON uses
+`easysoccerdata-derived-statistics` format version 1. This format is separate
+from normalized snapshot schema 6, which does not change.
+
+| Calculation | Formula | Available rows |
+| --- | --- | --- |
+| Player metric per 90 | metric / minutes × 90 | Player-match and player-season |
+| Pass accuracy | accurate_passes / passes × 100 | Player-match and each match side |
+| Shot accuracy | shots_on_target / shots × 100 | Player-match and each match side |
+| xG per shot | xg / shots | Player-match, player-season and each match side |
+
+Player-match rates cover observed counts except minutes and appearances, plus
+xG and xA. Player-season rates cover goals, assists, shots, key passes, cards,
+xG, xA, npxG, xG chain and xG buildup. Ratings and percentages are not scaled
+per 90. A provider may leave any input absent. ESPN's current player-match
+adapter, for example, does not populate minutes, and Sofascore's adapter does
+not populate total shots. The corresponding rates remain null.
+
+Reported minutes are used as supplied, including values above 90 for extra time.
+They are never inferred from starters, appearances or match clocks. Team match
+statistics have no minutes field and receive no per-90 values. Per-90 rates for
+short appearances can be large and do not predict a player's full-match output.
+
+All operands come from one row, source and reported period. No player aliases,
+fixtures or opposing-team counts are joined. The provider name labels expected-
+value models, without claiming a version or comparability between providers.
+Identical column names do not establish identical statistical definitions.
+The calculation cannot recover missing provider observations or parser defaults.
+
+| Status | Result |
+| --- | --- |
+| `calculated` | Finite computed value, including zero |
+| `missing_numerator` | Null numerator; denominator is still retained |
+| `missing_denominator` | Numerator exists, denominator is null |
+| `zero_denominator` | Denominator is zero, including 0 / 0 |
+| `inconsistent_inputs` | Completed/on-target count exceeds the reported total |
+| `nonfinite_result` | Inputs were finite but the result overflowed |
+
+Missing numerator takes precedence when both inputs are missing. Percentages
+are never clipped to fit 0–100. Negative, nonnumeric, boolean and nonfinite
+operands raise `ValueError`; unsupported record types raise `TypeError`.
+
+These are row-level calculations, not season aggregation. A season rate should
+use compatible season totals and minutes, rather than the mean of match rates.
+Deriving metrics does not change `dataset.complete`, errors, cache timestamps,
+source values or saved files. Check download and field coverage separately.
+Saving the original dataset preserves the inputs, and deriving again after
+`open_dataset()` reproduces the results. Calculated fields are not appended to
+normalized tables or silently written into snapshots.
+
+```console
+python examples/datasets/derived_statistics.py
+python examples/datasets/derived_statistics.py --json
+python examples/datasets/derived_statistics.py --pandas
+python examples/datasets/derived_statistics.py --open-dir ./my-data/champions --table player_match_stats --match-id 401915310
+```
+
+Without `--open-dir`, the example uses invented observations. Opening a snapshot
+requires `[parquet]`; displaying frames independently requires `[pandas]`. The
+CLI rejects match filters on player-season statistics. JSON mode prints row
+calculations only; inspect the dataset separately for original task coverage.

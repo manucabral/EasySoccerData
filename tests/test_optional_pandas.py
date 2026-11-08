@@ -20,6 +20,16 @@ sys.meta_path.insert(0, WithoutPandas())
 import esd
 assert "pandas" not in sys.modules
 assert "pyarrow" not in sys.modules
+result = esd.derive_statistics(esd.NormalizedPlayerMatchStats("scores365", minutes=45, goals=1))
+assert result.metrics[0].value == 2
+assert result.to_dict()["record"]["minutes"] == 45
+try:
+    esd.derived_statistics_to_dataframe([result])
+except ImportError as exc:
+    assert "EasySoccerData[pandas]" in str(exc)
+else:
+    raise AssertionError("Derived frames require pandas")
+assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
 assert esd.ESPNClient() is not None
 from esd.espn.types import ESPNMatch
 match = esd.normalize_match(ESPNMatch(id="001"))

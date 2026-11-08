@@ -24,6 +24,9 @@ def main():
     assert "site-packages" in Path(esd.__file__).parts, esd.__file__
     assert metadata("EasySoccerData")["License-Expression"] == "MIT"
     assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
+    derived = esd.derive_statistics(esd.NormalizedPlayerMatchStats("scores365", minutes=45, goals=1))
+    assert derived.metrics[0].value == 2
+    assert derived.to_dict()["record"]["minutes"] == 45
     assert len(esd.get_dataset_capabilities()) == 9
     catalog = esd.get_catalog()
     assert catalog.competition("Premier League").for_source("espn").source_id == "eng.1"
@@ -178,6 +181,7 @@ def main():
             else:
                 raise AssertionError("Saving without PyArrow must fail")
     if wants_pandas:
+        assert str(esd.derived_statistics_to_dataframe([derived]).value.dtype) == "Float64"
         assert str(field_coverage.to_dataframe().present_count.dtype) == "Int64"
         frame = dataset.matches
         assert str(frame.home_score.dtype) == "Int64"
@@ -195,6 +199,12 @@ def main():
         assert str(player_comparison.to_dataframe("statistics").left_value.dtype) == "Float64"
     else:
         assert "pandas" not in sys.modules
+        try:
+            esd.derived_statistics_to_dataframe([derived])
+        except ImportError as exc:
+            assert "EasySoccerData[pandas]" in str(exc)
+        else:
+            raise AssertionError("Derived frames require pandas")
         try:
             field_coverage.to_dataframe()
         except ImportError as exc:

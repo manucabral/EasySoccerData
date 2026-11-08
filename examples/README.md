@@ -929,3 +929,17 @@ python examples/datasets/select_snapshot.py --open-dir ./my-data/champions --tab
 Requires `[parquet]`. Reads saved files without HTTP or pandas. Tables without a
 match ID remain unchanged. The printed completion flag and failures describe the
 original download, including failures outside the loaded selection.
+
+### Calculate derived statistics
+
+```console
+python examples/datasets/derived_statistics.py
+python examples/datasets/derived_statistics.py --json
+python examples/datasets/derived_statistics.py --pandas
+python examples/datasets/derived_statistics.py --open-dir ./my-data/champions --table player_match_stats
+```
+
+The default demo uses invented observations and the base installation. Reopening
+needs `[parquet]`; frame display independently needs `[pandas]`. The example
+calculates per-90 rates and available ratios, retaining formulas and null reasons.
+It does not infer minutes, aggregate players or change snapshot files.
