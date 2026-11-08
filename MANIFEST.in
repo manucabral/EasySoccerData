@@ -1,6 +1,8 @@
 include READMEdoc.md
+include mkdocs.yml
 recursive-include esd/data *.json
 recursive-include guides *.md
+recursive-include docs *.md *.css
 recursive-include examples *.py *.md *.json
 include scripts/check_install.py
 include scripts/check_examples.py

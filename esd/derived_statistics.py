@@ -95,20 +95,27 @@ def _metric(record, name, numerator_field, denominator_field, scale, unit, *, su
 
 
 def derive_statistics(record) -> DerivedStatistics:
-    """Calculate per-90 rates and compatible ratios from one normalized row.
+    """Calculate per-90 rates and accuracy ratios from a single normalized statistics record.
 
-    Accepts player_match_stats, player_stats or match_stats models. Player rows
-    use their own reported minutes, including extra time. Minutes are never
-    inferred from appearances, lineups, the clock or a presumed 90-minute match.
-    Team match totals have no minutes field and receive no per-90 calculations.
+    Accepts ``NormalizedPlayerMatchStats``, ``NormalizedPlayerStats``, or
+    ``NormalizedMatchStats``. Player records use their own reported ``minutes``
+    field for per-90 rates; missing or zero denominators return ``value=None``
+    with an explicit diagnostic ``status`` (``"missing_denominator"``,
+    ``"zero_denominator"``, or ``"inconsistent_inputs"``).
 
-    Pass accuracy is accurate_passes / passes * 100, and shot accuracy is
-    shots_on_target / shots * 100. Counts exceeding their denominators yield
-    inconsistent_inputs rather than a clipped percentage. xG per shot uses
-    the source's model. No cross-row joins, aggregation or source substitution
-    occur. Missing operands or a zero denominator return null with a status.
-    Negative, nonfinite, boolean or nonnumeric operands raise ValueError.
-    The original row and normalized snapshot schema remain unchanged.
+    Args:
+        record (NormalizedPlayerMatchStats | NormalizedPlayerStats | NormalizedMatchStats):
+            A normalized statistics record instance.
+
+    Returns:
+        DerivedStatistics: Container holding the original ``record``, ``table``
+            name, and tuple of ``DerivedMetric`` items.
+
+    Raises:
+        TypeError: If ``record`` is not one of the three supported normalized
+            statistics models.
+        ValueError: If ``record.source`` is blank or any numeric operand is
+            negative, non-finite, or invalid.
     """
     table = _MODELS.get(type(record))
     if table is None:
@@ -136,11 +143,21 @@ def derive_statistics(record) -> DerivedStatistics:
 
 
 def derived_statistics_to_dataframe(results: Iterable[DerivedStatistics]):
-    """Return one row per derived metric using optional EasySoccerData[pandas].
+    """Convert an iterable of ``DerivedStatistics`` objects into a pandas DataFrame.
 
-    Context columns retain native source IDs. Original statistics remain on each
-    DerivedStatistics.record and in its JSON representation. Empty inputs keep
-    the same nullable column types. This function does not require PyArrow.
+    Requires ``EasySoccerData[pandas]``.
+
+    Args:
+        results: Iterable of ``DerivedStatistics`` records produced by
+            ``derive_statistics``.
+
+    Returns:
+        frame (pandas.DataFrame): A DataFrame with one row per derived metric
+            and nullable string/float dtypes.
+
+    Raises:
+        ImportError: If ``pandas`` is not installed.
+        TypeError: If any element in ``results`` is not a ``DerivedStatistics``.
     """
     try:
         import pandas as pd

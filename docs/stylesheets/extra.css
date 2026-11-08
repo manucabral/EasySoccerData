@@ -1,0 +1,77 @@
+:root,
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #0f2547;
+  --md-primary-fg-color--light: #1d3b6b;
+  --md-primary-fg-color--dark: #09172e;
+  --md-accent-fg-color: #00329e;
+  --md-typeset-a-color: #00329e;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #161b22;
+  --md-primary-fg-color--light: #21262d;
+  --md-primary-fg-color--dark: #0d1117;
+  --md-accent-fg-color: #58a6ff;
+  --md-typeset-a-color: #58a6ff;
+  --md-default-bg-color: #0d1117;
+}
+
+.md-grid {
+  max-width: 1380px;
+}
+
+.md-typeset h1 {
+  color: var(--md-default-fg-color);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.8em;
+}
+
+.md-typeset h2 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+  padding-bottom: 0.3rem;
+}
+
+.md-typeset table:not([class]) {
+  border-radius: 6px;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  font-size: 0.78rem;
+}
+
+.md-typeset table:not([class]) th,
+.md-typeset table:not([class]) td {
+  padding: 0.55rem 0.7rem;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: rgba(15, 37, 71, 0.06);
+  color: var(--md-default-fg-color);
+  font-weight: 600;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) th {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.md-typeset table:not([class]) code {
+  word-break: normal;
+}
+
+.doc-object {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.4rem;
+  background-color: var(--md-default-bg-color);
+}
+
+.doc-object .doc-object {
+  border: none;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0;
+  padding: 0.85rem 0 0.25rem 0;
+  margin-top: 0.85rem;
+  margin-bottom: 0.25rem;
+}

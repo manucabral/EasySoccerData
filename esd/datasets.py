@@ -209,12 +209,25 @@ class SoccerDataset:
         return self._dataframe(self.transfer_records, "transfers")
 
     def save(self, path: str | PathLike, *, format: str = "parquet") -> Path:
-        """Write a snapshot to a new directory with EasySoccerData[parquet].
+        """Write a dataset snapshot to a new directory.
 
-        Tables are Parquet files alongside a versioned JSON manifest containing
-        metadata, errors, row counts and checksums. Existing paths are never
-        intentionally overwritten. A failed write is cleaned up before publishing
-        the directory. Returns the absolute saved directory.
+        Requires ``EasySoccerData[parquet]``. Each requested table is written as
+        a Parquet file alongside a versioned JSON manifest with metadata,
+        errors, row counts, and SHA-256 checksums. Existing paths are never
+        overwritten.
+
+        Args:
+            path: Target directory path (must not already exist).
+            format: Snapshot format; currently only ``"parquet"`` is supported.
+
+        Returns:
+            Path: The resolved ``Path`` of the saved snapshot directory.
+
+        Raises:
+            ImportError: If ``pyarrow`` is not installed.
+            ValueError: If ``format`` is unsupported or records fail schema checks.
+            FileExistsError: If ``path`` already exists.
+            DatasetFormatError: If an I/O failure prevents publishing the snapshot.
         """
         from ._dataset_storage import save_dataset
 
@@ -229,18 +242,31 @@ def open_dataset(
     path: str | PathLike, *, tables: Sequence[str] | None = None,
     match_ids: Sequence[str] | None = None,
 ) -> SoccerDataset:
-    """Read a saved Parquet snapshot without network access.
+    """Read a saved Parquet dataset snapshot without network access.
 
-    Requires EasySoccerData[parquet]. Validates the manifest, versions, table
-    schemas, row counts and checksums for every file, including omitted tables.
-    tables selects a nonempty subset. match_ids filters tables containing match_id
-    using exact native strings. Other tables remain unchanged. An empty ID list
-    returns no match rows. Unknown IDs produce no rows.
+    Requires ``EasySoccerData[parquet]``. Validates the manifest, versions,
+    table schemas, row counts, and SHA-256 checksums for every stored file,
+    including omitted tables. Selected rows are decoded without importing
+    ``pandas``.
 
-    Selected rows are decoded in batches without pandas. Original task coverage,
-    errors and response dates remain intact. metadata.original_tables records the
-    original table selection, and snapshot_match_ids records a local match filter.
-    complete still describes the original download. Saving preserves these filters.
+    Args:
+        path: Directory containing a saved dataset snapshot.
+        tables: Optional non-empty subset of stored table names to load.
+        match_ids: Optional sequence of native match IDs used to filter tables
+            that carry a ``match_id`` column. Tables without ``match_id``
+            remain unchanged.
+
+    Returns:
+        SoccerDataset: A dataset with original coverage metadata preserved
+            (``metadata.original_tables`` and ``metadata.snapshot_match_ids``
+            record any local filter).
+
+    Raises:
+        ImportError: If ``pyarrow`` is not installed.
+        ValueError: If ``tables`` or ``match_ids`` are invalid or request
+            tables that were not stored in the snapshot.
+        DatasetFormatError: If the snapshot is missing, corrupted, or uses an
+            unsupported schema version.
     """
     from ._dataset_storage import read_dataset
 
@@ -281,64 +307,70 @@ def load_dataset(
     player_ids: Sequence[int | str] | None = None,
     max_match_requests: int = 20,
 ) -> SoccerDataset:
-    """Download normalized tables with a provider-specific selection contract.
+    """Download normalized tables from a single provider.
 
-    For each source's required inputs and supported tables, see
-    get_dataset_capabilities(). season is a four-digit year label. Use
-    season_id or source_season for native season selection where required.
-    Sofascore requires season_id and fetches past/upcoming pages; max_pages
-    limits each direction. 365Scores requires
-    explicit UTC start_date/end_date for matches and native season_id for
-    standings. Its season year is a caller label. Understat offers optional
-    match_stats, player_stats and shots; match_ids restricts shot downloads to
-    completed matches in the selected league season. Naive Understat kickoffs
-    require source_timezone. No browser is launched by these loaders.
+    Each provider defines its own supported tables and required selection
+    arguments; inspect them programmatically with
+    ``get_dataset_capabilities(source)`` or build pre-validated arguments from
+    the catalog via ``get_catalog().dataset_options(...)``.
 
-    FBref, Promiedos and BeSoccer matches require explicit date bounds. FBref
-    preserves sequential rate limits. Goaloo requires source_season (for example
-    '2024-2025'), validated against native metadata. Naive dates require
-    source_timezone. BeSoccer filters adjacent-page fixtures by UTC date, or by
-    source_timezone when supplied. Transfermarkt uses explicit club_ids and/or
-    player_ids with teams, players, market_values and transfers tables. Profiles
-    are current and histories span all native seasons. Its league/year are
-    caller context, not a historical roster selection. Club competition IDs
-    are validated; player histories are not filtered by league or year.
+    Args:
+        source: Provider identifier (``"espn"``, ``"sofascore"``, ``"scores365"``,
+            ``"understat"``, ``"fbref"``, ``"goaloo"``, ``"promiedos"``,
+            ``"besoccer"``, or ``"transfermarkt"``).
+        league: Native competition code or ID for the chosen provider.
+        season: Four-digit caller season year label (for example ``2024``).
+        tables: Non-empty sequence of normalized table names to download.
+        proxies: Optional HTTP/HTTPS proxy mapping passed to the provider client.
+        anchor_date: Optional ``YYYY-MM-DD`` or ``YYYYMMDD`` date used by ESPN
+            to discover the season calendar window.
+        on_error: Error handling mode: ``"raise"`` raises ``DatasetLoadError``
+            on the first failed task (attaching partial results on
+            ``exc.dataset``), while ``"collect"`` records failures in
+            ``dataset.errors`` and returns with ``dataset.complete == False``.
+        progress: Optional callback invoked with a ``DatasetProgress`` record
+            after each download task completes.
+        request_delay: Minimum delay in seconds between sequential requests.
+        cache_dir: Optional directory for persistent JSON response caching.
+        cache_policy: Optional ``CachePolicy`` overriding default TTLs; requires
+            ``cache_dir``.
+        refresh: When ``True``, bypasses cached responses and overwrites cache
+            entries after successful validation.
+        season_id: Native numeric season ID required by ``sofascore`` and by
+            ``scores365`` standings or match-detail queries.
+        start_date: Inclusive ``YYYY-MM-DD`` start date required by date-range
+            loaders (``scores365``, ``fbref``, ``promiedos``, ``besoccer``).
+        end_date: Inclusive ``YYYY-MM-DD`` end date required by date-range
+            loaders.
+        source_timezone: IANA timezone name (such as ``"UTC"`` or
+            ``"Europe/London"``) required when normalizing naive provider
+            kickoffs (``understat``, ``goaloo``) or local date bounds.
+        match_ids: Explicit sequence of native match IDs required for
+            match-detail tables (``match_stats``, ``lineups``,
+            ``player_match_stats``, ``match_events``, ``shots`` on
+            ``espn``/``sofascore``/``scores365``, and ``shots`` on ``understat``).
+        max_pages: Maximum pagination pages per direction for ``sofascore``
+            season match lists.
+        source_season: Native season string required by ``goaloo`` (for example
+            ``"2024-2025"``).
+        club_ids: Explicit Transfermarkt club IDs when loading club rosters or
+            metadata.
+        player_ids: Explicit Transfermarkt player IDs when loading player
+            profiles, market value histories, or transfer histories.
+        max_match_requests: Upper bound on underlying endpoint requests for
+            explicit match-detail downloads on ``espn``, ``sofascore``, and
+            ``scores365``.
 
-    ESPN discovers calendar dates (July 1 by default, or anchor_date) and
-    validates the source season year. Teams derive from downloaded matches.
+    Returns:
+        SoccerDataset: Normalized record tuples, lazy DataFrame properties,
+            task coverage metadata, and any collected ``DatasetIssue`` entries.
 
-    ESPN, 365Scores and Sofascore match_stats, lineups and player_match_stats
-    require explicit match_ids. Player statistics also select lineups, matches
-    and teams. ESPN shares one summary per ID. 365Scores uses one game detail
-    for lineups/players plus one endpoint if match_stats is selected. Sofascore
-    uses event context plus lineups, plus statistics when selected. This
-    selection includes matches/teams, fetches no calendar or season pages and
-    cannot be combined with standings or date/entity filters. 365Scores and
-    Sofascore require native season_id. max_match_requests bounds endpoint reads
-    before transport retries, according to the source and selected detail tables.
-    ESPN/365Scores match_events uses the same summary/game detail as lineups.
-    ESPN shots shares the summary and contains only recognized descriptive
-    attempts with native field positions where reported, without inferred xG. Sofascore shots uses event
-    context plus shotmap, sharing context with other selected details. Native
-    coordinates and xG/xGOT retain the source convention/model. Missing values
-    stay null. Understat shots keeps its existing explicit season selection.
-    Sofascore shares its event context and adds an incidents read. All three
-    require explicit IDs. Shootouts retain separate flags and counters.
-    Duplicate IDs are fetched once. Detail responses use CachePolicy.live_ttl.
-
-    Repeated match IDs retain the newest response observation. A day's parsed
-    records are committed together, so a parsing failure marks the whole day as
-    failed. A daily response at the requested event limit is treated as a failure
-    because it may be truncated. Underlying HTTP retries are reused.
-
-    on_error='raise' stops with DatasetLoadError.dataset holding partial results.
-    'collect' continues and returns errors with complete=False. Progress callback
-    exceptions propagate directly. With cache_dir, validated source responses
-    are saved as JSON and reused while fresh. Repeating the query resumes an
-    interrupted download; new calendar days and stale/failed responses are fetched.
-    refresh=True bypasses caches and replaces entries after successful validation.
-    Cache storage needs neither pandas nor Arrow. Without cache_dir, the loader
-    writes no files. pandas is needed only for DataFrame access.
+    Raises:
+        ValueError: If provider selection arguments or table combinations are
+            invalid.
+        DatasetLoadError: If a download or normalization task fails while
+            ``on_error="raise"``.
+        CacheError: If ``cache_dir`` cannot be read or written.
     """
     from .dataset_capabilities import get_dataset_capabilities
     from .normalized.schema import TABLE_MODELS

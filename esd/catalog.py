@@ -182,24 +182,62 @@ class FootballCatalog:
         object.__setattr__(self, "teams", teams)
 
     def competition(self, name: str) -> CatalogCompetition:
-        """Resolve a declared competition key without network access."""
+        """Resolve a competition entry by canonical ID, name, or alias.
+
+        Args:
+            name: Canonical ID, competition name, or declared alias
+                (case-insensitive).
+
+        Returns:
+            CatalogCompetition: The matching competition entry.
+
+        Raises:
+            ValueError: If ``name`` is blank or does not match any competition.
+        """
         return _find(self.competitions, name)
 
     def team(self, name: str) -> CatalogTeam:
-        """Resolve a declared team key without inferring season membership."""
+        """Resolve a team entry by canonical ID, name, or alias.
+
+        Args:
+            name: Canonical ID, team name, or declared alias
+                (case-insensitive).
+
+        Returns:
+            CatalogTeam: The matching team entry.
+
+        Raises:
+            ValueError: If ``name`` is blank or does not match any team.
+        """
         return _find(self.teams, name)
 
     def identities(self) -> IdentityMap:
-        """Build an independent IdentityMap for the existing match linker."""
+        """Build an ``IdentityMap`` from all competition and team references.
+
+        Returns:
+            IdentityMap: Identity map ready for ``check_dataset_compatibility``,
+                ``link_dataset_matches``, or ``with_aliases``.
+        """
         return IdentityMap(EntityAlias(kind, entity.canonical_id, ref.source, ref.source_id)
                            for kind, entries in (("competition", self.competitions), ("team", self.teams))
                            for entity in entries for ref in entity.references)
 
     def with_entries(self, *, competitions=(), teams=(), version: str | None = None) -> FootballCatalog:
-        """Extend identities/references without modifying this catalog or replacing IDs.
+        """Return a new catalog extended with additional competitions or teams.
 
-        Conflicting names, source IDs or review metadata raise ValueError. Use a
-        new complete catalog to replace references deliberately.
+        Args:
+            competitions (Sequence[CatalogCompetition]): Sequence of
+                ``CatalogCompetition`` entries to merge.
+            teams (Sequence[CatalogTeam]): Sequence of ``CatalogTeam`` entries
+                to merge.
+            version: Optional version label for the extended catalog.
+
+        Returns:
+            FootballCatalog: A new catalog combining existing and added entries.
+
+        Raises:
+            ValueError: If any entry has an invalid type or conflicts with an
+                existing canonical ID, name, or provider reference.
         """
         competitions, teams = tuple(competitions), tuple(teams)
         if any(not isinstance(entry, CatalogCompetition) for entry in competitions) or any(not isinstance(entry, CatalogTeam) for entry in teams):
@@ -209,10 +247,27 @@ class FootballCatalog:
 
     def list_seasons(self, competition: str, source: str, *, cache_dir=None, cache_policy=None,
                      refresh=False, proxies=None) -> DiscoveryResult:
-        """Make one explicit discovery call using the reviewed native selector.
+        """Discover available seasons for a catalog competition on a provider.
 
-        Discovery preserves source limits, cached response dates and unavailable
-        operations. No seasons or source years are embedded in the catalog.
+        Args:
+            competition: Canonical ID, name, or alias of the competition.
+            source: Provider name mapped on the competition entry.
+            cache_dir (str | PathLike | None): Optional directory for
+                persistent JSON response caching.
+            cache_policy (CachePolicy | None): Optional ``CachePolicy``
+                overriding default TTLs.
+            refresh (bool): When ``True``, bypasses cached responses.
+            proxies (dict | None): Optional HTTP/HTTPS proxy mapping.
+
+        Returns:
+            DiscoveryResult: Discovery result containing ``SeasonInfo`` entries
+                in ``result.seasons``.
+
+        Raises:
+            ValueError: If the competition or provider reference is unknown.
+            DiscoveryNotSupported: If the provider does not support season
+                discovery.
+            SourceError: If the provider response is invalid or unavailable.
         """
         reference = self.competition(competition).for_source(source)
         options = {"competition_url": reference.source_url} if source == "transfermarkt" else {}
@@ -220,12 +275,24 @@ class FootballCatalog:
                             refresh=refresh, proxies=proxies, **options)
 
     def dataset_options(self, competition: str, season: SeasonInfo, *, year: int | None = None) -> dict:
-        """Return load_dataset keyword arguments from an explicitly selected season.
+        """Build ``load_dataset`` keyword arguments from a discovered season.
 
-        ESPN/BeSoccer use their reported year. Other supported adapters require a
-        caller year label, retaining native season_id/source_season separately.
-        Labels are never parsed into years. No source requests or downloads occur.
-        Transfermarkt histories/profiles do not support historical season selection.
+        Args:
+            competition: Canonical ID, name, or alias of the competition.
+            season: A ``SeasonInfo`` entry returned by ``list_seasons``.
+            year: Four-digit caller year label (required when ``season.year``
+                is ``None``, such as on ``sofascore``, ``scores365``, or
+                ``goaloo``).
+
+        Returns:
+            dict: Keyword arguments (``source``, ``league``, ``season``, and
+                any required ``season_id`` or ``source_season``) ready for
+                ``load_dataset(**options)``.
+
+        Raises:
+            TypeError: If ``season`` is not a ``SeasonInfo``.
+            ValueError: If ``year`` is missing or invalid, or if ``season``
+                conflicts with the catalog competition reference.
         """
         if not isinstance(season, SeasonInfo):
             raise TypeError("Choose a SeasonInfo returned by season discovery")
@@ -316,14 +383,27 @@ class FootballCatalog:
 
 @lru_cache(maxsize=1)
 def get_catalog() -> FootballCatalog:
-    """Read the bundled catalog lazily, without HTTP, pandas or PyArrow.
+    """Load the bundled competition and team catalog without network access.
 
-    The bundled sample covers five competitions and reviewed team identities
-    from ESPN/365Scores/Sofascore. It does not assert full league/season coverage or uptime.
+    Returns:
+        FootballCatalog: The default catalog instance with reviewed competition
+            and club references.
     """
     return FootballCatalog.from_dict(json.loads(files("esd").joinpath("data/catalog.json").read_text(encoding="utf-8")))
 
 
 def open_catalog(path) -> FootballCatalog:
-    """Read a caller-selected catalog file, validating its format and identities."""
+    """Read and validate a catalog JSON file from disk.
+
+    Args:
+        path (str | PathLike): Path to a JSON file in
+            ``easysoccerdata-catalog`` format.
+
+    Returns:
+        FootballCatalog: The validated catalog instance.
+
+    Raises:
+        OSError: If the file cannot be read.
+        ValueError: If the JSON schema, version, or entity references are invalid.
+    """
     return FootballCatalog.from_dict(json.loads(Path(path).expanduser().read_text(encoding="utf-8")))

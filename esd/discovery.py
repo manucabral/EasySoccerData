@@ -132,7 +132,19 @@ _CAPABILITIES = {
 
 
 def get_discovery_capabilities(source: str | None = None) -> DiscoveryCapabilities | dict[str, DiscoveryCapabilities]:
-    """Inspect all nine adapter contracts without network or optional imports."""
+    """Return competition and season discovery support for one or all providers.
+
+    Args:
+        source: Optional provider name. When ``None``, returns a dictionary
+            mapping every supported provider to its ``DiscoveryCapabilities``.
+
+    Returns:
+        DiscoveryCapabilities | dict[str, DiscoveryCapabilities]: Capabilities
+            for ``source``, or a mapping of all providers when ``source`` is ``None``.
+
+    Raises:
+        ValueError: If ``source`` is not a recognized provider name.
+    """
     if source is None:
         return dict(_CAPABILITIES)
     if not isinstance(source, str) or source not in _CAPABILITIES:
@@ -269,13 +281,32 @@ def list_competitions(
     cache_policy: CachePolicy | None = None, refresh: bool = False, proxies: dict | None = None,
     page: int | None = None,
 ) -> DiscoveryResult:
-    """List a provider's competitions with explicit listing/search/category/date scope.
+    """Discover competitions exposed by a provider.
 
-    ESPN uses its soccer dropdown. 365Scores and Transfermarkt require query.
-    Transfermarkt's page selects one search page. Sofascore requires a
-    football category_id, such as 1 for England. Promiedos requires an ISO source
-    date. query is sent to search on 365Scores and Transfermarkt and filters names
-    locally on other listings. Other adapters raise DiscoveryNotSupported before I/O.
+    Args:
+        source: Provider identifier (``"espn"``, ``"scores365"``,
+            ``"sofascore"``, ``"promiedos"``, or ``"transfermarkt"``).
+        query: Search text required by ``scores365`` and ``transfermarkt``, or
+            optional case-insensitive name filter on other providers.
+        category_id: Numeric football category ID required by ``sofascore``
+            (for example ``1`` for England or ``7`` for UEFA competitions).
+        date: ``YYYY-MM-DD`` date required by ``promiedos``.
+        cache_dir: Optional directory for persistent JSON response caching.
+        cache_policy: Optional ``CachePolicy`` overriding default TTLs.
+        refresh: When ``True``, bypasses cached responses.
+        proxies: Optional HTTP/HTTPS proxy mapping.
+        page: Optional 1-based results page for ``transfermarkt`` competition
+            search.
+
+    Returns:
+        DiscoveryResult: Discovery result with ``CompetitionInfo`` entries in
+            ``result.competitions``.
+
+    Raises:
+        ValueError: If required provider parameters are missing or invalid.
+        DiscoveryNotSupported: If ``source`` does not support competition
+            discovery.
+        SourceError: If the provider response fails validation.
     """
     if not isinstance(source, str):
         raise ValueError("source must be a provider name")
@@ -321,15 +352,29 @@ def list_seasons(
     cache_policy: CachePolicy | None = None, refresh: bool = False, proxies: dict | None = None,
     competition_url: str | None = None,
 ) -> DiscoveryResult:
-    """List native seasons without guessing years from names or filling absent history.
+    """Discover native seasons for a competition on a provider.
 
-    ESPN uses a slug and native year index. Sofascore IDs select season_id;
-    Goaloo strings select source_season. 365Scores returns only seasons included
-    in its competition response, which may omit history. Each call fetches one
-    response; paginated ESPN results raise instead of returning a partial index.
-    BeSoccer preserves its explicit standings year selector. Transfermarkt needs
-    competition_url from a competition result and returns native season options;
-    its entity datasets still use current profiles and unfiltered histories.
+    Args:
+        source: Provider identifier (``"espn"``, ``"scores365"``,
+            ``"sofascore"``, ``"goaloo"``, ``"besoccer"``, or
+            ``"transfermarkt"``).
+        competition_id: Native competition slug or numeric ID.
+        cache_dir: Optional directory for persistent JSON response caching.
+        cache_policy: Optional ``CachePolicy`` overriding default TTLs.
+        refresh: When ``True``, bypasses cached responses.
+        proxies: Optional HTTP/HTTPS proxy mapping.
+        competition_url: Native competition URL required when ``source`` is
+            ``"transfermarkt"`` (available on ``CompetitionInfo.source_url``).
+
+    Returns:
+        DiscoveryResult: Discovery result with ``SeasonInfo`` entries in
+            ``result.seasons``.
+
+    Raises:
+        ValueError: If ``source``, ``competition_id``, or ``competition_url``
+            is invalid.
+        DiscoveryNotSupported: If ``source`` does not support season discovery.
+        SourceError: If the provider response fails validation.
     """
     if not isinstance(source, str):
         raise ValueError("source must be a provider name")

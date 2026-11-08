@@ -222,18 +222,22 @@ def _table_task_status(source, table, relevant, metadata):
 
 
 def inspect_dataset_coverage(dataset: SoccerDataset, *, tables: Sequence[str] | None = None) -> DatasetCoverageReport:
-    """Inspect selected normalized tables without HTTP, writes or optional imports.
+    """Inspect observed row counts, non-null field rates, and task statuses in a dataset.
 
-    None inspects every selected table. An explicit nonempty sequence must name
-    tables present in the dataset. Unsupported source/table pairs and invalid
-    datasets raise ValueError; non-dataset inputs raise TypeError. Warnings,
-    partial downloads and successful empty tables remain reportable.
+    Args:
+        dataset: A valid ``SoccerDataset`` instance.
+        tables: Optional non-empty subset of table names present in
+            ``dataset.metadata.tables``. When ``None``, inspects all selected
+            tables.
 
-    Counts use normalized values: None is missing, numeric zero is present,
-    and boolean False is counted separately. Adapter defaults or manual edits
-    cannot be distinguished from source observations without raw provenance.
-    Tasks retain recorded errors/cache dates and source-specific prerequisites.
-    Unknown metadata stays unknown, even if rows exist or complete is True.
+    Returns:
+        DatasetCoverageReport: Per-table summaries, per-field presence counts,
+            task provenance, and DataFrame export methods.
+
+    Raises:
+        TypeError: If ``dataset`` is not a ``SoccerDataset``.
+        ValueError: If ``dataset`` fails ``validate_dataset`` or ``tables``
+            requests unselected table names.
     """
     if not isinstance(dataset, SoccerDataset):
         raise TypeError("Expected a SoccerDataset")

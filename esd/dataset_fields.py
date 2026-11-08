@@ -148,13 +148,19 @@ def _support(source, table, field, mapped):
 
 
 def get_dataset_field_capabilities(source: str, table: str) -> dict[str, DatasetFieldCapability]:
-    """Return a fresh field mapping for one supported source/table, without HTTP.
+    """Return static field-level capabilities for a provider and normalized table.
 
-    All normalized columns appear, including unavailable ones. dtype describes
-    optional DataFrame export without importing pandas. Model/coordinate labels
-    preserve source conventions, not shared definitions. No league or historical
-    coverage is promised. Unknown sources, tables or unsupported pairs raise
-    ValueError. Individual client methods can expose additional native fields.
+    Args:
+        source: Provider name (for example ``"sofascore"`` or ``"espn"``).
+        table: Normalized table name supported by ``source``.
+
+    Returns:
+        dict[str, DatasetFieldCapability]: Mapping of normalized column name to
+            its ``DatasetFieldCapability`` contract.
+
+    Raises:
+        ValueError: If ``source`` or ``table`` is unknown or unsupported for
+            that provider.
     """
     if not isinstance(source, str) or not isinstance(table, str):
         raise ValueError("source and table must be strings")

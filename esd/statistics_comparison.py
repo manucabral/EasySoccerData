@@ -160,21 +160,30 @@ def compare_match_statistics(
     metrics: Sequence[str] | None = None, tolerances: Mapping[str, float] | None = None,
     tolerance_seconds: float = 300,
 ) -> MatchStatisticsReport:
-    """Compare observations for one-to-one linked matches without fetching or writing.
+    """Compare team match statistics across one-to-one linked matches.
 
-    Both datasets must select matches and match_stats and pass validation without
-    errors. Partial downloads and warnings are retained. Identity mapping and
-    ambiguity handling reuse link_dataset_matches; names and scores are not keys.
+    Both datasets must select ``matches`` and ``match_stats`` and pass
+    ``validate_dataset`` without errors.
 
-    metrics selects normalized numeric fields, defaulting to counts, possession,
-    xG and forecasts. tolerances supplies per-field absolute differences (default
-    zero), in count units or percentage points. Unknown metrics/options raise.
+    Args:
+        left: Left ``SoccerDataset`` with ``matches`` and ``match_stats``.
+        right: Right ``SoccerDataset`` with ``matches`` and ``match_stats``.
+        identities: Optional ``IdentityMap`` for competition and team resolution.
+        metrics: Optional subset of numeric ``NormalizedMatchStats`` field
+            names to compare.
+        tolerances: Optional mapping of metric name to maximum absolute numeric
+            difference treated as ``"equal"`` (defaults to ``0``).
+        tolerance_seconds: Maximum UTC kickoff difference in seconds for match
+            linkage (default ``300``).
 
-    Known ESPN boxscore, 365Scores -1 and Sofascore ALL selectors describe source
-    totals. Their differences are diagnostic; regulation/extra-time equivalence
-    is not asserted. Missing/unknown/different periods have no numeric delta.
-    Cross-source xG and forecasts remain source_specific, even if values agree.
-    Same-source observations can use identical, explicit native period labels.
+    Returns:
+        MatchStatisticsReport: Per-metric comparison rows, match linkage
+            details, and ``to_dataframe()`` export.
+
+    Raises:
+        TypeError: If ``left`` or ``right`` is not a ``SoccerDataset``.
+        ValueError: If options are invalid, required tables are missing, or
+            either dataset has validation errors.
     """
     if not isinstance(left, SoccerDataset) or not isinstance(right, SoccerDataset):
         raise TypeError("Expected two SoccerDataset objects")

@@ -252,28 +252,36 @@ def compare_match_events(
     period_aliases: Mapping[tuple[str, str], str] | None = None,
     allow_unknown_period: bool = False,
 ) -> MatchEventsReport:
-    """Compare ESPN/365Scores/Sofascore events without HTTP, writes or name matching.
+    """Compare normalized match events across linked matches.
 
-    Matches reuse the ID/kickoff linker. Cross-source events require mapped
-    players/teams, explicit shootout state and, by default, known/mapped periods.
-    Non-shootout candidates also need observed minutes within minute_tolerance.
-    Missing added time is never zero. Substitutions require both mapped players
-    in incoming/outgoing roles. Shootouts use player/period, never match minutes.
-    Only candidates unique in both directions are paired; no nearest-event or
-    list-position assignment resolves ambiguity. Within one source/match, an
-    identical native event ID anchors revisions even when observed fields differ.
+    Both datasets must belong to ``"espn"``, ``"scores365"``, or ``"sofascore"``,
+    select ``matches`` and ``match_events``, and pass ``validate_dataset``
+    without errors.
 
-    The minute tolerance selects candidates; any known minute difference remains
-    a reported difference. equal describes observed fields only. Unknown fields
-    stay visible, notably nullable annulments. Every selected event occurs in one
-    report row; unselected/other types remain in excluded_left/excluded_right.
-    period_aliases extends/overrides the explicit native period map and is saved
-    in the report. Sofascore has no built-in period aliases. Its absent periods
-    stay unknown. allow_unknown_period=True explicitly permits candidates with
-    unknown period scope; known conflicting periods still cannot pair, and
-    source_period remains in unknown_fields. Minutes never establish a period.
-    The default remains strict. Same-source comparisons are supported. Source
-    collection rules are not asserted equivalent.
+    Args:
+        left: Left ``SoccerDataset`` with ``matches`` and ``match_events``.
+        right: Right ``SoccerDataset`` with ``matches`` and ``match_events``.
+        identities: ``IdentityMap`` with competition, team, and player aliases.
+        minute_tolerance: Maximum absolute difference in regulation/extra-time
+            minutes allowed when pairing candidate events (default ``1``).
+        tolerance_seconds: Maximum UTC kickoff difference in seconds for match
+            linkage (default ``300``).
+        event_types: Optional subset of normalized event types to compare
+            (defaults to goals, cards, and substitutions).
+        period_aliases: Optional mapping of ``(source, native_period)`` to
+            canonical period name.
+        allow_unknown_period: When ``True``, allows pairing events when one or
+            both providers leave ``source_period`` null (such as ``sofascore``
+            incidents).
+
+    Returns:
+        MatchEventsReport: Paired and unpaired event rows, match linkage
+            details, and ``to_dataframe()`` export.
+
+    Raises:
+        TypeError: If ``left`` or ``right`` is not a ``SoccerDataset``.
+        ValueError: If options are invalid, required tables are missing, or
+            either dataset fails validation.
     """
     if not isinstance(left, SoccerDataset) or not isinstance(right, SoccerDataset):
         raise TypeError("Expected two SoccerDataset objects")

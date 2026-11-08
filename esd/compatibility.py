@@ -221,11 +221,21 @@ def _record_key(row, dataset, identities, same_source):
 def check_dataset_compatibility(
     left, right, *, identities: IdentityMap | None = None
 ) -> DatasetCompatibility:
-    """Inspect schemas, selected tables and explicit competition/team mappings.
+    """Check schema validity and competition/team identity coverage across two datasets.
 
-    complete reports task success for each download. Source calendars can differ.
-    Unknown identities, missing kickoff times and provider-specific metrics are
-    reported. No names, scores, statuses or xG values establish equivalence.
+    Args:
+        left (SoccerDataset): First ``SoccerDataset`` to inspect.
+        right (SoccerDataset): Second ``SoccerDataset`` to inspect.
+        identities: Optional ``IdentityMap`` providing canonical competition
+            and team mappings when comparing different providers.
+
+    Returns:
+        DatasetCompatibility: Report detailing shared tables, schema validity,
+            identity coverage, and diagnostic notes.
+
+    Raises:
+        TypeError: If ``left`` or ``right`` is not a ``SoccerDataset``.
+        ValueError: If ``identities`` is not an ``IdentityMap`` or ``None``.
     """
     from ._dataset_storage import _RECORDS, _validate_records
     from .datasets import SoccerDataset
@@ -332,11 +342,24 @@ class MatchLinkResult:
 def link_dataset_matches(
     left, right, *, identities: IdentityMap | None = None, tolerance_seconds: float = 300
 ) -> MatchLinkResult:
-    """Link one-to-one matches using mapped competition, ordered teams and UTC time.
+    """Link one-to-one matches between two datasets by mapped competition, teams, and UTC kickoff.
 
-    Rescheduled games outside the tolerance remain unmatched. A candidate is
-    linked only if both sides have exactly one candidate. Input records and
-    source IDs remain unchanged. Partial mappings may yield partial links.
+    Args:
+        left (SoccerDataset): First ``SoccerDataset`` containing ``matches``.
+        right (SoccerDataset): Second ``SoccerDataset`` containing ``matches``.
+        identities: ``IdentityMap`` mapping competition and team IDs across
+            providers (optional when both datasets share the same ``source``).
+        tolerance_seconds: Maximum allowed absolute difference in seconds
+            between UTC kickoffs for a candidate pair (default ``300``).
+
+    Returns:
+        MatchLinkResult: One-to-one ``links`` alongside ``unmatched_left``,
+            ``unmatched_right``, ``ambiguous_left``, and ``ambiguous_right``.
+
+    Raises:
+        TypeError: If ``left`` or ``right`` is not a ``SoccerDataset``.
+        ValueError: If ``tolerance_seconds`` is invalid or either dataset
+            lacks valid ``matches`` tables.
     """
     if (
         type(tolerance_seconds) not in (int, float)

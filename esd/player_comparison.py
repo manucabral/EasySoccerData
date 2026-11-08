@@ -251,21 +251,37 @@ def compare_match_players(
     metrics: Sequence[str] | None = None, tolerances: Mapping[str, float] | None = None,
     position_aliases: Mapping[tuple[str, str], str] | None = None, tolerance_seconds: float = 300,
 ) -> MatchPlayersReport:
-    """Compare ESPN/365Scores/Sofascore lineups and optional player-match statistics.
+    """Compare lineups and optional player-match statistics across linked matches.
 
-    Requires valid datasets selecting matches and lineups. Explicit cross-source
-    player aliases establish identity within uniquely linked fixtures; names,
-    jerseys, positions and separate athlete IDs never pair players. Same-source
-    comparisons use native player IDs. Many-to-one aliases remain ambiguous.
-    Team observations can differ without breaking an otherwise unique player link.
+    Both datasets must belong to ``"espn"``, ``"scores365"``, or ``"sofascore"``,
+    select ``matches`` and ``lineups``, and pass ``validate_dataset`` without
+    errors. Cross-source comparisons require explicit ``EntityAlias("player", ...)``
+    entries in ``identities``.
 
-    Positions need caller-reviewed (source, native label) aliases across sources.
-    Other known lineup fields compare literally as observations. Missing values
-    remain unknown, including flags and minutes. Statistics are source match
-    totals without a period breakdown; differences are diagnostic and do not
-    establish identical collection or stoppage-time conventions. Cross-source
-    xG/xA/ratings remain source_specific without a delta. Tolerances are absolute
-    per selected metric, default zero. No HTTP, writes or optional imports occur.
+    Args:
+        left: Left ``SoccerDataset`` selecting ``matches`` and ``lineups``
+            (and optionally ``player_match_stats``).
+        right: Right ``SoccerDataset`` selecting ``matches`` and ``lineups``
+            (and optionally ``player_match_stats``).
+        identities: ``IdentityMap`` with competition, team, and player aliases.
+        metrics: Optional subset of numeric ``NormalizedPlayerMatchStats``
+            field names to compare.
+        tolerances: Optional mapping of metric name to maximum absolute numeric
+            difference treated as ``"equal"`` (defaults to ``0``).
+        position_aliases: Optional mapping of ``(source, native_position)`` to
+            canonical position code used when comparing lineup positions across
+            providers.
+        tolerance_seconds: Maximum UTC kickoff difference in seconds for match
+            linkage (default ``300``).
+
+    Returns:
+        MatchPlayersReport: Lineup comparisons, player statistic comparisons,
+            match linkage details, and DataFrame export methods.
+
+    Raises:
+        TypeError: If ``left`` or ``right`` is not a ``SoccerDataset``.
+        ValueError: If options are invalid, required tables are missing, or
+            either dataset fails validation.
     """
     if not isinstance(left, SoccerDataset) or not isinstance(right, SoccerDataset):
         raise TypeError("Expected two SoccerDataset objects")

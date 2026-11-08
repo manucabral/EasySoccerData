@@ -1,0 +1,84 @@
+site_name: EasySoccerData
+site_description: Python library for football fixtures, live scores, standings, player statistics, and normalized datasets across nine providers.
+site_url: https://manucabral.github.io/EasySoccerData/
+repo_url: https://github.com/manucabral/EasySoccerData
+repo_name: manucabral/EasySoccerData
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [.]
+          options:
+            docstring_style: google
+            show_source: false
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Overview: index.md
+  - Quickstart: quickstart.md
+  - Guides:
+      - Datasets, cache and snapshots: guides/datasets.md
+      - Discovery and catalog: guides/discovery-and-catalog.md
+      - Match detail tables: guides/detail-tables.md
+      - Validation, coverage and metrics: guides/coverage-and-metrics.md
+      - Cross-provider comparisons: guides/comparisons.md
+  - Providers and limits: providers.md
+  - API reference:
+      - Provider clients: reference/clients.md
+      - Datasets and caching: reference/datasets.md
+      - Normalized schema and adapters: reference/normalized.md
+      - Catalog and discovery: reference/catalog-discovery.md
+      - Linkage and comparisons: reference/comparisons.md
+      - Validation, coverage and metrics: reference/coverage-metrics.md

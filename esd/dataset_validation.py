@@ -130,18 +130,21 @@ def _date_bounds(meta, add):
 
 
 def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
-    """Check records and metadata without network, writes or optional dependencies.
+    """Validate dataset records, keys, and metadata without network access.
 
-    Errors include malformed schemas/types, duplicate record keys, negative match
-    scores, invalid date bounds and contradictory task coverage. Unknown scores
-    remain allowed. Missing identifiers/kickoffs, incomplete downloads and unresolved
-    references produce warnings. Only selected tables are used for reference checks.
+    Checks schema types, primary keys, score/metric bounds, date windows, task
+    accounting, and cross-table references across the selected tables in
+    ``dataset``.
 
-    Standings keys include table/stage/group context. Valuation keys include player,
-    source date, club and source season. Historical club references and native date
-    strings are not treated as current roster membership or parsed into UTC dates.
-    Dated pages use source_timezone for range checks when available. Native statuses
-    and points are not interpreted. Unsupported input types raise TypeError.
+    Args:
+        dataset: The ``SoccerDataset`` instance to inspect.
+
+    Returns:
+        DatasetValidationReport: Validation report where ``report.valid`` is
+            ``True`` when no issue has ``"error"`` severity.
+
+    Raises:
+        TypeError: If ``dataset`` is not a ``SoccerDataset``.
     """
     if not isinstance(dataset, SoccerDataset):
         raise TypeError("Expected a SoccerDataset")

@@ -25,25 +25,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .[dev] pdoc
+          pip install .[dev] mkdocs-material "mkdocstrings[python]"
 
       - name: Build docs
-        run: >-
-          python -W error -m pdoc
-          ./esd ./esd/datasets.py ./esd/cache.py ./esd/compatibility.py
-          ./esd/dataset_capabilities.py ./esd/dataset_validation.py ./esd/normalized
-          ./esd/dataset_fields.py ./esd/dataset_coverage.py ./esd/derived_statistics.py
-          ./esd/discovery.py
-          ./esd/catalog.py
-          ./esd/statistics_comparison.py
-          ./esd/event_comparison.py
-          ./esd/player_comparison.py
-          ./esd/normalized/match_players.py
-          ./esd/normalized/match_events.py
-          ./esd/normalized/match_shots.py
-          ./esd/espn ./esd/sofascore ./esd/fbref ./esd/promiedos ./esd/goaloo
-          ./esd/scores365 ./esd/understat ./esd/transfermarkt ./esd/besoccer
-          -o ./site-docs
+        run: mkdocs build --strict -d ./site-docs
 
       - name: Upload documentation preview
         uses: actions/upload-artifact@v4
