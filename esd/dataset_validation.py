@@ -248,7 +248,7 @@ def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
                 if row.is_shootout is True and (row.minute is not None or row.added_minute is not None):
                     add("error", "shootout_match_minute", "Shootout counters cannot be match minutes", table, index, "minute")
                 for field in ("player_role", "related_player_role"):
-                    if getattr(row, field) not in (None, "incoming", "outgoing"):
+                    if getattr(row, field) not in (None, "incoming", "outgoing", "assist"):
                         add("error", "invalid_event_role", "Unsupported participant role", table, index, field)
     team_ids = {(row.source, row.team_id) for _, row in rows["teams"] if row.team_id is not None}
     match_ids = {(row.source, row.match_id) for _, row in rows["matches"] if row.match_id is not None}

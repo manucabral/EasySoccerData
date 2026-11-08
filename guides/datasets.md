@@ -126,7 +126,7 @@ original catalog unchanged and reject conflicting names, source IDs or review
 metadata. Deliberate replacements require constructing a new complete catalog.
 `save_json()` stages a complete document and publishes a new file without
 overwriting existing paths. JSON format version `1` is independent of normalized
-dataset schema version `4`. Saving the catalog with your snapshots preserves
+dataset schema version `5`. Saving the catalog with your snapshots preserves
 the particular identities used for later comparisons. Catalog JSON needs no
 optional dependencies; dataset snapshots still require `[parquet]`.
 
@@ -361,7 +361,7 @@ does not establish its current network availability.
 
 ## Match events
 
-ESPN and 365Scores accept `tables=["match_events"]` with explicit `match_ids`.
+ESPN, 365Scores and Sofascore accept `tables=["match_events"]` with explicit `match_ids`.
 The selection adds matches/teams for context, without calendar discovery.
 Other providers reject this table before HTTP. Base installs return immutable
 `match_event_records`; `.match_events` imports pandas only when accessed.
@@ -387,33 +387,63 @@ the adapter never matches their names to rosters or guesses a team ID.
 
 | Field | Contract |
 | :--- | :--- |
-| `event_id` | Native ESPN event ID; null for 365Scores, which supplies an order instead |
-| `source_order` | Native commentary sequence or 365Scores order within this response; not a persistent event identity |
-| `source_collection` | `keyEvents`, `commentary.play` or `game.events` |
+| `event_id` | Native ESPN/Sofascore event ID when present; null for 365Scores, which supplies an order instead |
+| `source_order` | Native ESPN commentary sequence, 365Scores order, or zero-based position in the Sofascore response; scoped to this response |
+| `source_collection` | `keyEvents`, `commentary.play`, `game.events` or `incidents` |
 | `event_type` | Reviewed goal/card/substitution/penalty mappings; unrecognized native types remain `other` |
 | `source_type_id`, `source_subtype_id` and names | Original source classification, retained independently of normalized type |
 | `source_period`, `source_status_id` | Native codes, not shared period names across providers |
 | `minute`, `added_minute` | Explicit match minute and added minutes, nullable; no default zero and no conversion from elapsed seconds |
-| `clock_seconds` | ESPN elapsed clock in seconds; not the displayed rounded minute |
-| `source_game_time`, `source_clock` | Native 365Scores numeric counter and displayed clock, or ESPN displayed clock |
-| `is_shootout` | ESPN flag or reviewed shootout period, 365Scores stage `11`; null when not established |
+| `clock_seconds` | ESPN clock or Sofascore `timeSeconds`; not a displayed rounded minute |
+| `source_game_time`, `source_clock` | Native 365Scores/Sofascore numeric time and displayed clock, or ESPN displayed clock |
+| `is_shootout` | ESPN flag/penalty period, 365Scores stage `11` or Sofascore `penaltyShootout`; null when not established |
 | `scoring_play` | ESPN's explicit flag when present; does not recalculate match scores |
 | `team_id` | Native event team; for own goals it can be the beneficiary rather than the player's team |
-| `player_id`, `related_player_id` | Native athlete IDs for ESPN; native member IDs for 365Scores |
+| `player_id`, `related_player_id` | Native player IDs for ESPN/Sofascore; native member IDs for 365Scores |
 | `source_athlete_id`, `related_source_athlete_id` | Separate 365Scores athlete IDs when included in member metadata |
 | Participant names and `source_participants_json` | Source names plus all original participant references, including missing IDs or more than two participants |
-| `player_role`, `related_player_role` | `incoming` and `outgoing` for verified substitution ordering; otherwise null, including a goal's second participant |
-| `source_text` | ESPN's original description, without interpreting free text |
+| `player_role`, `related_player_role` | `incoming`/`outgoing` for substitutions; `assist` for Sofascore's explicit `assist1`; other roles remain null |
+| `source_text` | Original description when present, without interpreting free text |
+| `rescinded` | Nullable Sofascore annulment flag; absent observations stay null |
+| `source_details_json` | Complete native Sofascore incident, including sequence, reasons and unknown fields; null for other sources |
 
 Reviewed normalized types are `goal`, `own_goal`, `penalty_scored`,
-`penalty_missed`, `yellow_card`, `red_card`, `substitution` and `other`.
+`penalty_missed`, `yellow_card`, `red_card`, `second_yellow_card`, `substitution` and `other`.
 ESPN maps native types 70/137/173 to goals, 97 to own goals, 98/104 to converted
 penalties, 113/115 to missed penalties, 94/93 to yellow/red cards and 76 to
 substitutions. 365Scores maps type 1 to goals, subtype 2 to own goals, subtype
 3 to converted penalties, type 6 to missed penalties, 2/3 to yellow/red cards
 and 1000 to substitutions. Names can be localized and never select a mapping.
-Unreviewed classifications, including distinct second-yellow codes, stay `other`
-with the native type preserved.
+Unreviewed ESPN/365Scores classifications, including distinct second-yellow codes,
+stay `other` with the native type preserved.
+
+Sofascore uses `incidentType` and `incidentClass`, without reading localized text:
+
+| Native type | Native class | Normalized type |
+| :--- | :--- | :--- |
+| `goal` | `ownGoal` / `penalty` / other goal classes | `own_goal` / `penalty_scored` / `goal` |
+| `card` | `yellow` / `red` / `yellowRed` | `yellow_card` / `red_card` / `second_yellow_card` |
+| `substitution` | Any | `substitution`, with `playerIn` and `playerOut` |
+| `inGamePenalty` / `penaltyShootout` | `scored` / `missed` / `saved` | `penalty_scored` / `penalty_missed` / `penalty_missed` |
+| Other type/class pairs | Native value retained | `other` |
+
+These Sofascore mappings have offline contract tests. Direct live queries on
+November 8, 2026 returned HTTP 403 from this connection. The loader retains
+`SourceBlocked` and does not launch a browser or report successful empty coverage.
+This implementation does not establish current source availability.
+
+`isHome` maps a side only when the source includes an explicit boolean. A
+missing flag leaves the team unknown. `rescinded=True` preserves an annulled
+incident with its original type; records are not silently discarded. Unknown
+annulment flags remain null. VAR decisions remain separate native incidents,
+without rewriting another event or recalculating scores. Injury-time lengths,
+additional assists, shootout sequences and native reasons remain in
+`source_details_json`. Sofascore's `time=-1` marker becomes a null minute while
+the raw value remains in that JSON. Shootout minutes/added minutes are always
+null. A missing event ID uses the observed response position for deduplication,
+independently of any native shootout sequence. Response positions can change.
+Periods stay null unless explicitly included; neither minutes nor neighboring
+period-marker rows establish an inferred period.
 
 ESPN retains every `keyEvents` record and appends recognized goals, penalties,
 cards and substitutions from commentary, deduplicating by native event ID.
@@ -432,10 +462,15 @@ number: these remain in `source_game_time`/`source_clock`, while `minute` and
 not be summed to reconstruct the match result. An own goal's event team must
 not be used as the player's roster membership.
 
-Adding `lineups` or `player_match_stats` costs no extra read: ESPN shares one
+For ESPN/365Scores, adding `lineups` or `player_match_stats` costs no extra read: ESPN shares one
 summary per ID, 365Scores one game detail per ID. Adding `match_stats` also
 shares the ESPN summary but costs one additional 365Scores endpoint read.
-365Scores requires native `season_id`; the year remains a caller label.
+365Scores and Sofascore require native `season_id`; the year remains a caller label.
+Sofascore needs two reads for events alone: verified event context and incidents.
+Selected lineups/player statistics add one read, and selected team statistics
+add another. The context is fetched once per ID. If it fails, dependent reads
+are skipped and reported as failed tasks. If a lineup or incidents read fails,
+the other selected parts can still succeed with `on_error="collect"`.
 All selected parts of a shared response are checked before caching/committing.
 Failed shared details remain partial, while separately valid team statistics
 can still be retained with `on_error="collect"`.
@@ -446,6 +481,8 @@ the requested tasks, not a full event feed, all historical events or matching
 coverage across sources. Datasets retain original fetch timestamps under
 `match_details:{id}` for ESPN, `match_events:{id}` for 365Scores events alone,
 or the existing `lineups:{id}` task when 365Scores player tables are selected.
+Sofascore retains separate `match:{id}` and `match_events:{id}` timestamps;
+an incidents read never replaces the original match-context timestamp.
 
 Join participants to lineups/player statistics using `source`, `match_id` and
 native `player_id`. Unresolved participants remain null or generate reference
@@ -753,13 +790,14 @@ snapshot never resumes a download. To resume, repeat `load_dataset()` with the
 same selection and cache directory. `refresh=True` bypasses response reuse;
 it does not overwrite an existing snapshot directory.
 
-The normalized schema is version `4`. Existing version `1`, `2` and `3` Parquet
+The normalized schema is version `5`. Existing version `1`–`4` Parquet
 snapshots remain readable. The reader validates their original table schemas
 and checksums, adds absent version-1 match-statistic columns as null and returns
-version `4` records. Tables absent from the original schema, including events
+version `5` records. Schema-4 event snapshots gain null `rescinded` and
+`source_details_json` columns, preserving original observations. Tables absent from the original schema, including events
 and older lineup/player tables, are not selected or fabricated.
 Source timestamps, IDs, values, errors and coverage are
-retained. Saving the opened dataset writes version `4`; the original snapshot
+retained. Saving the opened dataset writes version `5`; the original snapshot
 is not changed.
 
 `metadata.started_at`/`finished_at` describe the current loader call.

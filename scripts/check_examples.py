@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 BASE = (
+    ("examples/datasets/champions_events.py", "--help"),
     ("examples/datasets/match_events.py", "--help"),
     ("examples/datasets/match_events_offline.py",),
     ("examples/datasets/catalog.py", "--list"),

@@ -322,7 +322,7 @@ def test_legacy_v2_snapshot_keeps_values_provenance_and_empty_new_tables(fetch, 
     original = manifest.read_bytes()
     restored = esd.open_dataset(path)
     assert restored == dataset and manifest.read_bytes() == original
-    assert restored.metadata.schema_version == "4" and not restored.lineup_records and not restored.player_match_stat_records
+    assert restored.metadata.schema_version == "5" and not restored.lineup_records and not restored.player_match_stat_records
 
 
 def test_unsupported_sources_reject_player_tables_before_requests(fetch):

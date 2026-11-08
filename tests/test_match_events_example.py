@@ -38,7 +38,7 @@ def test_cli_extras_are_checked_before_http(example, extra, options):
 
 
 @pytest.mark.parametrize("options", [[], ["--limit", "0"], ["--open-dir", "x", "--with-players"],
-                                    ["--source", "sofascore"], ["--open-dir", "x", "--cache-dir", "x"]])
+                                    ["--source", "unknown"], ["--open-dir", "x", "--cache-dir", "x"]])
 def test_cli_invalid_selection_is_offline(example, options):
     module, fetch = example
     with pytest.raises(SystemExit) as exc:

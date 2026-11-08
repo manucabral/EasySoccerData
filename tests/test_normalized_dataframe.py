@@ -36,7 +36,7 @@ def test_provider_tables_share_schema_with_empty_and_missing_records(table, reco
     assert first.dtypes.equals(empty.dtypes)
     combined = pd.concat([first, second], ignore_index=True)
     assert combined["source"].tolist() == ["espn", "scores365"]
-    assert combined.attrs == {"schema_version": "4", "table": table}
+    assert combined.attrs == {"schema_version": "5", "table": table}
     assert len(combined) == 2
     if table == "matches":
         assert str(combined["kickoff"].dtype) == "datetime64[ns, UTC]"

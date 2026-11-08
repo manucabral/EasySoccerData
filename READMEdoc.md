@@ -184,8 +184,8 @@ The normalized DataFrame tables are `matches`, `teams`, `standings`,
 `lineups`, `player_match_stats` and `match_events`. They
 have fixed columns and types even when empty: nullable strings for identifiers
 and names, `Int64` for counts, `Float64` for metrics and UTC nanosecond datetimes for `kickoff`.
-`DataFrame.attrs` reports `schema_version="4"` and the table name.
-Version `1`–`3` Parquet snapshots remain readable. Absent statistic columns are
+`DataFrame.attrs` reports `schema_version="5"` and the table name.
+Version `1`–`4` Parquet snapshots remain readable. Absent statistic/event columns are
 null and tables introduced later stay unselected.
 
 Join entities using both `source` and their source-local ID. Adapters preserve
@@ -214,13 +214,15 @@ retain missing values, source periods, original fetch times, partial errors and
 unmatched/ambiguous IDs. Cross-source xG/forecast models remain separate.
 `report.to_dataframe()` requires the pandas extra.
 
-ESPN/365Scores also expose `match_events` for explicit IDs. They share the same
-summary/game detail with selected player tables. Native periods, added time,
-participant IDs and shootout counters remain separate. ESPN includes reviewed
+ESPN, 365Scores and Sofascore expose `match_events` for explicit IDs. ESPN/365Scores
+share summary/game detail with player tables. Sofascore shares event context,
+then reads incidents and any selected lineups/statistics separately.
+Native periods, added time, annulment flags, participant IDs and shootout counters
+remain separate. ESPN includes reviewed
 commentary plays missing from `keyEvents`, without resolving names to IDs.
 The [event guide](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/guides/datasets.md#match-events)
 documents field meanings and collection limits. Run
-`python examples/datasets/match_events_offline.py` for both artificial sources.
+`python examples/datasets/match_events_offline.py` for all three artificial sources.
 
 ESPN, 365Scores and Sofascore accept `lineups` and `player_match_stats` for
 explicit match IDs, alongside optional team match totals. Lineups retain native

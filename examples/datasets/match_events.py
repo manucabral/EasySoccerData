@@ -1,7 +1,7 @@
-"""Inspect native match events for explicit ESPN/365Scores IDs, or open a snapshot.
+"""Inspect native match events for explicit IDs, or open a snapshot.
 
 Base records need no extra. --pandas needs [pandas], save/open needs [parquet].
-Choose --with-players to include lineups/player statistics in the same detail read.
+ESPN/365Scores share player detail reads. Sofascore adds a separate lineups read.
 """
 
 import argparse
@@ -22,10 +22,10 @@ def timeline_key(row):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", choices=("espn", "scores365"))
-    parser.add_argument("--league", help="Native competition slug (ESPN) or numeric ID (365Scores)")
-    parser.add_argument("--season", type=int, help="Native ESPN year or caller year label for 365Scores")
-    parser.add_argument("--season-id", help="Required native season ID for 365Scores")
+    parser.add_argument("--source", choices=("espn", "scores365", "sofascore"))
+    parser.add_argument("--league", help="Native ESPN slug or numeric competition ID")
+    parser.add_argument("--season", type=int, help="Native ESPN year or caller year label")
+    parser.add_argument("--season-id", help="Required native season ID for 365Scores/Sofascore")
     parser.add_argument("--match-id", action="append", help="Explicit native ID, repeat for more matches")
     parser.add_argument("--max-match-requests", type=int)
     parser.add_argument("--with-players", action="store_true")
@@ -83,7 +83,8 @@ def main(argv=None):
                 "?" if row.minute is None else str(row.minute) + (f"+{row.added_minute}" if row.added_minute else ""))
             print(row.match_id, clock, row.event_type, "|", row.player_name or "?",
                   "| Native player:", row.player_id, "| Related:", row.related_player_id,
-                  "| Event ID:", row.event_id, "| Source order:", row.source_order)
+                  "| Event ID:", row.event_id, "| Source order:", row.source_order,
+                  "| Rescinded:", row.rescinded)
         for issue in dataset.errors:
             print(f"{issue.step} {issue.target}: {issue.error_type}: {issue.message}", file=sys.stderr)
         for issue in report.issues:

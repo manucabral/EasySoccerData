@@ -1,4 +1,4 @@
-"""Normalize ESPN summary events and 365Scores game events without HTTP."""
+"""Normalize native ESPN, 365Scores and Sofascore event responses without HTTP."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ ESPN_EVENT_TYPES = {
     "113": "penalty_missed", "115": "penalty_missed",
     "94": "yellow_card", "93": "red_card", "76": "substitution",
 }
-EVENT_TYPES = frozenset((*ESPN_EVENT_TYPES.values(), "other"))
+EVENT_TYPES = frozenset((*ESPN_EVENT_TYPES.values(), "second_yellow_card", "other"))
 
 
 def _event_key(row):
@@ -32,6 +32,10 @@ def _context(payload, match):
     sides = {match.home_team_id: "home", match.away_team_id: "away"}
     if None in sides or len(sides) != 2 or not match.match_id or not match.competition_id:
         raise SourceError("Events require a match with native competition and two team IDs")
+    if match.source == "sofascore":
+        if payload.get("eventId") is not None and _id(payload["eventId"]) != match.match_id:
+            raise SourceError("Sofascore incidents belong to another event")
+        return payload
     if match.source == "espn":
         header = _object(payload.get("header"), "ESPN header")
         competitions = _list(header.get("competitions"), "ESPN competitions")
@@ -174,8 +178,66 @@ def _scores(data, match):
     return tuple(rows)
 
 
+def _sofa_time(value, label):
+    # Negative one is a native unknown/bench marker, retained in source_details_json.
+    if type(value) in (int, float) and value == -1:
+        return None
+    return _number(value, label)
+
+
+def _sofa(data, match):
+    for index, item in enumerate(_list(data.get("incidents"), "Sofascore incidents")):
+        native_type = _text(item.get("incidentType"))
+        if not native_type:
+            raise SourceError("Sofascore incident is missing its native incidentType")
+        native_class = _text(item.get("incidentClass"))
+        shootout = (native_type == "penaltyShootout" if native_type in (
+            "goal", "card", "substitution", "inGamePenalty", "penaltyShootout", "period", "injuryTime", "varDecision",
+        ) else None)
+        event_type = "other"
+        if native_type == "goal":
+            event_type = {"ownGoal": "own_goal", "penalty": "penalty_scored"}.get(native_class, "goal")
+        elif native_type == "substitution":
+            event_type = "substitution"
+        elif native_type == "card":
+            event_type = {"yellow": "yellow_card", "red": "red_card", "yellowRed": "second_yellow_card"}.get(native_class, "other")
+        elif native_type in ("penaltyShootout", "inGamePenalty"):
+            event_type = {"scored": "penalty_scored", "missed": "penalty_missed", "saved": "penalty_missed"}.get(native_class, "other")
+        is_home = _flag(item.get("isHome"))
+        team = None if is_home is None else match.home_team_id if is_home else match.away_team_id
+        explicit_team = _optional_id(item.get("teamId"))
+        if explicit_team is not None:
+            if team is not None and explicit_team != team:
+                raise SourceError("Sofascore incident teamId conflicts with isHome")
+            team = explicit_team
+        participants = {key: item[key] for key in ("player", "playerIn", "playerOut", "assist1", "assist2", "keeper")
+                        if item.get(key) is not None}
+        values = {}
+        keys = ("playerIn", "playerOut") if native_type == "substitution" else ("player", "assist1")
+        for prefix, key in zip(("", "related_"), keys):
+            person = _object(item.get(key) or {}, f"Sofascore {key}")
+            values[prefix + "player_id"] = _optional_id(person.get("id"))
+            values[prefix + "player_name"] = _text(person.get("name") or person.get("shortName"))
+        game_time = _sofa_time(item.get("time"), "minute")
+        if keys[1] == "assist1" and item.get("assist1") is not None:
+            values["related_player_role"] = "assist"
+        yield NormalizedMatchEvent(
+            "sofascore", match.match_id, event_id=_optional_id(item.get("id")),
+            source_order=index,
+            source_collection="incidents", event_type=event_type,
+            source_type_id=native_type, source_subtype_id=native_class,
+            source_period=_text(item.get("period")), minute=None if shootout else game_time,
+            added_minute=None if shootout else _sofa_time(item.get("addedTime"), "added_minute"),
+            clock_seconds=_sofa_time(item.get("timeSeconds"), "xg"), source_game_time=game_time,
+            source_clock=_text(item.get("timeDisplay")), is_shootout=shootout,
+            team_id=team, source_text=_text(item.get("text")), rescinded=_flag(item.get("rescinded")),
+            source_participants_json=json.dumps(participants, ensure_ascii=False, sort_keys=True, allow_nan=False),
+            source_details_json=json.dumps(item, ensure_ascii=False, sort_keys=True, allow_nan=False), **values,
+        )
+
+
 def normalize_match_events(payload: dict, *, match: NormalizedMatch) -> tuple[NormalizedMatchEvent, ...]:
-    """Read native event lists for ESPN/365Scores, without names-to-ID matching.
+    """Read native events for ESPN/365Scores/Sofascore without names-to-ID matching.
 
     Missing lists fail explicitly; an explicit empty list is valid. ESPN keeps
     keyEvents and adds recognized goals/cards/substitutions from commentary.play,
@@ -184,11 +246,14 @@ def normalize_match_events(payload: dict, *, match: NormalizedMatch) -> tuple[No
     Native periods and source clock text are preserved; unknown types stay other.
     365Scores stage 11 denotes the shootout. Its 121+ counters stay exclusively in
     source_game_time. No event is used to recalculate the match score.
+    Sofascore incidents retain explicit sides, annulment flags and full native
+    details. Missing incident IDs use the observed response position within
+    this response. Periods are never derived from minutes or period-marker rows.
     """
-    if not isinstance(match, NormalizedMatch) or match.source not in ("espn", "scores365"):
-        raise ValueError("Match events support an ESPN or 365Scores NormalizedMatch")
+    if not isinstance(match, NormalizedMatch) or match.source not in ("espn", "scores365", "sofascore"):
+        raise ValueError("Match events require an ESPN, 365Scores or Sofascore NormalizedMatch")
     data = _context(_object(payload, "event response"), match)
-    rows = _espn(data, match) if match.source == "espn" else _scores(data, match)
+    rows = {"espn": _espn, "scores365": _scores, "sofascore": _sofa}[match.source](data, match)
     seen = set()
     result = []
     for row in rows:

@@ -302,8 +302,9 @@ def load_dataset(
     cannot be combined with standings or date/entity filters. 365Scores and
     Sofascore require native season_id. max_match_requests bounds endpoint reads
     before transport retries, according to the source and selected detail tables.
-    ESPN/365Scores match_events uses the same summary/game detail as lineups,
-    also with explicit IDs. Shootout events retain separate flags and counters.
+    ESPN/365Scores match_events uses the same summary/game detail as lineups.
+    Sofascore shares its event context and adds an incidents read. All three
+    require explicit IDs. Shootouts retain separate flags and counters.
     Duplicate IDs are fetched once. Detail responses use CachePolicy.live_ttl.
 
     Repeated match IDs retain the newest response observation. A day's parsed

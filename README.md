@@ -50,9 +50,10 @@ ESPN, 365Scores and Sofascore also provide normalized `lineups` and
 can include team match totals in the same dataset, with a request budget and
 optional cache, DataFrames or Parquet snapshots.
 
-ESPN and 365Scores expose normalized `match_events` for explicit IDs, sharing
-detail responses with selected player tables. Events retain native periods,
-stoppage time and separate shootout flags. See the [event examples](examples/README.md#match-events)
+ESPN, 365Scores and Sofascore expose normalized `match_events` for explicit IDs.
+ESPN/365Scores share detail responses with player tables; Sofascore shares match
+context and reads incidents separately. Events retain native periods,
+stoppage time, shootout flags and source annulments. See the [event examples](examples/README.md#match-events)
 and [event field contracts](guides/datasets.md#match-events).
 
 `esd.get_catalog()` resolves reviewed competition/team identities without HTTP.

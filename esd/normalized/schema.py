@@ -40,7 +40,7 @@ PLAYER_MATCH_COUNT_METRICS = (
     "fouls_committed", "fouls_suffered", "offsides", "yellow_cards", "red_cards", "saves", "goals_conceded",
 )
 INTEGER_COLUMNS.update(PLAYER_MATCH_COUNT_METRICS)
-BOOLEAN_COLUMNS = {"starter", "captain", "confirmed", "is_shootout", "scoring_play"}
+BOOLEAN_COLUMNS = {"starter", "captain", "confirmed", "is_shootout", "scoring_play", "rescinded"}
 FLOAT_COLUMNS = {
     "home_xg", "away_xg", "forecast_win", "forecast_draw", "forecast_loss",
     "x", "y", "xg", "xa", "npxg", "xg_chain", "xg_buildup",

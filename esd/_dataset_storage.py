@@ -51,6 +51,7 @@ def _schema(pa, table, version=SCHEMA_VERSION):
          pa.bool_() if field.name in BOOLEAN_COLUMNS else pa.string())
         for field in fields(TABLE_MODELS[table])
         if version != "1" or table != "match_stats" or field.name in _V1_MATCH_STATS
+        if version not in ("1", "2", "3", "4") or table != "match_events" or field.name not in ("rescinded", "source_details_json")
     ])
 
 
@@ -98,7 +99,7 @@ def _metadata(data, *, allow_legacy=False):
     if not set(meta["cached_tasks"]) <= {item[0] for item in response_times}:
         raise ValueError("Cached tasks are missing their response timestamps")
     result = DatasetMetadata(**meta)
-    if result.schema_version != SCHEMA_VERSION and not (allow_legacy and result.schema_version in ("1", "2", "3")):
+    if result.schema_version != SCHEMA_VERSION and not (allow_legacy and result.schema_version in ("1", "2", "3", "4")):
         raise ValueError(f"Unsupported schema version: {result.schema_version}")
     if result.schema_version in ("1", "2") and set(result.tables) & {"lineups", "player_match_stats"}:
         raise ValueError("Lineups and player_match_stats require schema version 3")

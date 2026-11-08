@@ -33,11 +33,12 @@ _CAPABILITIES = {
         "lineups/player_match_stats use one game detail per ID; selected match_stats adds one endpoint read.",
         "match_events shares game detail with players; native order is response-local, stage 11 identifies shootouts.",
     )),
-    "sofascore": DatasetCapabilities("sofascore", ("matches", "teams", "standings", "match_stats", "lineups", "player_match_stats"), "native_season_id", (
+    "sofascore": DatasetCapabilities("sofascore", ("matches", "teams", "standings", "match_stats", "lineups", "player_match_stats", "match_events"), "native_season_id", (
         "Explicit native season_id; past and upcoming pages must reach an explicit end.",
         "Source can block requests; dataset loader does not launch a browser.",
         "match_stats requires explicit match_ids: event context plus ALL-period statistics, two endpoint reads per ID.",
         "lineups/player_match_stats use event context plus lineups; selected match_stats adds one endpoint read.",
+        "match_events uses event context plus incidents; selected players and team statistics each add one endpoint read, sharing context.",
     )),
     "understat": DatasetCapabilities("understat", ("matches", "teams", "match_stats", "player_stats", "shots"), "season_year", (
         "Naive kickoff times require caller-supplied source_timezone.",

@@ -50,7 +50,7 @@ def main():
     with patch("esd._provider_datasets.get_api_json", return_value=detail_payload):
         details = esd.load_dataset(source="espn", league="example.cup", season=2026,
                                    tables=["match_stats"], match_ids=[1], max_match_requests=1)
-    assert details.complete and details.metadata.schema_version == "4"
+    assert details.complete and details.metadata.schema_version == "5"
     assert details.match_stat_records[0].home_shots == 0 and details.match_stat_records[0].away_shots is None
     assert esd.validate_dataset(details).valid
     comparison = esd.compare_match_statistics(details, details, metrics=["home_shots", "away_shots"])
@@ -75,6 +75,16 @@ def main():
                                   tables=["match_events", "player_match_stats"], match_ids=[1], max_match_requests=1)
     assert fetch.call_count == 1 and events.complete and esd.validate_dataset(events).valid
     assert events.match_event_records[0].is_shootout is True and events.match_event_records[0].minute is None
+    sofa_context = {"event": {"id": 1, "season": {"id": 228}, "tournament": {"uniqueTournament": {"id": 7}},
+                              "startTimestamp": 1793736000, "homeTeam": {"id": 10}, "awayTeam": {"id": 20}}}
+    sofa_incidents = {"incidents": [{"id": 2, "incidentType": "goal", "incidentClass": "regular", "time": 45,
+                                      "addedTime": 2, "isHome": False, "rescinded": True}]}
+    with patch("esd._provider_datasets.get_api_json", side_effect=[sofa_context, sofa_incidents]) as fetch:
+        sofa_events = esd.load_dataset(source="sofascore", league=7, season=2026, season_id=228,
+                                       tables=["match_events"], match_ids=[1], max_match_requests=2)
+    assert fetch.call_count == 2 and sofa_events.complete and esd.validate_dataset(sofa_events).valid
+    assert sofa_events.match_event_records[0].rescinded is True and sofa_events.match_event_records[0].team_id == "20"
+    assert sofa_events.match_event_records[0].source_details_json is not None
     assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
     assert all(contract.tables for contract in esd.get_dataset_capabilities().values())
     now = datetime(2024, 8, 16, 19, tzinfo=timezone.utc)

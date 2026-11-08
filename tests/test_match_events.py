@@ -235,7 +235,7 @@ def test_response_cache_reuse_and_event_keys_are_scoped_to_each_match(fetch, tmp
     assert len(second.metadata.cached_tasks) == 2 and fetch.call_count == 2
 
 
-@pytest.mark.parametrize("source", ["sofascore", "fbref", "understat", "goaloo", "promiedos", "besoccer", "transfermarkt"])
+@pytest.mark.parametrize("source", ["fbref", "understat", "goaloo", "promiedos", "besoccer", "transfermarkt"])
 def test_unsupported_provider_contract_fails_before_http(fetch, source):
     assert "match_events" not in esd.get_dataset_capabilities(source).tables
     with pytest.raises(ValueError):
@@ -264,7 +264,7 @@ def test_legacy_snapshots_do_not_claim_or_fabricate_event_table(fetch, tmp_path,
     manifest.write_text(json.dumps(data), encoding="utf-8")
     before = manifest.read_bytes()
     restored = esd.open_dataset(path)
-    assert restored == dataset and restored.metadata.schema_version == "4"
+    assert restored == dataset and restored.metadata.schema_version == "5"
     assert "match_events" not in restored.metadata.tables and not restored.match_event_records
     assert manifest.read_bytes() == before
     new = load().save(tmp_path / "events")

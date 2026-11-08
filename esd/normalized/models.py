@@ -10,17 +10,18 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-SCHEMA_VERSION = "4"
+SCHEMA_VERSION = "5"
 
 
 @dataclass(frozen=True)
 class NormalizedMatchEvent:
     """One source event, scoped to a match, with nullable native participants.
 
-    ESPN event_id is native. 365Scores uses source_order within the response,
-    without claiming a persistent event ID. team_id retains the source's event
+    ESPN/Sofascore event_id is native when present. 365Scores uses source_order within the response,
+    without claiming a persistent event ID. Sofascore source_order is the observed
+    response position, used when an incident has no ID. team_id retains the source's event
     team, which can be the beneficiary of an own goal. Related players have no
-    inferred role except for verified substitution ordering (incoming/outgoing).
+    inferred role except for substitution ordering and explicit Sofascore assist1.
     Shootout counters never become match minutes or alter match scores.
     """
 
@@ -55,6 +56,8 @@ class NormalizedMatchEvent:
     related_player_role: str | None = None
     source_participants_json: str | None = None
     source_text: str | None = None
+    rescinded: bool | None = None
+    source_details_json: str | None = None
 
 
 @dataclass(frozen=True)

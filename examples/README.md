@@ -18,7 +18,7 @@ snapshot. Temporary-file examples clean up after themselves.
 
 | Script | Extra | Behavior shown |
 | :--- | :--- | :--- |
-| [Match events](datasets/match_events_offline.py) | Base | Artificial goals/stoppage time, shootout counters, shared player responses and cache reuse for ESPN/365Scores |
+| [Match events](datasets/match_events_offline.py) | Base | Artificial goals/stoppage time, shootout counters, player/context reuse and caching for ESPN/365Scores/Sofascore |
 | [Match events](datasets/match_events_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable event frames or snapshots reopened without HTTP |
 | [Reviewed catalog](datasets/catalog.py) with `--list` | Base | Local competition selectors, review metadata and team identity count |
 | [Catalog workflow](datasets/catalog_workflow_offline.py) | Base | Three competitions/two artificial seasons, source selectors, linking, catalog JSON and response cache |
@@ -231,8 +231,8 @@ competitions and two seasons. `--pandas` and `--parquet` remain independent.
 
 ### Match events
 
-[match_events.py](datasets/match_events.py) accepts explicit ESPN/365Scores
-match IDs and prints a preview sorted by observed minute, then shootout order.
+[match_events.py](datasets/match_events.py) accepts explicit ESPN/365Scores/Sofascore
+match IDs and prints a preview sorted by observed minute, with shootout attempts last.
 It reads no full calendar and leaves unknown IDs/clocks unresolved:
 
 ```sh
@@ -248,8 +248,10 @@ choose your own match and native season for other queries. The two commands
 select different matches. Event collections are not guaranteed complete or
 equivalent across sources.
 
-Repeat `--match-id` for more matches. `--with-players` adds no endpoint read.
-`--with-match-stats` shares the ESPN summary or adds one 365Scores request per
+Repeat `--match-id` for more matches. `--with-players` adds no ESPN/365Scores read
+and adds one Sofascore lineups read. Sofascore events alone require two reads:
+event context and incidents. Selected player/statistic tables share that context.
+`--with-match-stats` shares the ESPN summary or adds one 365Scores/Sofascore request per
 ID. The budget defaults to 20 reads before retries. `--limit` changes the default
 30-row preview. `--cache-dir` uses the base installation, and `--refresh` checks
 a new response before replacing a valid cache entry.
@@ -267,10 +269,42 @@ resumes a query. Exit codes are 0 for completed tasks, including explicit empty
 lists, 1 for source/validation failures and 2 for invalid arguments/missing extras.
 
 The [offline example](datasets/match_events_offline.py) uses artificial responses
-for both providers, shared player reads, cache reuse and unknown shootout
+for all three providers, shared player/context reads, cache reuse and unknown shootout
 participants. Add `--parquet` for snapshot checks or `--pandas` for typed frames.
 The [event guide](../guides/datasets.md#match-events) documents native keys,
 classification mappings, own-goal team semantics and collection limits.
+
+[champions_events.py](datasets/champions_events.py) reads one explicit Champions
+League match per provider. Supply all three native match IDs, the native ESPN
+year, native 365Scores/Sofascore season IDs and a separate caller year label.
+It prints each selected kickoff/team ID, events, annulment flags and original
+fetch timestamps. It does not establish cross-provider fixture or player identity.
+
+In PowerShell, after assigning the native selectors you have reviewed:
+
+```powershell
+python examples/datasets/champions_events.py --espn-match-id $espnMatchId --espn-season $espnYear --scores365-match-id $scoresMatchId --scores365-season-id $scoresSeasonId --sofascore-match-id $sofaMatchId --sofascore-season-id $sofaSeasonId --year $year --cache-dir ./my-data/event-responses
+```
+
+The default total budget is four endpoint reads: one ESPN, one 365Scores and two
+Sofascore. `--with-players` requires five; `--with-match-stats` requires six;
+selecting both requires seven. Set `--max-match-requests` accordingly. The complete
+selection and optional dependencies are checked before any source request.
+`--output-dir ./my-data/champions-events-1` creates a new directory and writes
+separate `espn/`, `scores365/` and `sofascore/` Parquet snapshots, verifying each
+after saving. Valid partial results retain their errors and return exit code 1.
+Reopen any source without HTTP using:
+
+```sh
+python examples/datasets/match_events.py --open-dir ./my-data/champions-events-1/sofascore
+```
+
+Sofascore incidents keep `rescinded`, explicit `isHome`, `playerIn`/`playerOut`,
+`assist1`, native sequence and raw reasons. A source `time=-1` becomes an unknown
+minute, and the raw value remains in `source_details_json`. Periods are not inferred
+from minute thresholds. Source blocks remain failed tasks. Live API checks on
+November 8, 2026 received HTTP 403; the three-provider example and mappings have
+offline tests and do not imply current live availability.
 
 ### Lineups, player statistics and match totals
 
