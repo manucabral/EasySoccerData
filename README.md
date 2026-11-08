@@ -70,13 +70,17 @@ It retains unknown fields, ambiguity and exact event-task provenance. See the
 [Champions/offline examples](examples/README.md#compare-match-events).
 
 The [integrated Champions workflow](examples/README.md#integrated-champions-workflow)
-downloads match, lineup, team/player statistics and event tables together,
-compares selected providers and saves the sources and rules for offline reuse.
-Its `--demo` mode uses artificial responses for all three providers without HTTP.
+discovers native seasons, downloads match, lineup, team/player statistics and
+event tables together, inspects field/task coverage, saves snapshots, reopens a
+table and match subset, calculates row-level derived metrics and compares
+selected providers. Its `--demo` mode runs all three providers offline. See the
+[Champions walkthrough](guides/datasets.md#integrated-champions-workflow) and
+[provider limitations](guides/datasets.md#provider-limitations).
 
 `esd.get_catalog()` resolves reviewed competition/team identities without HTTP.
-The initial catalog covers Champions League, Premier League and LaLiga for
-ESPN/365Scores. It can query native seasons explicitly and build an `IdentityMap`.
+Catalog `2026-11-08.1` covers Champions League, Premier League, LaLiga,
+Bundesliga and Serie A across ESPN, 365Scores and Sofascore (96 team identities).
+It queries native seasons explicitly and builds an `IdentityMap`.
 See [catalog selections](guides/datasets.md#reviewed-competition-and-team-catalog).
 
 `esd.list_competitions()` and `esd.list_seasons()` discover native selectors where
@@ -345,6 +349,25 @@ BeSoccer support standings-row adapters; Transfermarkt clubs support team adapte
 Unsupported model/table combinations raise `TypeError`. Original provider models
 remain available for additional fields.
 
+### Derived statistics
+
+```python
+from esd import NormalizedPlayerMatchStats, derive_statistics
+
+# Invented observations. A loaded player_match_stat_records row works here too.
+row = NormalizedPlayerMatchStats("scores365", minutes=45, goals=1)
+result = derive_statistics(row)
+goals_per90 = next(metric for metric in result.metrics if metric.name == "goals_per90")
+assert goals_per90.value == 2.0
+```
+
+Calculates player per-90 rates, pass/shot accuracy and xG per shot when their
+inputs exist. Each result retains its formula, inputs and a null reason when
+unavailable. Original rows remain unchanged. Calculations and JSON use the base
+installation; `derived_statistics_to_dataframe()` requires `[pandas]`. See
+[derived statistics](guides/datasets.md#derived-statistics) and
+[provider limitations](guides/datasets.md#provider-limitations).
+
 ## Season datasets
 
 For individual match statistics, request `tables=["match_stats"]` with explicit
@@ -607,6 +630,21 @@ original schemas/checksums. New fields without observations remain null, and
 the original files stay unchanged. Saving requires a new directory.
 Persistent response caching is separate from snapshots.
 
+### Read part of a saved dataset
+
+```python
+from esd import open_dataset
+
+selected = open_dataset(
+    "./my-data/champions", tables=("matches", "shots"), match_ids=("401915310",),
+)
+```
+
+Requires `[parquet]`; pandas remains optional. Match IDs are exact native strings.
+Tables without `match_id` retain all rows. Original download coverage and errors
+remain available, and `complete` still describes that download. See the
+[selective snapshot guide](guides/datasets.md#read-selected-tables-and-matches).
+
 ## Resume and update downloads
 
 Choose a response cache directory to reuse successful queries across runs and
@@ -741,35 +779,3 @@ downloadable preview artifact; only pushes to main deploy GitHub Pages.
 `scripts/check_install.py --extra base` verifies an installed distribution,
 including optional dependency boundaries; it should run in the clean environment
 being checked. Browser binaries and live provider access are not required.
-
-### Read part of a saved dataset
-
-```python
-from esd import open_dataset
-
-selected = open_dataset(
-    "./my-data/champions", tables=("matches", "shots"), match_ids=("401915310",),
-)
-```
-
-Requires `[parquet]`; pandas remains optional. Match IDs are exact native strings.
-Tables without `match_id` retain all rows. Original download coverage and errors
-remain available, and `complete` still describes that download. See the dataset
-guide for local selection metadata and integrity checks.
-
-### Derived statistics
-
-```python
-from esd import NormalizedPlayerMatchStats, derive_statistics
-
-# Invented observations. A loaded player_match_stat_records row works here too.
-row = NormalizedPlayerMatchStats("scores365", minutes=45, goals=1)
-result = derive_statistics(row)
-goals_per90 = next(metric for metric in result.metrics if metric.name == "goals_per90")
-assert goals_per90.value == 2.0
-```
-
-Calculates player per-90 rates, pass/shot accuracy and xG per shot when their
-inputs exist. Each result retains its formula, inputs and a null reason when
-unavailable. Original rows remain unchanged. Calculations and JSON use the base
-installation; `derived_statistics_to_dataframe()` requires `[pandas]`.

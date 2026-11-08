@@ -253,12 +253,14 @@ supplies only competition/team aliases. See the
 [event comparison guide](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/guides/datasets.md#compare-match-events).
 
 The [integrated Champions workflow](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#integrated-champions-workflow)
-selects match, lineup, team/player statistics and event tables in shared detail
-downloads. It compares each selected pair and saves source snapshots, identities
-and rules for offline recomputation. `--demo` uses artificial data without HTTP.
-Sofascore's missing event periods remain unresolved by default. The explicit
-`allow_unknown_period=True` option permits candidates with unverified periods,
-which remain visible in the report. No period is inferred from a minute.
+discovers native seasons, downloads match, lineup, team/player statistics and
+event tables in shared detail plans, inspects field and task coverage, saves
+snapshots, reopens a subset of tables and match IDs, computes row-level derived
+metrics and compares each selected source pair. `--demo` runs all three
+providers without HTTP. Sofascore's missing event periods remain unresolved by
+default; `allow_unknown_period=True` permits candidates with unverified periods
+while keeping `source_period` in `unknown_fields`. No period is inferred from a
+minute. See [provider limitations](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/guides/datasets.md#provider-limitations).
 
 ESPN, 365Scores and Sofascore expose `match_events` for explicit IDs. ESPN/365Scores
 share summary/game detail with player tables. Sofascore shares event context,
@@ -286,10 +288,17 @@ returns its native standings year options. The examples include a 365Scores
 discovery-to-download flow with validation and optional snapshot verification.
 
 `esd.get_catalog()` reads a versioned sample of reviewed competition/team IDs
-for ESPN and 365Scores. It resolves canonical IDs, names and declared aliases
+for ESPN, 365Scores and Sofascore (five competitions and 96 team identities in
+version `2026-11-08.1`). It resolves canonical IDs, names and declared aliases
 without requests. Season discovery remains explicit and preserves native
 selectors. Catalogs can build an `IdentityMap`, accept nonconflicting additions
 and save/open caller-owned JSON without optional dependencies.
+
+`esd.open_dataset(path, tables=..., match_ids=...)` reopens a subset of tables
+and native match IDs after validating snapshot checksums and schemas.
+`esd.derive_statistics(record)` computes player per-90 rates, pass/shot
+accuracy and source-model xG per shot from observed fields, retaining formulas
+and null reasons without modifying normalized records.
 
 .. include:: guides/datasets.md
 
@@ -298,35 +307,3 @@ and save/open caller-owned JSON without optional dependencies.
 For bug reports, include the provider, method, arguments and traceback. Remove
 proxy credentials and tokens from logs. Add a response fixture and an offline
 regression test when submitting a parser fix.
-
-### Read part of a saved dataset
-
-```python
-from esd import open_dataset
-
-selected = open_dataset(
-    "./my-data/champions", tables=("matches", "shots"), match_ids=("401915310",),
-)
-```
-
-Requires `[parquet]`; pandas remains optional. Match IDs are exact native strings.
-Tables without `match_id` retain all rows. Original download coverage and errors
-remain available, and `complete` still describes that download. See the dataset
-guide for local selection metadata and integrity checks.
-
-### Derived statistics
-
-```python
-from esd import NormalizedPlayerMatchStats, derive_statistics
-
-# Invented observations. A loaded player_match_stat_records row works here too.
-row = NormalizedPlayerMatchStats("scores365", minutes=45, goals=1)
-result = derive_statistics(row)
-goals_per90 = next(metric for metric in result.metrics if metric.name == "goals_per90")
-assert goals_per90.value == 2.0
-```
-
-Calculates player per-90 rates, pass/shot accuracy and xG per shot when their
-inputs exist. Each result retains its formula, inputs and a null reason when
-unavailable. Original rows remain unchanged. Calculations and JSON use the base
-installation; `derived_statistics_to_dataframe()` requires `[pandas]`.

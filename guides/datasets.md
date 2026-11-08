@@ -1404,57 +1404,6 @@ The [Champions/offline examples](https://github.com/manucabral/EasySoccerData/bl
 cover bounded downloads, partial player identities and saved source pairs with
 aliases/settings. Reopening recomputes observations from source snapshots.
 
-## Integrated Champions workflow
-
-`examples/datasets/champions_workflow.py` combines match context, team totals,
-lineups, player statistics and events. It compares every selected source pair
-using the contracts above. The three-source demo uses artificial native
-responses, verifies seven shared endpoint reads and reuses their original
-timestamps from cache:
-
-```sh
-python examples/datasets/champions_workflow.py --demo --allow-unknown-period
-python examples/datasets/champions_workflow.py --demo --allow-unknown-period --parquet
-```
-
-Live mode accepts explicit ESPN/365Scores Champions match and season selectors,
-with optional Sofascore match/season IDs and caller-reviewed aliases. It reads
-three endpoints for the two-source selection or seven with Sofascore, before
-transport retries. A source error keeps that source partial while retaining
-successful tables and other providers. The workflow does not enumerate a full
-season calendar or infer native selectors from labels.
-
-`--cache-dir` chooses response storage and `--output-dir` publishes a new bundle
-only after all source snapshots reopen unchanged. The bundle contains the
-selected sources, reviewed identities, pinned metric/period/position options and
-diagnostic reports. `--open-dir` recomputes from source snapshots and saved
-settings, ignoring saved report rows and making no HTTP requests. Base operation
-needs no extras; storage uses `[parquet]` and frames independently use `[pandas]`.
-`--parquet` verifies a temporary demo bundle without retaining files.
-
-The [example index](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#integrated-champions-workflow)
-documents live commands, partial identity coverage, exact exit codes and the
-scope of live checks. Sofascore compatibility has offline contract tests; its
-API returned HTTP 403 in this environment on November 8, 2026. This does not
-establish permanent availability or equivalent collection rules.
-
-## Troubleshooting
-
-| Symptom | What to check |
-| :--- | :--- |
-| Dataset function absent after PyPI install | Use the 0.2.0 source checkout until it is published |
-| DataFrame property raises `ImportError` | Install `[pandas]`; raw record tuples still work |
-| Save/open raises `ImportError` | Install `[parquet]`; pandas alone does not install PyArrow |
-| `ZoneInfoNotFoundError` | Check the IANA name and install system timezone data or `tzdata` |
-| Table not requested or unsupported | Inspect `get_dataset_capabilities(source)` and the selected `tables` |
-| `SourceBlocked`, 403 or maintenance page | Inspect source errors; these are not valid empty datasets |
-| Season/competition mismatch | Use the provider's actual native ID, not a code copied from another source |
-| Snapshot destination exists | Choose a new directory; snapshots do not overwrite existing paths |
-| No cross-source links | Inspect identity mappings, source timestamps, tolerance and ambiguous IDs |
-
-Use a small date range or a few entity IDs to reproduce download errors. Run
-`scripts/check_examples.py` to check offline examples without querying providers.
-
 ## Read selected tables and matches
 
 ```python
@@ -1520,17 +1469,17 @@ from normalized snapshot schema 6, which does not change.
 
 | Calculation | Formula | Available rows |
 | --- | --- | --- |
-| Player metric per 90 | metric / minutes × 90 | Player-match and player-season |
-| Pass accuracy | accurate_passes / passes × 100 | Player-match and each match side |
-| Shot accuracy | shots_on_target / shots × 100 | Player-match and each match side |
+| Player metric per 90 | metric / minutes Ã— 90 | Player-match and player-season |
+| Pass accuracy | accurate_passes / passes Ã— 100 | Player-match and each match side |
+| Shot accuracy | shots_on_target / shots Ã— 100 | Player-match and each match side |
 | xG per shot | xg / shots | Player-match, player-season and each match side |
 
 Player-match rates cover observed counts except minutes and appearances, plus
 xG and xA. Player-season rates cover goals, assists, shots, key passes, cards,
 xG, xA, npxG, xG chain and xG buildup. Ratings and percentages are not scaled
 per 90. A provider may leave any input absent. ESPN's current player-match
-adapter, for example, does not populate minutes, and Sofascore's adapter does
-not populate total shots. The corresponding rates remain null.
+adapter leaves `minutes` null, and Sofascore's adapter leaves total `shots`
+null. The corresponding rates remain null with an explicit status reason.
 
 Reported minutes are used as supplied, including values above 90 for extra time.
 They are never inferred from starters, appearances or match clocks. Team match
@@ -1553,7 +1502,7 @@ The calculation cannot recover missing provider observations or parser defaults.
 | `nonfinite_result` | Inputs were finite but the result overflowed |
 
 Missing numerator takes precedence when both inputs are missing. Percentages
-are never clipped to fit 0–100. Negative, nonnumeric, boolean and nonfinite
+are never clipped to fit 0 to 100. Negative, nonnumeric, boolean and nonfinite
 operands raise `ValueError`; unsupported record types raise `TypeError`.
 
 These are row-level calculations, not season aggregation. A season rate should
@@ -1575,3 +1524,118 @@ Without `--open-dir`, the example uses invented observations. Opening a snapshot
 requires `[parquet]`; displaying frames independently requires `[pandas]`. The
 CLI rejects match filters on player-season statistics. JSON mode prints row
 calculations only; inspect the dataset separately for original task coverage.
+
+## Integrated Champions workflow
+
+A complete Champions League detail run connects season discovery, bounded match
+downloads, coverage inspection, snapshot storage, selective reopening and
+row-level derived metrics:
+
+```python
+import esd
+
+catalog = esd.get_catalog()
+seasons = catalog.list_seasons("Champions League", "scores365", cache_dir="./my-data/responses")
+selected_season = next(row for row in seasons.seasons if row.season_id == "74")
+options = catalog.dataset_options("Champions League", selected_season, year=2026)
+
+dataset = esd.load_dataset(
+    **options,
+    match_ids=["4828447", "4828448"],
+    tables=["matches", "teams", "match_stats", "lineups", "player_match_stats", "match_events"],
+    max_match_requests=4,
+    cache_dir="./my-data/responses",
+    on_error="collect",
+)
+
+coverage = esd.inspect_dataset_coverage(dataset)
+for table in coverage.tables:
+    print(table.table, table.row_count, table.task_status)
+
+snapshot_path = dataset.save("./my-data/champions-scores365")
+subset = esd.open_dataset(
+    snapshot_path,
+    tables=("player_match_stats", "match_stats"),
+    match_ids=("4828447",),
+)
+player_metrics = tuple(esd.derive_statistics(row) for row in subset.player_match_stat_records)
+team_metrics = tuple(esd.derive_statistics(row) for row in subset.match_stat_records)
+```
+
+For ESPN (`uefa.champions`), `catalog.list_seasons()` returns `season_id="2026"`
+with native `year=2026`, so `catalog.dataset_options()` needs no separate
+`year` argument. For 365Scores (`572`) and Sofascore (`7`), the native
+`season_id` stays separate from the caller `year` label. Reopening a single
+match and the two statistics tables checks every file checksum in the snapshot,
+decodes only the requested tables and filters match-scoped rows to `4828447`.
+`subset.metadata.original_tables` retains the six downloaded tables, while
+`subset.metadata.snapshot_match_ids` records `("4828447",)`.
+
+`examples/datasets/champions_workflow.py` runs this complete flow across
+selected providers and compares every selected source pair. The three-source
+demo uses artificial native responses, verifies season discovery and seven
+shared endpoint reads, reuses their original timestamps from cache, inspects
+coverage, reopens a subset when `[parquet]` is installed and computes derived
+player and team metrics:
+
+```sh
+python examples/datasets/champions_workflow.py --demo --allow-unknown-period
+python examples/datasets/champions_workflow.py --demo --allow-unknown-period --pandas
+python examples/datasets/champions_workflow.py --demo --allow-unknown-period --parquet
+```
+
+Live mode accepts explicit ESPN/365Scores Champions match and season selectors,
+with optional Sofascore match/season IDs and caller-reviewed aliases. It reads
+three endpoints for the two-source selection (one ESPN summary, one 365Scores
+game detail and one 365Scores team-statistics response), or seven with
+Sofascore, before transport retries. A source error keeps that source partial
+while retaining successful tables and other providers. The workflow does not
+enumerate a full season calendar or infer native selectors from labels.
+
+`--cache-dir` chooses response storage and `--output-dir` publishes a new bundle
+after all source snapshots reopen unchanged. The bundle contains the selected
+source snapshots, reviewed identities, pinned metric/period/position options and
+`comparison.json`. `--open-dir` reopens the snapshots, verifies selective table
+and match-ID reads (`tables=("player_match_stats", "match_stats")`), recomputes
+derived metrics and comparisons from the saved sources and rules, and makes no
+HTTP requests. Base operation needs no extras; storage uses `[parquet]` and
+frames independently use `[pandas]`.
+
+The [example index](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#integrated-champions-workflow)
+documents live commands, partial identity coverage, exact exit codes and the
+November 8, 2026 live verification across two Champions League fixtures.
+
+## Provider limitations
+
+Each dataset loader and adapter reflects the fields and query paths available from
+its source. Use `get_discovery_capabilities()`, `get_dataset_capabilities()` and
+`get_dataset_field_capabilities()` to inspect these contracts in code.
+
+| Source | Discovery and selection limits | Supported dataset tables | Key field gaps and semantics | Derived statistics (`derive_statistics`) |
+| :--- | :--- | :--- | :--- | :--- |
+| `espn` | Competition dropdown and native season-year index (`year` populated). Season calendar queries each day sequentially; detail tables require explicit `match_ids` | `matches`, `teams`, `standings`, `match_stats`, `lineups`, `player_match_stats`, `match_events`, `shots` | `player_match_stats.minutes`, `passes`, `accurate_passes`, `xg`, `xa` and `source_rating` are `unavailable`. `match_stats.xg` and `shots.xg` are `unavailable`. `shots` contains only recognized attempts from `keyEvents`/`commentary.play` (`espn-native-field`), not a guaranteed full shot feed. Commentary participants without IDs stay null | Player per-90 rates are `missing_denominator` because `minutes` is null; player `pass_accuracy_pct` and `xg_per_shot` are `missing_numerator`. Player `shot_accuracy_pct` and team `pass_accuracy_pct`/`shot_accuracy_pct` are calculated when counts exist; team `xg_per_shot` is `missing_numerator` |
+| `scores365` | Competition search requires `query`; season lookup returns seasons included in competition details (often current season only, `year=None`). Match downloads require explicit UTC date bounds (`start_date`/`end_date`) or `match_ids`; standings and details require native `season_id` | `matches`, `teams`, `standings`, `match_stats`, `lineups`, `player_match_stats`, `match_events` | `shots` is not supported. Lineups and events use match-scoped member IDs (`player_id`) separate from `source_athlete_id`; anonymous event entries without member IDs are skipped in lineups. `standings.deductions` is `unavailable`. Rating sentinel `-1` becomes null | Player per-90 rates, `pass_accuracy_pct`, `shot_accuracy_pct` and `xg_per_shot` (`model="scores365"`), plus team `pass_accuracy_pct`, `shot_accuracy_pct` and `xg_per_shot`, are calculated when observed |
+| `sofascore` | Category competition list (`category_id`) and native tournament `season_id` (`year=None`). Season downloads require both past and upcoming pagination to reach `hasNextPage=False` within `max_pages`. Direct requests from blocked networks raise `SourceBlocked` (`HTTP 403`) | `matches`, `teams`, `standings`, `match_stats`, `lineups`, `player_match_stats`, `match_events`, `shots` | `player_match_stats.shots` (total attempts) is `unavailable`, while `shots_on_target` is mapped. `match_events.source_period` is absent unless supplied by the response; cross-source event comparisons require `period_aliases` or `allow_unknown_period=True`. `shots` uses `sofascore-native-player` coordinates and `xg`/`xgot` (`model="sofascore"`) | Player per-90 rates and `pass_accuracy_pct` are calculated when `minutes` and pass counts exist. Player `shot_accuracy_pct` and `xg_per_shot` are `missing_denominator` because total `shots` is null on player rows. Team `pass_accuracy_pct`, `shot_accuracy_pct` and `xg_per_shot` are calculated when observed |
+| `understat` | Manual competition and season selection (`DiscoveryNotSupported`). Requires caller `source_timezone` for naive kickoffs. Shot downloads require completed matches in the queried league season | `matches`, `teams`, `match_stats`, `player_stats`, `shots` | No `standings`, `lineups`, `player_match_stats` or `match_events`. `match_stats` maps xG and win/draw/loss forecasts (`model="understat"`) without team shot/pass/card counts. `player_stats` stores season aggregates with native `source_team_names`. `shots` uses `understat-native` coordinates | Player-season (`player_stats`) per-90 rates and `xg_per_shot` are calculated when `minutes` and `shots` exist. Team `match_stats` has no shot or pass counts, so team accuracies and `xg_per_shot` are `missing_denominator`/`missing_numerator` |
+| `fbref` | Manual competition and season selection (`DiscoveryNotSupported`). Requires explicit dates and `source_timezone`. Sequential HTTP requests are rate-limited to at least `60/9` seconds apart; Cloudflare challenges without browser clearance raise `SourceBlocked` | `matches`, `teams`, `match_stats` | Requires match-report IDs on schedule rows. `match_stats` populates `home_xg`/`away_xg` (`model="fbref"`) only; team shot, pass, possession and card columns are `unavailable`. No standings, player, lineup, event or shot dataset tables | Team `match_stats` has `xg` but null `shots` and `passes`, so `xg_per_shot` is `missing_denominator` and accuracies are `missing_numerator` |
+| `goaloo` | Manual competition ID; season discovery returns native `SeasonList` strings (`source_season`). Dataset loader requires `source_season` matching `season` start year and `source_timezone` for naive kickoffs | `matches`, `teams`, `standings` | No `match_stats`, `lineups`, `player_match_stats`, `match_events` or `shots` dataset tables. Match scores alone do not establish final status; check `source_status` | No statistics tables (`match_stats`, `player_match_stats`, `player_stats`) in dataset loader |
+| `promiedos` | Competition discovery requires a `date` and lists only leagues active that day; season discovery is unsupported. Dataset loader requires explicit dates and `source_timezone`; `season` is a caller label | `matches`, `teams` | No `standings`, `match_stats`, `lineups`, `player_match_stats`, `match_events` or `shots` dataset tables | No statistics tables in dataset loader |
+| `besoccer` | Manual competition slug; season discovery reads standings year options (which can use the end year, such as `2027` for `2026-27`). Match downloads require explicit dates; standings use `league` and `season`. Persistent browser challenges raise `SourceBlocked` | `matches`, `teams`, `standings` | Adjacent-day fixtures on daily pages are filtered to UTC or `source_timezone`. No `match_stats`, `lineups`, `player_match_stats`, `match_events` or `shots` dataset tables | No statistics tables in dataset loader |
+| `transfermarkt` | Paged competition search (`query`, `page`) and season options via `competition_url`. Dataset loader requires explicit `club_ids` and/or `player_ids`; season discovery does not filter profiles or histories by season | `teams`, `players`, `market_values`, `transfers` | Exposes current player profiles and full valuation/transfer histories rather than a match calendar or historical season squad. Transfer fees retain display strings without inferring a separate currency | No match or player-match statistics tables |
+
+## Troubleshooting
+
+| Symptom | What to check |
+| :--- | :--- |
+| Dataset function absent after PyPI install | Use the 0.2.0 source checkout until it is published |
+| DataFrame property raises `ImportError` | Install `[pandas]`; raw record tuples still work |
+| Save/open raises `ImportError` | Install `[parquet]`; pandas alone does not install PyArrow |
+| `ZoneInfoNotFoundError` | Check the IANA name and install system timezone data or `tzdata` |
+| Table not requested or unsupported | Inspect `get_dataset_capabilities(source)` and the selected `tables` |
+| `SourceBlocked`, 403 or maintenance page | Inspect source errors; these are not valid empty datasets |
+| Season/competition mismatch | Use the provider's actual native ID, not a code copied from another source |
+| Snapshot destination exists | Choose a new directory; snapshots do not overwrite existing paths |
+| No cross-source links | Inspect identity mappings, source timestamps, tolerance and ambiguous IDs |
+
+Use a small date range or a few entity IDs to reproduce download errors. Run
+`scripts/check_examples.py` to check offline examples without querying providers.

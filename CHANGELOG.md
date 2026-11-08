@@ -1,103 +1,54 @@
 # Changelog
 
-## [Unreleased]
+## [0.2.0] - 2026-11-08
 
 ### Added
 
-- Row-level derived statistics retain formulas, observed inputs and null reasons for player per-90 rates, pass/shot accuracy and source-model xG per shot. JSON works in the base installation, with independent optional pandas frames and offline/snapshot examples. Original normalized rows and schema remain unchanged.
-
-- Read snapshots by table and native match ID with batched filtering, full file integrity checks and preserved download provenance.
-
-- Read-only field contracts for all nine dataset providers, with nullable types, unavailable columns and source-specific model/coordinate labels. Coverage inspection separates normalized non-null/missing/zero/False counts from per-table task outcomes, retaining errors, cache dates and query scope without optional dependencies. New CLI/offline examples cover contract lookup, snapshots, JSON reports and optional pandas frames.
-
-- Reviewed catalog `2026-11-08.1` adds Bundesliga, Serie A and Sofascore references, covering five competitions and 96 team identities across ESPN/365Scores/Sofascore.
-- Player aliases can use native-team and half-open date scopes, retain review evidence and round-trip through versioned JSON. Event/player comparisons resolve against original match context, with explicit missing-context/out-of-scope diagnostics.
-- Normalized Sofascore shots retain native player coordinates, body part, xG/xGOT and raw details. ESPN recognized attempts share the summary and retain native field positions without inferred xG. Explicit match budgets, cached provenance and live/offline examples cover both providers.
-- Schema 6 reads schema 1–5 snapshots against their original schemas, preserving existing shot values and leaving new, unobserved shot fields null.
-
-- Sofascore event/lineup/player-statistics comparisons, exact per-table provenance and an explicit opt-in policy for unknown event periods. The integrated Champions workflow combines lineups, events and team/player statistics, compares selected source pairs and reopens saved sources/identities/rules without HTTP; its artificial three-source demo verifies cache reuse.
-- Read-only ESPN/365Scores lineup and player-match metric comparisons with explicit player/position aliases, ambiguous-identity diagnostics, source-specific models and exact task coverage. Champions and offline examples retain reviewed aliases and settings beside source snapshots.
-- Read-only ESPN/365Scores event comparisons with explicit player aliases, mutual candidate uniqueness, clock/period scope, unknown annulments, task coverage and original fetch dates. New examples cover artificial ambiguity and a reviewed three-player Champions sample with saved/offline comparison pairs.
-- Sofascore match-event datasets with shared match context, bounded incident/lineup/statistic reads, nullable annulment flags and native incident details. Schema 5 reads schema 1–4 snapshots, leaving unobserved event flags null. Examples cover all three event providers and explicit Champions League selections.
-- Normalized ESPN/365Scores match events with native clocks, participant references, nullable IDs and separate shootout counters. Event downloads share selected lineup/player responses, respect request budgets and support cached/offline examples. Schema 4 reads existing schema 1–3 snapshots without fabricating event tables.
-- Versioned competition/team catalog with reviewed ESPN/365Scores IDs for Champions League, Premier League and LaLiga, source evidence/dates, explicit native season selections, identity-map integration and caller-owned JSON extensions. Examples cover three competitions across two artificial seasons, cache reuse and snapshots.
-- Normalized lineups and player-match statistics for explicit ESPN, 365Scores and Sofascore match IDs, with shared response budgets, nullable roles/metrics, native member/athlete IDs and live/offline examples. Team match totals can be requested alongside them.
-- Read-only match-statistics comparisons with explicit identities, absolute metric tolerances, missing/period/model diagnostics, original source provenance and optional DataFrame export. Examples cover offline records and Champions League snapshot pairs.
-- Optional native-ID match statistics datasets for ESPN, 365Scores and Sofascore, with bounded endpoint reads, source identity checks, nullable metrics, cache provenance and live/offline examples.
-- Transfermarkt competition search pages and native season selectors, BeSoccer standings year discovery, source URLs and a 365Scores discovery/download/validation workflow with optional verified Parquet snapshots.
-- Native competition/season discovery for ESPN, 365Scores, Sofascore, Goaloo and dated Promiedos listings, with explicit support for all nine providers, immutable results, source scope and optional response caching.
-- Read-only `validate_dataset()` reports for normalized records and coverage across all nine providers, with contextual errors/warnings and no optional dependencies.
-- Live source checks now report dataset validation separately from download status, with opt-in Parquet round trips, temporary cleanup and caller-selected snapshot directories.
-- Champions League date-range example using the base installation, with UTC bounds, nullable scores and partial-result reporting.
-- Persistent response cache and forced refresh flags in the Champions League example, with cached-day counts and failed-day recovery.
-- Champions League Parquet export and offline read flags, preserving empty tables, partial coverage and errors without pandas.
-- Offline pandas analysis of Champions League snapshots, with UTC fixtures, team-ID summaries and explicit exclusions for unfinished or incomplete results.
-- Champions League comparison across 365Scores and ESPN, with explicit sample identities, bounded UTC queries, score/time differences, source timestamps and offline snapshot pairs without pandas.
-- Live dataset check command with per-provider time and request limits, structured results and explicit report paths.
-- Dataset guide, example index and offline examples of partial results, cache reuse, refresh, nullable analysis and ambiguous match linkage.
-- Configurable provider example CLI with selection overrides, record previews, optional snapshot output and explicit exit codes.
-- Automated offline example checks across installation extras, with HTTP and browser access blocked.
+- Row-level derived statistics (`derive_statistics`, `derived_statistics_to_dataframe`) retain formulas, observed inputs and null reasons for player per-90 rates, pass/shot accuracy and source-model xG per shot. JSON works in the base installation, with independent optional pandas frames and offline/snapshot examples. Original normalized rows and schema remain unchanged.
+- Selective snapshot reads (`open_dataset(..., tables=..., match_ids=...)`) filter by table and native match ID with batched decoding, full file checksum verification and preserved download provenance (`original_tables`, `snapshot_match_ids`).
+- Read-only field contracts (`get_dataset_field_capabilities`) for all nine dataset providers, with nullable types, unavailable columns and source-specific model/coordinate labels. Coverage inspection (`inspect_dataset_coverage`) separates normalized non-null/missing/zero/False counts from per-table task outcomes, retaining errors, cache dates and query scope without optional dependencies.
+- Reviewed catalog `2026-11-08.1` (`get_catalog`, `open_catalog`) covers five competitions (Champions League, Premier League, LaLiga, Bundesliga and Serie A) and 96 team identities across ESPN, 365Scores and Sofascore, with source evidence/dates, explicit native season selection (`list_seasons`, `dataset_options`), `IdentityMap` integration and caller-owned JSON extensions.
+- Scoped player aliases (`EntityAlias` with native `team_id`, `valid_from`, `valid_until`, `source_url`, `verified_at`) and `IdentityMap.lookup()` diagnostics (`resolved`, `unmapped`, `context_required`, `out_of_scope`) round-tripping through versioned JSON.
+- Normalized Sofascore shots (`shotmap`) retain native player coordinates, body part, xG/xGOT and raw details, and ESPN recognized attempts (`keyEvents`/`commentary.play`) retain native field positions without inferred xG. Schema 6 reads schema 1-5 snapshots against their original schemas, preserving existing values and leaving new unobserved columns null.
+- Integrated Champions League workflow (`examples/datasets/champions_workflow.py`) connecting explicit season discovery, shared-endpoint downloads of matches/teams/statistics/lineups/events, field and task coverage inspection, Parquet snapshot storage, selective reopening by table and match ID, derived statistics and pairwise provider comparisons.
+- Provider limitations summary in `guides/datasets.md` documenting discovery support, available tables, unavailable columns and derived-metric status reasons across all nine sources.
+- Read-only cross-source and same-source comparators for match statistics (`compare_match_statistics`), lineups and player-match metrics (`compare_match_players`), and match events (`compare_match_events`) across ESPN, 365Scores and Sofascore, including opt-in `allow_unknown_period` handling for unverified event periods.
+- Normalized `match_events`, `lineups`, `player_match_stats` and native-ID `match_stats` detail loaders and raw adapters (`normalize_match_events`, `normalize_match_players`, `normalize_match_shots`) for ESPN, 365Scores and Sofascore with shared endpoint budgets and task-level cache timestamps.
+- Competition and season discovery (`get_discovery_capabilities`, `list_competitions`, `list_seasons`) across ESPN, 365Scores, Sofascore, Goaloo, Promiedos, BeSoccer and Transfermarkt, with explicit `DiscoveryNotSupported` for unverified routes.
+- Read-only `validate_dataset()` structural, referential and coverage validation across all nine providers without optional dependencies.
+- Top-level `SCHEMA_VERSION` export on `esd` alongside `esd.normalized`.
+- Dataset loaders (`load_dataset`, `get_dataset_capabilities`) for all nine providers: ESPN season calendars and details, 365Scores UTC date ranges and details, Sofascore native-season pagination and details, Understat season matches/xG/player statistics/shots, FBref dated schedules and match xG, Goaloo season fixtures and standings, Promiedos dated fixtures, BeSoccer dated fixtures and standings, and Transfermarkt club/player profiles, market values and transfers.
+- Explicit `IdentityMap`, `check_dataset_compatibility` and one-to-one `link_dataset_matches` with unmatched and ambiguous diagnostics.
+- Caller-selected persistent JSON `ResponseCache` and `CachePolicy` with atomic replacement, corruption recovery and incremental download resume across all nine loaders.
+- Parquet snapshot `dataset.save()` and `open_dataset()` with versioned manifests, SHA-256 checksums and staged directory writes requiring only the independent `[parquet]` extra (`pyarrow`), plus `[pandas]` and `[full]` extras and CI wheel checks across Python 3.9-3.13 on Linux and Windows.
+- Optional DataFrame flattening, nullable type inference, explicit column types and UTC date conversion in `to_dataframe()`, plus `normalized_to_dataframe()` with fixed nullable schemas.
 
 ### Changed
 
-- Normalized schema version 3 includes whole-match team counts, percentage-point possession, source period labels, lineups and player-match statistics with nullable boolean flags. Version 1/2 snapshots remain readable, retaining their original selected tables, values and timestamps.
+- Normalized dataset schema advanced through version `6` while keeping version `1`-`5` Parquet snapshots readable with original selected tables, values and timestamps preserved.
+- ESPN request delays apply only to network fetches, and duplicate match/team observations retain the newest response fetch timestamp across cached downloads.
 
 ### Fixed
 
-- FBref rate-limit admission is atomic across threads and uses a monotonic clock, preventing concurrent requests from exceeding a shared slot or wall-clock changes from resetting its window.
-- In-memory response reuse rejects future timestamps and nonfinite lifetimes like the persistent cache, avoiding inconsistent hits after a backward clock adjustment.
-- Match linkage accepts datasets containing match_events through the shared table registry.
-- 365Scores match-statistics datasets request UTC like calendar queries, avoiding a source-local detail timestamp that prevented otherwise valid cross-source links.
-- Installed-example checks can exclude the checkout from imports and require `site-packages`, preventing source files from masking missing wheel modules in CI.
-- Transfermarkt search now reads competition grid cells and cup links (`pokalwettbewerb`), which were omitted by the previous link parser.
-- Include example identity maps in source distributions so saved-provider comparisons can run from the source archive.
-- Promiedos: convert ISO query dates to the source's `DD-MM-YYYY` URL format in clients and dataset loaders.
-- BeSoccer: raise `SourceBlocked` when a browser challenge persists and keep that response out of the cache.
-- Live examples: defer queries until execution, handle empty selections and unavailable statistics, select named entities by native ID and close Sofascore/FBref clients on errors and early returns.
-- Replace predicted live example output with descriptions of the requested data and correct incomplete API descriptions.
-- Documentation generation targets local sources and treats warnings as errors, preventing missing README includes from silently passing.
-- API documentation clarifies task coverage, source timestamps, entity scopes and compatibility preconditions.
-
-## [0.2.0] - unreleased
-
-### Fixed
-
-- Package metadata now declares MIT, matching the repository license.
+- 365Scores lineup and player-statistics normalization now skips anonymous entries in `game["members"]` without an `id` (such as localized disallowed-goal markers), matching event normalization and avoiding `SourceError` on live Champions League games.
+- `validate_dataset()` checks `metadata.snapshot_match_ids` on selectively opened snapshots and reports `unrequested_match` when match-scoped records fall outside the snapshot filter.
+- Standardized `ValueError` validation across `list_competitions`, `list_seasons`, `CachePolicy`, `load_dataset`, `normalize_match_players`, `check_dataset_compatibility`, `link_dataset_matches` and `compare_match_statistics` for invalid boolean or non-numeric tolerances, delays, TTLs and identity maps.
+- Replaced non-UTF-8 bytes in `guides/datasets.md` and moved snapshot-selection and derived-statistics sections out of `# Contributing` in `README.md` and `READMEdoc.md`.
+- FBref rate-limit admission is atomic across threads and uses a monotonic clock, preventing concurrent requests from exceeding a shared slot or wall-clock adjustments from resetting its window.
+- In-memory response reuse rejects future timestamps and nonfinite lifetimes like the persistent cache.
+- Match linkage accepts datasets containing `match_events` through the shared table registry.
+- 365Scores match-statistics datasets request UTC like calendar queries, avoiding source-local detail timestamps during cross-source linkage.
+- Installed-example checks (`scripts/check_examples.py --installed`) exclude the checkout from imports and require `site-packages`.
+- Transfermarkt competition search parses both competition grid cells and cup links (`pokalwettbewerb`), and source distributions include example identity maps.
+- Promiedos converts ISO query dates to `DD-MM-YYYY` in clients and dataset loaders and normalizes raw source dates with an explicit timezone.
+- BeSoccer raises `SourceBlocked` when a browser challenge persists, keeps blocked responses out of the cache, filters adjacent-day fixtures and detects mismatched canonical date pages.
+- FBref preserves native match/team/competition context and parses match scores separately from penalty shootouts.
+- 365Scores filters games locally when the source ignores the requested competition ID.
+- ESPN assigns match statistics and rosters by team ID or home/away metadata before falling back to list order.
+- Parquet snapshots reopen UTC timestamps without pandas, pytz or a system timezone database on Windows.
 - Unknown or null event status data uses short cache freshness instead of raising during TTL evaluation.
-- Parquet snapshots reopen UTC timestamps without pandas, pytz or a timezone database on Windows.
-- FBref: preserve native match/team/competition context and parse match scores separately from penalty shootout numbers.
-- Promiedos normalization: use raw source dates with an explicit timezone instead of the host-dependent parsed timestamp, preserving native status codes.
-- BeSoccer datasets: filter adjacent-day fixtures and detect mismatched canonical date pages.
-- 365Scores: filter games locally when the source ignores the requested competition ID.
-- ESPN: assign match statistics and rosters by team ID or home/away metadata before falling back to list order, handling away-first payloads.
-- Browser sessions: close pages when initialization fails and preserve the original error if cleanup also fails.
-
-### Changed
-
-- ESPN request delays apply only to source fetches. Duplicate match and team observations prefer the original response fetch timestamp, preserving newer results across cached downloads.
-
-### Added
-
-- Installed-wheel checks for base, pandas, parquet and full environments across Python 3.9–3.13 on Linux and Windows in CI.
-- Dataset plans for FBref, Goaloo, Promiedos, BeSoccer and Transfermarkt, covering all nine providers.
-- Transfermarkt current profiles, full valuation/transfer histories and caller-selected entities, with optional DataFrames and Parquet snapshots.
-- Explicit identity maps, compatibility inspection and one-to-one cross-source match linkage with unmatched/ambiguous results, without pandas or automatic name matching.
-- Dataset loaders for 365Scores UTC date ranges, Sofascore native-season pagination and Understat season matches, xG, player statistics and opt-in shots.
-- Source capability discovery, explicit task coverage and provider selection metadata, preserved through cache reuse and Parquet snapshots.
-- Sofascore and Understat normalized adapters, nullable metric schemas and offline provider-contract regression tests.
-- Caller-selected persistent JSON response caches with atomic replacement, corruption checks and cache cleanup, requiring no optional dependencies.
-- ESPN download resume and incremental updates with configurable calendar/live/upcoming/recent/historical/standings freshness, forced refresh and cache-aware progress.
-- Parquet snapshot save/open with versioned manifests, preserved metadata and partial errors, fixed schemas, checksums and staged writes to new directories.
-- Independent parquet extra for PyArrow, offline round-trip examples and tests confirming file storage works without pandas.
-- Full extra combining all optional runtime features, with pandas and PyArrow kept out of the base installation.
-- ESPN season datasets with daily and stage calendar discovery, sequential downloads, deduplication, progress callbacks, normalized records and explicit partial-result errors.
-- Strict ESPN season validation for dataset scoreboards and standings, calendar coverage metadata and lazy DataFrame tables.
-- Common match, team and standings records with opt-in ESPN and 365Scores adapters, source-local identifiers, UTC kickoffs and preserved table/stage/group context.
-- Normalized DataFrame export with versioned columns and fixed nullable types for populated and empty tables, plus offline examples and adapter tests.
-- Optional DataFrame flattening, nullable type inference, explicit column types and UTC date conversion in `to_dataframe`, with unchanged defaults.
-- Offline pandas examples for matches, standings and team ID joins, plus DataFrame tests and CI installation of the pandas extra.
-- Offline regression tests for ESPN team assignment and browser page cleanup.
-- HTTP transport tests for request options, permanent errors, transient retries, retry exhaustion, invalid JSON and error payloads across httpx and curl_cffi.
+- Browser sessions close pages when initialization fails and preserve the original error if cleanup also fails.
+- Package metadata declares the MIT license, matching `LICENSE`.
 
 ## [0.1.0] - 2026-11-06
 

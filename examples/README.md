@@ -18,8 +18,11 @@ snapshot. Temporary-file examples clean up after themselves.
 
 | Script | Extra | Behavior shown |
 | :--- | :--- | :--- |
-| [Integrated Champions workflow](datasets/champions_workflow.py) with `--demo --allow-unknown-period` | Base | Artificial three-source downloads, shared read budgets, cache reuse and pairwise comparisons |
-| [Integrated Champions workflow](datasets/champions_workflow.py) with `--demo --allow-unknown-period --pandas` or `--parquet` | Corresponding extra | Comparison frames or a temporary bundle reopened with saved rules and identities |
+| [Integrated Champions workflow](datasets/champions_workflow.py) with `--demo --allow-unknown-period` | Base | Artificial season discovery, three-source downloads, cache reuse, coverage, derived metrics and pairwise comparisons |
+| [Integrated Champions workflow](datasets/champions_workflow.py) with `--demo --allow-unknown-period --pandas` or `--parquet` | Corresponding extra | Comparison/derived frames or a temporary bundle with selective snapshot reopening |
+| [Derived statistics](datasets/derived_statistics.py) | Base | Row-level player per-90 rates, pass/shot accuracies, xG per shot and null status reasons |
+| [Derived statistics](datasets/derived_statistics.py) with `--pandas` or `--open-dir` | Corresponding extra | Nullable derived-metric DataFrame or calculations from a selectively opened snapshot |
+| [Select snapshot rows](datasets/select_snapshot.py) with `--demo` | parquet | Checksum-verified selective table and match-ID snapshot reads without pandas |
 | [Player comparison](datasets/compare_players_offline.py) | Base | Starter/shot differences, missing minutes, source models and ambiguous player aliases |
 | [Player comparison](datasets/compare_players_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable lineup/metric frames or source snapshots reproducing the comparison |
 | [Event comparison](datasets/compare_events_offline.py) | Base | Artificial minute/penalty differences, ambiguous cards, unknown players and native phase exclusions |
@@ -236,6 +239,31 @@ parser defaults already in normalized rows cannot establish raw presence.
 Read the [field coverage contract](../guides/datasets.md#field-contracts-and-observed-coverage)
 for counters, source-specific mappings and task attribution.
 
+### Select snapshot rows
+
+```console
+python examples/datasets/select_snapshot.py --demo
+python examples/datasets/select_snapshot.py --open-dir ./my-data/champions --table matches --table shots --match-id 401915310
+```
+
+Requires `[parquet]`. Reads saved files without HTTP or pandas. Tables without a
+match ID remain unchanged. The printed completion flag and failures describe the
+original download, including failures outside the loaded selection.
+
+### Calculate derived statistics
+
+```console
+python examples/datasets/derived_statistics.py
+python examples/datasets/derived_statistics.py --json
+python examples/datasets/derived_statistics.py --pandas
+python examples/datasets/derived_statistics.py --open-dir ./my-data/champions --table player_match_stats
+```
+
+The default demo uses invented observations and the base installation. Reopening
+needs `[parquet]`; frame display independently needs `[pandas]`. The example
+calculates per-90 rates and available ratios, retaining formulas and null reasons.
+It does not infer minutes, aggregate players or change snapshot files.
+
 ### Inspect source attempts
 
 [match_shots.py](datasets/match_shots.py) accepts explicit ESPN/Sofascore IDs.
@@ -296,12 +324,23 @@ competitions and two seasons. `--pandas` and `--parquet` remain independent.
 
 ### Integrated Champions workflow
 
-[champions_workflow.py](datasets/champions_workflow.py) requests `matches`,
-`teams`, `match_stats`, `lineups`, `player_match_stats` and `match_events` in one
-bounded plan per source. ESPN shares one summary; 365Scores shares its player
-and event detail, then reads team statistics; Sofascore shares event context and
-reads lineups, incidents and team statistics separately. Each selected source
-pair gets fixture, event, lineup, player-metric and team-metric diagnostics.
+[champions_workflow.py](datasets/champions_workflow.py) connects six steps across
+selected Champions League providers:
+
+1. Explicit season discovery (`discover_seasons()` via
+   `catalog.list_seasons("Champions League", source)` and
+   `catalog.dataset_options()`).
+2. Bounded detail download of `matches`, `teams`, `match_stats`, `lineups`,
+   `player_match_stats` and `match_events`. ESPN shares one summary per match;
+   365Scores shares its player and event detail, then reads team statistics;
+   Sofascore shares event context and reads lineups, incidents and team
+   statistics separately.
+3. Field and task coverage inspection with `inspect_dataset_coverage()`.
+4. Staged Parquet snapshot saving (`--output-dir` or temporary in `--demo --parquet`).
+5. Selective snapshot reopening (`open_dataset(..., tables=("player_match_stats", "match_stats"), match_ids=...)`).
+6. Row-level derived statistics (`derive_statistics()` and optional
+   `derived_statistics_to_dataframe()` with `--pandas`), alongside pairwise
+   fixture, event, lineup, player-metric and team-metric comparisons.
 
 The artificial demo works with the base installation and no HTTP:
 
@@ -311,11 +350,13 @@ python examples/datasets/champions_workflow.py --demo --allow-unknown-period --p
 python examples/datasets/champions_workflow.py --demo --allow-unknown-period --parquet
 ```
 
-Demo selectors and identities are artificial. The first pass uses seven mocked
-endpoint reads across the three providers; the second pass reuses all seven
-cache tasks and their original dates without more reads. It illustrates a
+Demo selectors and identities are artificial. The first pass discovers seasons
+for all three sources and uses seven mocked detail reads; the second pass reuses
+the cached season and match tasks with their original dates. It illustrates a
 59/60 event-minute difference, a team/player shot-count difference, absent ESPN
-minutes and different source xG models. Demo cache files use a separate
+minutes (`missing_denominator` on player per-90 rates), absent Sofascore player
+total shots (`missing_denominator` on player `shot_accuracy_pct` and
+`xg_per_shot`), and different source xG models. Demo cache files use a separate
 `artificial-workflow/` child when `--cache-dir` is supplied. Temporary demo caches
 and `--parquet` bundles are cleaned up after verification.
 
@@ -333,21 +374,35 @@ python examples/datasets/champions_workflow.py --espn-match-id 401915310 --score
 python examples/datasets/champions_workflow.py --open-dir ./my-data/champions-workflow-1
 ```
 
-This selects Shakhtar–Sporting on November 3, 2026. The November 8 live check
-used three endpoint reads and completed both source downloads. It retained one
-fixture per source, 46 lineup rows each, 46/31 player-statistics rows and 22/13
-native events. The partial identity map linked twelve players and three events,
-leaving 68 lineup and 18 event observations unresolved. Two selected team metrics
-differed. The saved sources reproduced the comparison offline. These results
-describe that check, without establishing complete player/event agreement.
+This command selects Shakhtar Donetsk vs Sporting CP (`401915310` / `4828447`)
+on November 3, 2026. The November 8 live check used three endpoint reads and
+completed both source downloads. It retained one fixture per source, 46 lineup
+rows each, 46 ESPN and 31 365Scores player-statistics rows, and 22 ESPN and 13
+365Scores events. On the same date, the Python API flow in the
+[dataset guide](../guides/datasets.md#integrated-champions-workflow) was also
+verified across two fixtures (adding Galatasaray vs Stuttgart, `401915311` /
+`4828448`):
+
+- 365Scores (`season_id="74"`, caller `year=2026`) returned two fixtures, four
+  teams, 91 lineup rows, 63 `player_match_stats` rows (`minutes` present in all
+  63 rows) and 35 `match_events`. Selective reopening for `4828447` loaded 31
+  player rows and one team row, calculating player per-90 rates, pass/shot
+  accuracies and `xg_per_shot` (`model="scores365"`).
+- ESPN (`season_id="2026"`, native `year=2026`) returned two fixtures, four
+  teams, 91 lineup rows, 91 `player_match_stats` rows (`minutes` `unavailable`,
+  `0/91`) and 44 `match_events`. Selective reopening for `401915310` loaded 46
+  player rows and one team row; player per-90 metrics reported
+  `missing_denominator`, while player `shot_accuracy_pct` and team pass/shot
+  accuracies were calculated (`xg_per_shot` reported `missing_numerator`).
 
 Sofascore can be included by adding both `--sofascore-match-id` and
 `--sofascore-season-id` with reviewed native values. Its tournament ID is `7`.
-The source's API returned HTTP 403 from this environment on November 8; live
-three-source comparisons were not verified. Its adapters, comparison rules,
-partial failures and snapshots have offline contract tests. The optional API
-failure remains a failed source task, while successful provider data is retained.
-Neither match nor season IDs are inferred from ESPN/365Scores selectors.
+The source's API returned HTTP 403 (`SourceBlocked`) from this environment on
+November 8; live three-source comparisons were not verified. Its adapters,
+comparison rules, partial failures and snapshots have offline contract tests.
+The optional API failure remains a failed source task, while successful provider
+data is retained. Neither match nor season IDs are inferred from ESPN/365Scores
+selectors.
 
 The [workflow identity sample](datasets/champions_workflow_identities.json)
 extends the twelve-player ESPN/365Scores map with Sofascore competition/team IDs
@@ -364,9 +419,9 @@ This fixture sample is partial and does not change the bundled catalog. Pass
 retain their separate meanings. Positions require explicit mappings in the
 Python API; the workflow's default position map is empty.
 
-`--max-match-requests` checks the total before downloading: three reads for
-ESPN/365Scores or seven with Sofascore. Transport retries can add attempts.
-`--minute-tolerance` defaults to 1 for event candidates and
+`--max-match-requests` checks the total detail budget before downloading: three
+reads for ESPN/365Scores or seven with Sofascore. Transport retries can add
+attempts. `--minute-tolerance` defaults to 1 for event candidates and
 `--kickoff-tolerance` to 300 seconds for fixture linkage. Known differences still
 remain reported. `--refresh` bypasses response caches. Detail freshness uses the
 normal cache policy; a cache directory does not make expired data reusable.
@@ -374,11 +429,11 @@ normal cache policy; a cache directory does not make expired data reusable.
 `--output-dir` needs `[parquet]` and a new path. The staged bundle contains one
 verified snapshot per source, `identities.json`, `options.json` and
 `comparison.json`. It is published locally after all snapshots reopen unchanged.
-Failed writes clean up staging. `--open-dir` recomputes from source snapshots,
-identities and pinned metric/period/position rules, ignoring saved report rows.
-It rejects download options or external setting overrides. Snapshot checksums
-and source selections remain validated. `[pandas]` independently enables the
-four comparison frames. No normalized schema changes are required.
+Failed writes clean up staging. `--open-dir` reopens full snapshots for
+cross-source comparisons and selectively reopens `player_match_stats` and
+`match_stats` for the first match ID to verify selective reads offline. It
+rejects download options or external setting overrides. `[pandas]` independently
+enables the derived-statistics frame and the four comparison frames.
 
 Exit 0 means selected downloads completed, validation passed and every selected
 source pair has unambiguous fixture linkage. Differences and unresolved player,
@@ -918,28 +973,3 @@ queries. On systems without IANA timezone data, install `tzdata` before running
 them. pandas is not required. Base checks require no PyArrow; snapshot checks
 need `python -m pip install -e ".[parquet]"` or `".[full]"`. A JSON report is
 written only with `--output`. The checks do not run as part of ordinary CI.
-
-### Select snapshot rows
-
-```console
-python examples/datasets/select_snapshot.py --demo
-python examples/datasets/select_snapshot.py --open-dir ./my-data/champions --table matches --table shots --match-id 401915310
-```
-
-Requires `[parquet]`. Reads saved files without HTTP or pandas. Tables without a
-match ID remain unchanged. The printed completion flag and failures describe the
-original download, including failures outside the loaded selection.
-
-### Calculate derived statistics
-
-```console
-python examples/datasets/derived_statistics.py
-python examples/datasets/derived_statistics.py --json
-python examples/datasets/derived_statistics.py --pandas
-python examples/datasets/derived_statistics.py --open-dir ./my-data/champions --table player_match_stats
-```
-
-The default demo uses invented observations and the base installation. Reopening
-needs `[parquet]`; frame display independently needs `[pandas]`. The example
-calculates per-90 rates and available ratios, retaining formulas and null reasons.
-It does not infer minutes, aggregate players or change snapshot files.
