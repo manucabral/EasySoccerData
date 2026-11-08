@@ -7,8 +7,10 @@ returns records. Add pandas for DataFrames or PyArrow for Parquet files.
 ## Reviewed competition and team catalog
 
 `get_catalog()` reads bundled identities without HTTP, pandas or PyArrow. The
-initial version covers three competitions and 62 reviewed team identities from
-ESPN and 365Scores. References retain their source URLs and review dates.
+version `2026-11-08.1` covers five competitions and 96 reviewed team identities
+from ESPN, 365Scores and Sofascore. References retain their source URLs and
+review dates. New references were checked on November 8, 2026 against each
+provider's native league/team responses or public team pages.
 This is a sample of identities, not a full list of leagues, season participants
 or historical squads. A reviewed ID does not establish current source availability.
 
@@ -26,11 +28,13 @@ print(team.for_source("espn").source_id)              # 83
 print(team.for_source("scores365").source_id)         # 132
 ```
 
-| Catalog competition | ESPN dataset selector | ESPN numeric ID | 365Scores ID |
-| :--- | :--- | :--- | :--- |
-| Champions League | `uefa.champions` | `775` | `572` |
-| Premier League | `eng.1` | `700` | `7` |
-| La Liga | `esp.1` | `740` | `11` |
+| Catalog competition | ESPN dataset selector | ESPN numeric ID | 365Scores ID | Sofascore ID |
+| :--- | :--- | :--- | :--- | :--- |
+| Champions League | `uefa.champions` | `775` | `572` | `7` |
+| Premier League | `eng.1` | `700` | `7` | `17` |
+| La Liga | `esp.1` | `740` | `11` | `8` |
+| Bundesliga | `ger.1` | `720` | `25` | `35` |
+| Serie A | `ita.1` | `730` | `17` | `23` |
 
 Lookups use canonical IDs, names and declared aliases, ignoring case and
 whitespace. They do not use fuzzy matching or treat an arbitrary native ID as a
@@ -126,7 +130,7 @@ original catalog unchanged and reject conflicting names, source IDs or review
 metadata. Deliberate replacements require constructing a new complete catalog.
 `save_json()` stages a complete document and publishes a new file without
 overwriting existing paths. JSON format version `1` is independent of normalized
-dataset schema version `5`. Saving the catalog with your snapshots preserves
+dataset schema version `6`. Saving the catalog with your snapshots preserves
 the particular identities used for later comparisons. Catalog JSON needs no
 optional dependencies; dataset snapshots still require `[parquet]`.
 
@@ -138,6 +142,51 @@ seasons, linking records and retaining cached fetch dates. Optional `--parquet`
 verifies twelve dataset snapshots using a saved catalog; `--pandas` independently
 checks report DataFrames. Its source seasons and match observations are fixtures,
 not claims about live historical coverage.
+
+## Player identity scope
+
+Player aliases can restrict an equivalence to a native team and a time window.
+The team ID belongs to the same source as the player ID. `valid_from` is
+inclusive and `valid_until` exclusive. Supply aware timestamps. These are
+caller-reviewed scopes, not transfer dates inferred from names or rosters.
+
+```py
+import json
+from datetime import datetime, timezone
+
+boundary = datetime(2026, 7, 1, tzinfo=timezone.utc)
+identities = esd.IdentityMap([
+    esd.EntityAlias("player", "example-person", "espn", "001",
+                    team_id="old-native-team", valid_until=boundary),
+    esd.EntityAlias("player", "example-person", "espn", "001",
+                    team_id="new-native-team", valid_from=boundary),
+])
+decision = identities.lookup("player", "espn", "001", team_id="new-native-team", at=boundary)
+assert decision.canonical_id == "example-person" and decision.status == "resolved"
+restored = esd.IdentityMap.from_dict(json.loads(json.dumps(identities.to_dict())))
+assert restored.aliases == identities.aliases
+```
+
+`lookup()` distinguishes `unmapped`, `context_required` and `out_of_scope`.
+`resolve()` returns the canonical ID or `None`. Missing team/time context never
+satisfies a scoped alias. Conflicting identities with overlapping scopes are
+rejected, while disjoint team/date scopes can describe reused native IDs.
+Optional `source_url` and `verified_at` retain caller evidence. URLs must use
+HTTP(S) without embedded credentials, and review timestamps must be aware.
+
+The event and player comparators supply each original match kickoff and native
+player team. Own-goal beneficiaries do not establish player membership: scoped
+event identity requires a selected lineup for that player in this case.
+Reports retain the supplied `identity_aliases`, including scope/evidence.
+Same-source comparisons continue using native IDs directly. Cross-source
+comparisons never fall back to names, shirt numbers or the separate 365Scores
+athlete ID. Unknown scopes remain unresolved with an explicit reason.
+
+Identity JSON format `1` preserves ISO timestamps. `IdentityMap.from_dict()`
+also reads the older list of four-field aliases. The Champions comparison and
+workflow examples accept both formats and save the versioned document beside
+snapshots. Run `python examples/datasets/scoped_players_offline.py` for an
+artificial transfer boundary without HTTP or optional packages.
 
 ## Choose records or DataFrames
 
@@ -155,7 +204,7 @@ DataFrames with fixed columns and nullable types, including empty tables.
 | Lineups | `lineup_records` | `lineups` | ESPN, 365Scores, Sofascore |
 | Player-match statistics | `player_match_stat_records` | `player_match_stats` | ESPN, 365Scores, Sofascore |
 | Player-season statistics | `player_stat_records` | `player_stats` | Understat |
-| Shots | `shot_records` | `shots` | Understat |
+| Shots | `shot_records` | `shots` | Understat, Sofascore, ESPN recognized attempts |
 | Current player profiles | `player_records` | `players` | Transfermarkt |
 | Valuation history | `market_value_records` | `market_values` | Transfermarkt |
 | Transfer history | `transfer_records` | `transfers` | Transfermarkt |
@@ -358,6 +407,71 @@ On November 7, 2026, the Champions League Shakhtar–Sporting query returned
 respectively. Both snapshot round trips were verified. These are observations
 from that check. Sofascore's lineup path has offline contract tests; this check
 does not establish its current network availability.
+
+## Match shots
+
+`tables=["shots"]` supports Understat, Sofascore and ESPN. The existing Understat
+loader keeps its season selection and optional completed-match IDs. ESPN and
+Sofascore use explicit match IDs, include verified matches/teams, and skip
+calendar discovery. For example, select a match already identified in ESPN:
+
+```py
+dataset = esd.load_dataset(
+    source="espn", league="uefa.champions", season=2026,
+    tables=["shots", "match_events"], match_ids=["401915310"],
+    max_match_requests=1, cache_dir="./my-data/shot-responses", on_error="collect",
+)
+for shot in dataset.shot_records:
+    print(shot.shot_id, shot.result, shot.minute, shot.xg, shot.coordinate_system)
+```
+
+The ID above selects Shakhtar-Sporting on November 3, 2026. In the ESPN summary
+checked on November 8, recognized attempts were present in `commentary.play`,
+with native `fieldPositionX/Y` and no xG. The adapter retains those positions
+without assuming their scale or direction. Unreported positions/xG remain null. ESPN's `keyEvents`
+and commentary can omit attempts, so `complete=True` establishes successful
+requested tasks, not a complete attempt feed. Do not use its row count to
+recompute team totals. Source commentary types identify on-target (`106`),
+off-target (`117`), blocked (`135`), woodwork (`136`), goals and penalties.
+Own goals are kept in events and excluded from the shot adapter.
+
+| Source | Native collection | Coordinates | Expected goals | Endpoint reads per match |
+| :--- | :--- | :--- | :--- | :--- |
+| Understat | `shotsData` | `understat-native`, original X/Y | `xg`, model `understat` on new observations | Existing season loader plus selected match reads |
+| Sofascore | `shotmap` | `sofascore-native-player`, original `playerCoordinates.x/y` | `xg` and `xgot`, model `sofascore` when observed | Event context plus shotmap, 2 reads |
+| ESPN | Recognized `keyEvents`/`commentary.play` | `espn-native-field`, original `fieldPositionX/Y` when reported | Null | Summary, 1 read shared with all selected detail tables |
+
+Sofascore requires native `season_id`. Each additionally selected lineup,
+incident or match-statistics endpoint adds one read; event context is shared.
+The preflight budget counts unique match IDs and endpoints before transport
+retries. `shots:{id}` retains the shotmap fetch time separately from `match:{id}`.
+ESPN attempts use the `match_details:{id}` summary observation. Both paths use
+the caller-selected response cache and `CachePolicy.live_ttl`.
+
+The raw adapter `normalize_match_shots(payload, match=normalized_match)` needs
+verified match context but no HTTP or optional packages. `normalize_shot()`
+continues accepting Understat's existing model. Shot keys are scoped to the
+match: native `shot_id` when supplied, otherwise response-local `source_order`.
+Sofascore's array position is not a persistent identity. ESPN deduplicates
+native play IDs across its two collections, giving `keyEvents` precedence.
+
+`source_details_json` retains the complete ESPN play or Sofascore shot,
+including extra coordinates such as `goalMouthCoordinates` and unrecognized
+fields. `team_id`, `home_away`, `body_part`, clocks and shootout flags remain
+null when absent. Negative Sofascore unknown-time markers remain in raw details
+and do not become match minutes. Explicit shootout counters stay outside
+`minute`/`added_minute`. Periods are not inferred from minute thresholds.
+
+Coordinate systems are never rescaled, mirrored or mixed. xG labels identify
+providers, not model versions, and xGOT is distinct from xG. No cross-source xG
+comparison or common pitch orientation is implied. Current Sofascore shotmap
+responses could not be verified live in this environment because its API
+returned HTTP 403; these parsing, cache and failure paths have offline tests.
+
+Use `python examples/datasets/match_shots.py --help` for download/open options.
+`python examples/datasets/match_shots_offline.py` runs invented source responses
+without HTTP. Add `--pandas` for nullable DataFrames or `--parquet` for verified
+snapshot round trips. Both extras remain independent.
 
 ## Match events
 
@@ -790,14 +904,17 @@ snapshot never resumes a download. To resume, repeat `load_dataset()` with the
 same selection and cache directory. `refresh=True` bypasses response reuse;
 it does not overwrite an existing snapshot directory.
 
-The normalized schema is version `5`. Existing version `1`–`4` Parquet
+The normalized schema is version `6`. Existing version `1`–`5` Parquet
 snapshots remain readable. The reader validates their original table schemas
 and checksums, adds absent version-1 match-statistic columns as null and returns
-version `5` records. Schema-4 event snapshots gain null `rescinded` and
-`source_details_json` columns, preserving original observations. Tables absent from the original schema, including events
+version `6` records. Schema-4 event snapshots gain null `rescinded` and
+`source_details_json` columns, preserving original observations. Older shots gain
+null team, order, source/model, xGOT, body-part, clock, shootout and raw-detail
+columns. Existing xG and native coordinates remain unchanged; the reader does
+not invent a model label for a historical observation. Tables absent from the original schema, including events
 and older lineup/player tables, are not selected or fabricated.
 Source timestamps, IDs, values, errors and coverage are
-retained. Saving the opened dataset writes version `5`; the original snapshot
+retained. Saving the opened dataset writes version `6`; the original snapshot
 is not changed.
 
 `metadata.started_at`/`finished_at` describe the current loader call.
@@ -833,7 +950,7 @@ import json
 from pathlib import Path
 
 aliases = json.loads(Path("./my-data/identities.json").read_text(encoding="utf-8"))
-identities = esd.IdentityMap(esd.EntityAlias(**item) for item in aliases)
+identities = esd.IdentityMap.from_dict(aliases)
 left = esd.open_dataset("./my-data/espn-snapshot")
 right = esd.open_dataset("./my-data/other-snapshot")
 ```
@@ -862,7 +979,8 @@ requires kickoff times within the tolerance and a unique candidate on each side.
 
 Linkage preserves inputs and native IDs. It does not harmonize xG models, penalty
 conventions, statuses, currencies or pitch coordinates. Understat shots stay in
-their native coordinate system. Player identity linkage is not implemented.
+their native coordinate system. Player/event comparisons use explicit player
+aliases and the [scope rules](#player-identity-scope) above.
 
 Run [the offline linkage example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/datasets/link_matches.py) for an
 identity map and an ambiguous case, or
@@ -972,8 +1090,9 @@ identities = esd.get_catalog().identities().with_aliases([
 These example player IDs were reviewed for Shakhtar–Sporting on November 3,
 2026. They are not a player registry. Native member IDs can change with team
 membership. Applications must review additional equivalences. `.aliases` returns
-an immutable tuple of `EntityAlias` entries; serialize them with
-`[dataclasses.asdict(alias) for alias in identities.aliases]`.
+an immutable tuple of `EntityAlias` entries. `IdentityMap.to_dict()` serializes
+scope dates and evidence into JSON-compatible values, and `from_dict()` restores
+them. The earlier bare list format is also accepted.
 `with_aliases()` returns a new map and rejects conflicting native-ID assignments.
 The original map and dataset IDs remain unchanged. Existing match compatibility
 continues to check competition/team coverage; it does not certify player coverage.
@@ -1060,7 +1179,7 @@ timestamps for multiple possible event tasks leave the row date unknown.
 empty reports, nullable counts/flags and UTC timestamps. Diagnostic tuple fields
 become JSON strings in the frame; the report keeps structured tuples and full
 native event records. The report format version is 1, independent of normalized
-schema 5. No normalized columns or snapshot schemas change in this feature.
+schema 6. The comparison itself adds no normalized columns.
 
 The [Champions comparison example](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#compare-match-events)
 downloads two bounded summaries, saves source snapshots/identities/options/report,
@@ -1185,7 +1304,7 @@ exports metrics. Both import pandas lazily, keep fixed columns when empty and
 use nullable strings/booleans/numbers with UTC nanosecond dates. Lineup diagnostic
 tuples become JSON strings in frames. Statistics use nullable Float64 columns;
 raw records retain integer counts. Frame report version 1 is independent of
-normalized schema 5, which remains unchanged.
+normalized schema 6. The comparison itself adds no normalized columns.
 
 The [Champions/offline examples](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#compare-lineups-and-player-statistics)
 cover bounded downloads, partial player identities and saved source pairs with

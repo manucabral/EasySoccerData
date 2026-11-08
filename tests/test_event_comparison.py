@@ -45,6 +45,31 @@ def event(dataset, **changes):
     return replace(dataset, match_event_records=(replace(dataset.match_event_records[0], **changes),))
 
 
+def test_scoped_player_uses_native_event_context_and_keeps_evidence(pair, identities):
+    aliases = esd.IdentityMap(replace(alias, team_id="20" if alias.source == "espn" else "40",
+                                      valid_from=NOW, valid_until=NOW + timedelta(days=1))
+                              if alias.kind == "player" else alias for alias in identities.aliases)
+    report = esd.compare_match_events(*pair, identities=aliases)
+    assert len(report.rows) == 1 and not report.unresolved
+    assert report.identity_aliases == aliases.aliases
+
+
+def test_own_goal_beneficiary_never_supplies_scoped_player_membership(pair, identities):
+    aliases = esd.IdentityMap(replace(alias, team_id="10" if alias.source == "espn" else "30")
+                              if alias.kind == "player" else alias for alias in identities.aliases)
+    own_goals = tuple(event(dataset, event_type="own_goal") for dataset in pair)
+    report = esd.compare_match_events(*own_goals, identities=aliases)
+    assert len(report.unresolved) == 2
+    assert all(row.reason == "player_identity_context_required" for row in report.unresolved)
+    with_roster = tuple(replace(dataset, metadata=replace(dataset.metadata, tables=(*dataset.metadata.tables, "lineups")),
+                               lineup_records=(esd.NormalizedLineup(dataset.metadata.source, dataset.match_records[0].match_id,
+                                                                    dataset.match_records[0].home_team_id,
+                                                                    dataset.match_event_records[0].player_id, home_away="home"),))
+                        for dataset in own_goals)
+    report = esd.compare_match_events(*with_roster, identities=aliases)
+    assert len(report.rows) == 1 and not report.unresolved
+
+
 def test_event_tables_are_recognized_by_existing_compatibility_and_match_linker(pair, identities):
     assert esd.check_dataset_compatibility(*pair, identities=identities).can_match
     assert len(esd.link_dataset_matches(*pair, identities=identities).links) == 1

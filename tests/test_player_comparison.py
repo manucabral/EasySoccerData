@@ -50,6 +50,33 @@ def stats(dataset, **changes):
     return replace(dataset, player_match_stat_records=(replace(dataset.player_match_stat_records[0], **changes),))
 
 
+def test_scoped_players_use_native_team_and_original_kickoff(pair, identities):
+    aliases = esd.IdentityMap(replace(alias, team_id="20" if alias.source == "espn" else "40",
+                                      valid_from=NOW, valid_until=NOW + timedelta(days=1),
+                                      source_url="https://example.com/review", verified_at=NOW)
+                              if alias.kind == "player" else alias for alias in identities.aliases)
+    report = esd.compare_match_players(*pair, identities=aliases)
+    assert len(report.rows) == 1 and not report.unresolved
+    assert report.identity_aliases == aliases.aliases
+    invalid = lineup(pair[1], team_id="30", home_away="home")
+    invalid = stats(invalid, team_id="30")
+    report = esd.compare_match_players(pair[0], invalid, identities=aliases)
+    assert any(row.reason == "player_identity_out_of_scope" for row in report.unresolved)
+    expired = esd.IdentityMap(replace(alias, valid_until=NOW, valid_from=NOW - timedelta(days=1))
+                             if alias.kind == "player" else alias for alias in aliases.aliases)
+    report = esd.compare_match_players(*pair, identities=expired)
+    assert all(row.reason == "player_identity_out_of_scope" for row in report.unresolved)
+
+
+def test_validity_uses_each_native_kickoff_even_when_matches_link_with_tolerance(pair, identities):
+    aliases = esd.IdentityMap(replace(alias, valid_until=NOW + timedelta(seconds=1))
+                              if alias.kind == "player" else alias for alias in identities.aliases)
+    right = replace(pair[1], match_records=(replace(pair[1].match_records[0], kickoff=NOW + timedelta(seconds=2)),))
+    report = esd.compare_match_players(pair[0], right, identities=aliases)
+    assert len(report.linkage.links) == 1
+    assert any(row.right_lineup is not None and row.reason == "player_identity_out_of_scope" for row in report.unresolved)
+
+
 def test_unique_player_links_retain_records_and_unknown_flags(pair, identities):
     report = esd.compare_match_players(*pair, identities=identities, metrics=["goals", "minutes"])
     row, = report.rows

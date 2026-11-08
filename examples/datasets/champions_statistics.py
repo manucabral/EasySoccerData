@@ -34,14 +34,8 @@ def native_id(value):
 
 
 def read_aliases(path):
-    aliases = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(aliases, list) or any(not isinstance(item, dict) for item in aliases):
-        raise ValueError("Identities must be a JSON list of EntityAlias objects")
-    try:
-        identities = esd.IdentityMap(esd.EntityAlias(**item) for item in aliases)
-    except TypeError as exc:
-        raise ValueError(f"Invalid identity entry: {exc}") from exc
-    return aliases, identities
+    identities = esd.IdentityMap.from_dict(json.loads(path.read_text(encoding="utf-8")))
+    return identities.to_dict(), identities
 
 
 def save_pair(destination, pair, aliases, report):

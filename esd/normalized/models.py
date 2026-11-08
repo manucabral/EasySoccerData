@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-SCHEMA_VERSION = "5"
+SCHEMA_VERSION = "6"
 
 
 @dataclass(frozen=True)
@@ -228,7 +228,14 @@ class NormalizedPlayerMatchStats:
 
 @dataclass(frozen=True)
 class NormalizedShot:
-    """One Understat shot. Coordinates retain the source's native convention."""
+    """One source attempt, with native coordinates and source-specific xG.
+
+    ESPN recognized commentary/key events can be incomplete. Native field
+    positions stay source-specific and xG is not inferred. source_order is
+    response-local, never a persistent ID.
+    Sofascore player coordinates are retained without orientation conversion.
+    xg_model identifies the provider, without claiming a model version.
+    """
 
     source: str
     shot_id: str | None = None
@@ -245,6 +252,19 @@ class NormalizedShot:
     x: float | None = None
     y: float | None = None
     xg: float | None = None
+
+    team_id: str | None = None
+    source_order: int | None = None
+    source_collection: str | None = None
+    source_type_id: str | None = None
+    source_period: str | None = None
+    added_minute: int | None = None
+    clock_seconds: float | None = None
+    is_shootout: bool | None = None
+    body_part: str | None = None
+    xgot: float | None = None
+    xg_model: str | None = None
+    source_details_json: str | None = None
 
 
 @dataclass(frozen=True)

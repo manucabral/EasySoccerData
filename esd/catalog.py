@@ -318,8 +318,8 @@ class FootballCatalog:
 def get_catalog() -> FootballCatalog:
     """Read the bundled catalog lazily, without HTTP, pandas or PyArrow.
 
-    The bundled sample covers three competitions and reviewed team identities
-    from ESPN/365Scores. It does not assert full league/season coverage or uptime.
+    The bundled sample covers five competitions and reviewed team identities
+    from ESPN/365Scores/Sofascore. It does not assert full league/season coverage or uptime.
     """
     return FootballCatalog.from_dict(json.loads(files("esd").joinpath("data/catalog.json").read_text(encoding="utf-8")))
 

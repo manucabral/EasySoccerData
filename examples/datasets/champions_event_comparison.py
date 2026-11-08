@@ -39,13 +39,7 @@ def reference(event):
 
 
 def read_identities(path):
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(raw, list) or any(not isinstance(item, dict) for item in raw):
-        raise ValueError("Identities must be a JSON list of EntityAlias objects")
-    try:
-        return esd.IdentityMap(esd.EntityAlias(**item) for item in raw)
-    except TypeError as exc:
-        raise ValueError(f"Invalid identity entry: {exc}") from exc
+    return esd.IdentityMap.from_dict(json.loads(path.read_text(encoding="utf-8")))
 
 
 def report_options(report):
@@ -86,7 +80,7 @@ def save_pair(destination, pair, identities, report):
             target = dataset.save(staging / dataset.metadata.source)
             if esd.open_dataset(target) != dataset:
                 raise esd.DatasetFormatError("Reopened event snapshot differs from the download")
-        for name, value in (("identities", [asdict(alias) for alias in identities.aliases]),
+        for name, value in (("identities", identities.to_dict()),
                             ("options", report_options(report)), ("comparison", asdict(report))):
             (staging / f"{name}.json").write_text(json.dumps(value, default=lambda item: item.isoformat(), indent=2) + "\n", encoding="utf-8")
         if destination.exists() or destination.is_symlink():

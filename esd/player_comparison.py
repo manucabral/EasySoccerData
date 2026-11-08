@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 from ._dataset_storage import _metadata, _metadata_json
-from .compatibility import IdentityMap, MatchLinkResult, _resolve, link_dataset_matches
+from .compatibility import EntityAlias, IdentityMap, MatchLinkResult, _resolve, link_dataset_matches
 from .dataset_validation import DatasetValidationReport, validate_dataset
 from .datasets import DatasetIssue, DatasetMetadata, SoccerDataset
 from .normalized.models import NormalizedLineup, NormalizedPlayerMatchStats
@@ -111,6 +111,7 @@ class MatchPlayersReport:
     position_aliases: tuple[tuple[str, str, str], ...]
     kickoff_tolerance_seconds: float
     notes: tuple[str, ...] = ()
+    identity_aliases: tuple[EntityAlias, ...] = ()
 
     @property
     def differences(self) -> tuple[MatchPlayerComparison, ...]:
@@ -314,7 +315,12 @@ def compare_match_players(
         for row in dataset.lineup_records:
             grouped[side][row.match_id].append(row)
     same_source = metadata[0].source == metadata[1].source
+    kickoffs = {(row.source, row.match_id): row.kickoff for dataset in (left, right) for row in dataset.match_records}
     rows = []
+
+    def player_identity(row):
+        return _resolve(identities, "player", row.source, row.player_id, same_source,
+                        team_id=row.team_id, at=kickoffs.get((row.source, row.match_id)))
 
     def append(first, second, left_id, right_id, status, reason=None, candidates=()):
         different, unknown = _lineup_values(first, second, identities, positions, same_source) if first and second else ((), ())
@@ -330,7 +336,7 @@ def compare_match_players(
         indexes = [defaultdict(list), defaultdict(list)]
         for side, records in enumerate(sides):
             for i, row in enumerate(records):
-                identity = _resolve(identities, "player", row.source, row.player_id, same_source)
+                identity = player_identity(row)
                 if identity is not None:
                     indexes[side][identity].append(i)
         paired = [set(), set()]
@@ -345,10 +351,15 @@ def compare_match_players(
             for i, row in enumerate(records):
                 if i in paired[side]:
                     continue
-                identity = _resolve(identities, "player", row.source, row.player_id, same_source)
+                identity = player_identity(row)
                 own, other = indexes[side].get(identity, ()), indexes[1 - side].get(identity, ())
                 status = "unresolved" if identity is None else "ambiguous" if len(own) > 1 or len(other) > 1 else "unmatched"
                 reason = "player_identity_unknown" if identity is None else "multiple_candidates" if status == "ambiguous" else "no_candidate"
+                if identity is None and identities is not None and not same_source:
+                    decision = identities.lookup("player", row.source, row.player_id, team_id=row.team_id,
+                                                 at=kickoffs.get((row.source, row.match_id)))
+                    if decision.status in ("context_required", "out_of_scope"):
+                        reason = f"player_identity_{decision.status}"
                 append(row if side == 0 else None, row if side == 1 else None,
                        link.left_match_id, link.right_match_id, f"{status}_{'left' if side == 0 else 'right'}", reason,
                        (sides[1 - side][j].player_id for j in other))
@@ -374,4 +385,5 @@ def compare_match_players(
             "Player metrics are source totals without a period breakdown or inferred stoppage-time convention.",
             "Only exact player-detail tasks establish row timestamps and successful-empty coverage.",
         ),
+        identity_aliases=identities.aliases if identities is not None else (),
     )

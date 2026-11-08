@@ -137,6 +137,26 @@ def test_saved_bundle_recomputes_original_observations_and_settings_without_http
         assert module["compare_sources"](restored, identities, options) == reports
 
 
+def test_scoped_identity_dates_and_evidence_survive_saved_workflow(workflow, tmp_path):
+    pytest.importorskip("pyarrow")
+    from datetime import datetime, timedelta, timezone
+
+    module, _, identities, datasets, settings, _ = workflow
+    start = datetime(2026, 11, 3, tzinfo=timezone.utc)
+    scoped = esd.IdentityMap(replace(alias, team_id=next(dataset.lineup_records[0].team_id for dataset in datasets
+                                                       if dataset.metadata.source == alias.source),
+                                     valid_from=start, valid_until=start + timedelta(days=1),
+                                     source_url="https://example.com/reviewed-roster", verified_at=start)
+                             if alias.kind == "player" else alias for alias in identities.aliases)
+    reports = module["compare_sources"](datasets, scoped, settings)
+    target = tmp_path / "scoped"
+    module["save_bundle"](target, datasets, scoped, settings, reports)
+    restored = module["read_identities"](target / "identities.json")
+    assert restored.aliases == scoped.aliases
+    assert module["compare_sources"](datasets, restored, settings) == reports
+    assert module["main"](["--open-dir", str(target)]) == 0
+
+
 def test_partial_sofa_error_stays_visible_after_offline_reopening(workflow, tmp_path):
     pytest.importorskip("pyarrow")
     module, _, identities, datasets, settings, _ = workflow

@@ -103,6 +103,7 @@ def normalize_shot(shot: UnderstatShot) -> NormalizedShot:
         home_away=shot.home_away, result=shot.result, situation=shot.situation,
         source_shot_type=shot.shot_type, source_date=shot.date,
         coordinate_system="understat-native", x=shot.x, y=shot.y, xg=shot.xg,
+        xg_model="understat" if shot.xg is not None else None,
     )
 
 

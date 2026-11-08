@@ -27,6 +27,9 @@ snapshot. Temporary-file examples clean up after themselves.
 | [Match events](datasets/match_events_offline.py) | Base | Artificial goals/stoppage time, shootout counters, player/context reuse and caching for ESPN/365Scores/Sofascore |
 | [Match events](datasets/match_events_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable event frames or snapshots reopened without HTTP |
 | [Reviewed catalog](datasets/catalog.py) with `--list` | Base | Local competition selectors, review metadata and team identity count |
+| [Scoped players](datasets/scoped_players_offline.py) | Base | Artificial transfer boundary, explicit missing-context diagnostics and identity JSON |
+| [Match shots](datasets/match_shots_offline.py) | Base | Artificial ESPN/Sofascore attempts, native coordinates/models and cache reuse |
+| [Match shots](datasets/match_shots_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable shot frames or verified snapshot round trips |
 | [Catalog workflow](datasets/catalog_workflow_offline.py) | Base | Three competitions/two artificial seasons, source selectors, linking, catalog JSON and response cache |
 | [Catalog workflow](datasets/catalog_workflow_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Report DataFrame types or twelve snapshot round trips with saved identities |
 | [Provider contracts](datasets/providers.py) with `--list` | Base | All nine sources and supported tables |
@@ -208,11 +211,42 @@ records and supports independent `--pandas` and `--parquet` flags.
 
 ## Live dataset queries
 
+### Inspect source attempts
+
+[match_shots.py](datasets/match_shots.py) accepts explicit ESPN/Sofascore IDs.
+The existing Understat season example still supports opt-in completed-match
+shots. ESPN uses one summary per match, shared with selected events/players.
+Sofascore uses context plus shotmap, adding one read for each other selected
+detail endpoint. Sofascore needs a native `--season-id`.
+
+```sh
+python examples/datasets/match_shots.py --source espn --league uefa.champions --season 2026 --match-id 401915310 --max-match-requests 1 --with-events --cache-dir ./my-data/shot-responses
+python examples/datasets/match_shots.py --source espn --league uefa.champions --season 2026 --match-id 401915310 --max-match-requests 1 --output-dir ./my-data/champions-shots
+python examples/datasets/match_shots.py --open-dir ./my-data/champions-shots
+python examples/datasets/match_shots_offline.py
+python examples/datasets/scoped_players_offline.py
+```
+
+Saving/opening needs `[parquet]`; `--pandas` independently needs `[pandas]`.
+Paths belong to the caller and existing snapshot directories are not replaced.
+The ESPN summary checked on November 8, 2026 contained 25 recognized attempts
+for this match. Every attempt included native field positions; xG was absent. Its partial
+commentary feed does not establish exhaustive coverage, even when all tasks
+complete. Sofascore's adapter retains native coordinates and xG/xGOT, but its
+shotmap API returned HTTP 403 here. Offline tests cover its parser and loader.
+Read the [shot contract](../guides/datasets.md#match-shots) before mixing sources.
+
+Player aliases can use native team IDs and aware `valid_from`/`valid_until`
+timestamps. Start is inclusive and end exclusive. Comparison/workflow identity
+files accept both older lists and versioned `IdentityMap.to_dict()` documents.
+See [player scopes](../guides/datasets.md#player-identity-scope) for JSON,
+evidence and missing-context behavior.
+
 ### Resolve reviewed competition IDs and seasons
 
 [catalog.py](datasets/catalog.py) lists the bundled catalog by default, without
-source requests. It initially covers Champions League, Premier League and
-LaLiga for ESPN/365Scores, with 62 reviewed team identities. It does not assert
+source requests. It covers Champions League, Premier League, LaLiga, Bundesliga and Serie A
+for ESPN/365Scores/Sofascore, with 96 reviewed team identities. It does not assert
 complete season participation or current network availability:
 
 ```sh

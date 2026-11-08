@@ -1,7 +1,7 @@
 {
   "format": "easysoccerdata-catalog",
   "format_version": 1,
-  "version": "2026-11-07.1",
+  "version": "2026-11-08.1",
   "competitions": [
     {
       "canonical_id": "champions-league",
@@ -23,6 +23,13 @@
           "source_url": "https://webws.365scores.com/web/competitions/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572&withSeasons=true",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": "572"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "7",
+          "source_url": "https://www.sofascore.com/football/tournament/europe/uefa-champions-league/7",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "7"
         }
       ]
     },
@@ -46,6 +53,13 @@
           "source_url": "https://webws.365scores.com/web/competitions/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=7&withSeasons=true",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": "7"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "17",
+          "source_url": "https://www.sofascore.com/football/tournament/england/premier-league/17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "17"
         }
       ]
     },
@@ -70,6 +84,73 @@
           "source_url": "https://webws.365scores.com/web/competitions/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=11&withSeasons=true",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": "11"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "8",
+          "source_url": "https://www.sofascore.com/football/tournament/spain/laliga/8",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "8"
+        }
+      ]
+    },
+    {
+      "canonical_id": "bundesliga",
+      "name": "German Bundesliga",
+      "aliases": [
+        "Bundesliga"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "ger.1",
+          "source_url": "https://site.api.espn.com/apis/site/v2/leagues/dropdown?region=us&lang=en&sport=soccer",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "720"
+        },
+        {
+          "source": "scores365",
+          "source_id": "25",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "25"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "35",
+          "source_url": "https://www.sofascore.com/football/tournament/germany/bundesliga/35",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "35"
+        }
+      ]
+    },
+    {
+      "canonical_id": "serie-a",
+      "name": "Italian Serie A",
+      "aliases": [
+        "Serie A"
+      ],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "ita.1",
+          "source_url": "https://site.api.espn.com/apis/site/v2/leagues/dropdown?region=us&lang=en&sport=soccer",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "730"
+        },
+        {
+          "source": "scores365",
+          "source_id": "17",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "17"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "23",
+          "source_url": "https://www.sofascore.com/football/tournament/italy/serie-a/23",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "23"
         }
       ]
     }
@@ -96,6 +177,41 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "3250",
+          "source_url": "https://www.sofascore.com/football/team/aek-athens/3250",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "3250"
+        }
+      ]
+    },
+    {
+      "canonical_id": "alaves",
+      "name": "Alavés",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "96",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "96"
+        },
+        {
+          "source": "scores365",
+          "source_id": "168",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=11",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "168"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2885",
+          "source_url": "https://www.sofascore.com/football/team/deportivo-alaves/2885",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2885"
         }
       ]
     },
@@ -119,6 +235,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "42",
+          "source_url": "https://www.sofascore.com/football/team/arsenal/42",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "42"
         }
       ]
     },
@@ -142,6 +265,41 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "40",
+          "source_url": "https://www.sofascore.com/football/team/aston-villa/40",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "40"
+        }
+      ]
+    },
+    {
+      "canonical_id": "atalanta",
+      "name": "Atalanta",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "105",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "105"
+        },
+        {
+          "source": "scores365",
+          "source_id": "232",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "232"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2686",
+          "source_url": "https://www.sofascore.com/football/team/atalanta/2686",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2686"
         }
       ]
     },
@@ -165,6 +323,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2825",
+          "source_url": "https://www.sofascore.com/football/team/athletic-club/2825",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2825"
         }
       ]
     },
@@ -189,6 +354,41 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2836",
+          "source_url": "https://www.sofascore.com/football/team/atletico-madrid/2836",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2836"
+        }
+      ]
+    },
+    {
+      "canonical_id": "augsburg",
+      "name": "FC Augsburg",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "3841",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "3841"
+        },
+        {
+          "source": "scores365",
+          "source_id": "358",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "358"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2600",
+          "source_url": "https://www.sofascore.com/football/team/fc-augsburg/2600",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2600"
         }
       ]
     },
@@ -213,6 +413,41 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2817",
+          "source_url": "https://www.sofascore.com/football/team/barcelona/2817",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2817"
+        }
+      ]
+    },
+    {
+      "canonical_id": "bayer-leverkusen",
+      "name": "Bayer Leverkusen",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "131",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "131"
+        },
+        {
+          "source": "scores365",
+          "source_id": "333",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "333"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2681",
+          "source_url": "https://www.sofascore.com/football/team/bayer-04-leverkusen/2681",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2681"
         }
       ]
     },
@@ -236,6 +471,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2672",
+          "source_url": "https://www.sofascore.com/football/team/fc-bayern-munchen/2672",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2672"
         }
       ]
     },
@@ -259,6 +501,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2816",
+          "source_url": "https://www.sofascore.com/football/team/real-betis/2816",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2816"
         }
       ]
     },
@@ -283,6 +532,69 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "656",
+          "source_url": "https://www.sofascore.com/football/team/bodoglimt/656",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "656"
+        }
+      ]
+    },
+    {
+      "canonical_id": "bologna",
+      "name": "Bologna",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "107",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "107"
+        },
+        {
+          "source": "scores365",
+          "source_id": "245",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "245"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2685",
+          "source_url": "https://www.sofascore.com/football/team/bologna/2685",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2685"
+        }
+      ]
+    },
+    {
+      "canonical_id": "borussia-monchengladbach",
+      "name": "Borussia Mönchengladbach",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "268",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "268"
+        },
+        {
+          "source": "scores365",
+          "source_id": "349",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "349"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2527",
+          "source_url": "https://www.sofascore.com/football/team/borussia-mgladbach/2527",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2527"
         }
       ]
     },
@@ -307,6 +619,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "60",
+          "source_url": "https://www.sofascore.com/football/team/bournemouth/60",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "60"
         }
       ]
     },
@@ -330,6 +649,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "50",
+          "source_url": "https://www.sofascore.com/football/team/brentford/50",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "50"
         }
       ]
     },
@@ -354,6 +680,41 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "30",
+          "source_url": "https://www.sofascore.com/football/team/brighton-and-hove-albion/30",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "30"
+        }
+      ]
+    },
+    {
+      "canonical_id": "cagliari",
+      "name": "Cagliari",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "2925",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2925"
+        },
+        {
+          "source": "scores365",
+          "source_id": "243",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "243"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2719",
+          "source_url": "https://www.sofascore.com/football/team/cagliari/2719",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2719"
         }
       ]
     },
@@ -378,6 +739,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=11",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2821",
+          "source_url": "https://www.sofascore.com/football/team/celta-vigo/2821",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2821"
         }
       ]
     },
@@ -401,6 +769,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "38",
+          "source_url": "https://www.sofascore.com/football/team/chelsea/38",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "38"
         }
       ]
     },
@@ -425,6 +800,41 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2888",
+          "source_url": "https://www.sofascore.com/football/team/club-brugge-kv/2888",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2888"
+        }
+      ]
+    },
+    {
+      "canonical_id": "cologne",
+      "name": "FC Cologne",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "122",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "122"
+        },
+        {
+          "source": "scores365",
+          "source_id": "350",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "350"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2671",
+          "source_url": "https://www.sofascore.com/football/team/1-fc-koln/2671",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2671"
         }
       ]
     },
@@ -448,6 +858,41 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2704",
+          "source_url": "https://www.sofascore.com/football/team/como/2704",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2704"
+        }
+      ]
+    },
+    {
+      "canonical_id": "coventry-city",
+      "name": "Coventry City",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "388",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "388"
+        },
+        {
+          "source": "scores365",
+          "source_id": "24",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=7",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "24"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "11",
+          "source_url": "https://www.sofascore.com/football/team/coventry-city/11",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "11"
         }
       ]
     },
@@ -471,6 +916,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "7",
+          "source_url": "https://www.sofascore.com/football/team/crystal-palace/7",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "7"
         }
       ]
     },
@@ -495,6 +947,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2832",
+          "source_url": "https://www.sofascore.com/football/team/deportivo-la-coruna/2832",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2832"
         }
       ]
     },
@@ -518,6 +977,41 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2673",
+          "source_url": "https://www.sofascore.com/football/team/borussia-dortmund/2673",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2673"
+        }
+      ]
+    },
+    {
+      "canonical_id": "eintracht-frankfurt",
+      "name": "Eintracht Frankfurt",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "125",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "125"
+        },
+        {
+          "source": "scores365",
+          "source_id": "337",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "337"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2674",
+          "source_url": "https://www.sofascore.com/football/team/eintracht-frankfurt/2674",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2674"
         }
       ]
     },
@@ -542,6 +1036,41 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=11",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2846",
+          "source_url": "https://www.sofascore.com/football/team/elche/2846",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2846"
+        }
+      ]
+    },
+    {
+      "canonical_id": "elversberg",
+      "name": "SV Elversberg",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "10388",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "10388"
+        },
+        {
+          "source": "scores365",
+          "source_id": "418",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "418"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2598",
+          "source_url": "https://www.sofascore.com/football/team/sv-07-elversberg/2598",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2598"
         }
       ]
     },
@@ -566,6 +1095,41 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2814",
+          "source_url": "https://www.sofascore.com/football/team/espanyol/2814",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2814"
+        }
+      ]
+    },
+    {
+      "canonical_id": "everton",
+      "name": "Everton",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "368",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "368"
+        },
+        {
+          "source": "scores365",
+          "source_id": "107",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=7",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "107"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "48",
+          "source_url": "https://www.sofascore.com/football/team/everton/48",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "48"
         }
       ]
     },
@@ -589,6 +1153,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "3052",
+          "source_url": "https://www.sofascore.com/football/team/fenerbahce/3052",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "3052"
         }
       ]
     },
@@ -613,6 +1184,97 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2959",
+          "source_url": "https://www.sofascore.com/football/team/feyenoord/2959",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2959"
+        }
+      ]
+    },
+    {
+      "canonical_id": "fiorentina",
+      "name": "Fiorentina",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "109",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "109"
+        },
+        {
+          "source": "scores365",
+          "source_id": "228",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "228"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2693",
+          "source_url": "https://www.sofascore.com/football/team/fiorentina/2693",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2693"
+        }
+      ]
+    },
+    {
+      "canonical_id": "freiburg",
+      "name": "SC Freiburg",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "126",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "126"
+        },
+        {
+          "source": "scores365",
+          "source_id": "354",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "354"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2538",
+          "source_url": "https://www.sofascore.com/football/team/sc-freiburg/2538",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2538"
+        }
+      ]
+    },
+    {
+      "canonical_id": "frosinone",
+      "name": "Frosinone",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "4057",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "4057"
+        },
+        {
+          "source": "scores365",
+          "source_id": "254",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "254"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2801",
+          "source_url": "https://www.sofascore.com/football/team/frosinone/2801",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2801"
         }
       ]
     },
@@ -636,6 +1298,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=7",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "43",
+          "source_url": "https://www.sofascore.com/football/team/fulham/43",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "43"
         }
       ]
     },
@@ -659,6 +1328,41 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "3061",
+          "source_url": "https://www.sofascore.com/football/team/galatasaray/3061",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "3061"
+        }
+      ]
+    },
+    {
+      "canonical_id": "genoa",
+      "name": "Genoa",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "3263",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "3263"
+        },
+        {
+          "source": "scores365",
+          "source_id": "231",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "231"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2713",
+          "source_url": "https://www.sofascore.com/football/team/genoa/2713",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2713"
         }
       ]
     },
@@ -683,6 +1387,69 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=11",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2859",
+          "source_url": "https://www.sofascore.com/football/team/getafe/2859",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2859"
+        }
+      ]
+    },
+    {
+      "canonical_id": "hamburg",
+      "name": "Hamburg SV",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "127",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "127"
+        },
+        {
+          "source": "scores365",
+          "source_id": "334",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "334"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2676",
+          "source_url": "https://www.sofascore.com/football/team/hamburger-sv/2676",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2676"
+        }
+      ]
+    },
+    {
+      "canonical_id": "hoffenheim",
+      "name": "TSG Hoffenheim",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "7911",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "7911"
+        },
+        {
+          "source": "scores365",
+          "source_id": "351",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "351"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2569",
+          "source_url": "https://www.sofascore.com/football/team/tsg-hoffenheim/2569",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2569"
         }
       ]
     },
@@ -706,6 +1473,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=7",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "96",
+          "source_url": "https://www.sofascore.com/football/team/hull-city/96",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "96"
         }
       ]
     },
@@ -730,6 +1504,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2697",
+          "source_url": "https://www.sofascore.com/football/team/inter/2697",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2697"
         }
       ]
     },
@@ -754,6 +1535,41 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "32",
+          "source_url": "https://www.sofascore.com/football/team/ipswich-town/32",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "32"
+        }
+      ]
+    },
+    {
+      "canonical_id": "juventus",
+      "name": "Juventus",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "111",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "111"
+        },
+        {
+          "source": "scores365",
+          "source_id": "226",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "226"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2687",
+          "source_url": "https://www.sofascore.com/football/team/juventus/2687",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2687"
         }
       ]
     },
@@ -777,6 +1593,69 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2058",
+          "source_url": "https://www.sofascore.com/football/team/lask/2058",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2058"
+        }
+      ]
+    },
+    {
+      "canonical_id": "lazio",
+      "name": "Lazio",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "112",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "112"
+        },
+        {
+          "source": "scores365",
+          "source_id": "236",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "236"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2699",
+          "source_url": "https://www.sofascore.com/football/team/lazio/2699",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2699"
+        }
+      ]
+    },
+    {
+      "canonical_id": "lecce",
+      "name": "Lecce",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "113",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "113"
+        },
+        {
+          "source": "scores365",
+          "source_id": "246",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "246"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2689",
+          "source_url": "https://www.sofascore.com/football/team/lecce/2689",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2689"
         }
       ]
     },
@@ -800,6 +1679,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=7",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "34",
+          "source_url": "https://www.sofascore.com/football/team/leeds-united/34",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "34"
         }
       ]
     },
@@ -823,6 +1709,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "36360",
+          "source_url": "https://www.sofascore.com/football/team/rb-leipzig/36360",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "36360"
         }
       ]
     },
@@ -846,6 +1739,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "1648",
+          "source_url": "https://www.sofascore.com/football/team/rc-lens/1648",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "1648"
         }
       ]
     },
@@ -870,6 +1770,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=11",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2849",
+          "source_url": "https://www.sofascore.com/football/team/levante-ud/2849",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2849"
         }
       ]
     },
@@ -893,6 +1800,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "1643",
+          "source_url": "https://www.sofascore.com/football/team/lille/1643",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "1643"
         }
       ]
     },
@@ -916,6 +1830,41 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "44",
+          "source_url": "https://www.sofascore.com/football/team/liverpool/44",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "44"
+        }
+      ]
+    },
+    {
+      "canonical_id": "mainz",
+      "name": "Mainz",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "2950",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2950"
+        },
+        {
+          "source": "scores365",
+          "source_id": "352",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "352"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2556",
+          "source_url": "https://www.sofascore.com/football/team/1-fsv-mainz-05/2556",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2556"
         }
       ]
     },
@@ -940,6 +1889,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2830",
+          "source_url": "https://www.sofascore.com/football/team/malaga/2830",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2830"
         }
       ]
     },
@@ -963,6 +1919,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "17",
+          "source_url": "https://www.sofascore.com/football/team/manchester-city/17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "17"
         }
       ]
     },
@@ -986,6 +1949,69 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "35",
+          "source_url": "https://www.sofascore.com/football/team/manchester-united/35",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "35"
+        }
+      ]
+    },
+    {
+      "canonical_id": "milan",
+      "name": "AC Milan",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "103",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "103"
+        },
+        {
+          "source": "scores365",
+          "source_id": "227",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "227"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2692",
+          "source_url": "https://www.sofascore.com/football/team/milan/2692",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2692"
+        }
+      ]
+    },
+    {
+      "canonical_id": "monza",
+      "name": "Monza",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "4007",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "4007"
+        },
+        {
+          "source": "scores365",
+          "source_id": "293",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "293"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2729",
+          "source_url": "https://www.sofascore.com/football/team/monza/2729",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2729"
         }
       ]
     },
@@ -1010,6 +2036,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2714",
+          "source_url": "https://www.sofascore.com/football/team/napoli/2714",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2714"
         }
       ]
     },
@@ -1033,6 +2066,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=7",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "39",
+          "source_url": "https://www.sofascore.com/football/team/newcastle-united/39",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "39"
         }
       ]
     },
@@ -1056,6 +2096,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=7",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "14",
+          "source_url": "https://www.sofascore.com/football/team/nottingham-forest/14",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "14"
         }
       ]
     },
@@ -1079,6 +2126,69 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2820",
+          "source_url": "https://www.sofascore.com/football/team/osasuna/2820",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2820"
+        }
+      ]
+    },
+    {
+      "canonical_id": "paderborn",
+      "name": "SC Paderborn 07",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "3307",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "3307"
+        },
+        {
+          "source": "scores365",
+          "source_id": "366",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "366"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2561",
+          "source_url": "https://www.sofascore.com/football/team/sc-paderborn-07/2561",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2561"
+        }
+      ]
+    },
+    {
+      "canonical_id": "parma",
+      "name": "Parma",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "115",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "115"
+        },
+        {
+          "source": "scores365",
+          "source_id": "241",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "241"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2690",
+          "source_url": "https://www.sofascore.com/football/team/parma/2690",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2690"
         }
       ]
     },
@@ -1102,6 +2212,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "3002",
+          "source_url": "https://www.sofascore.com/football/team/fc-porto/3002",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "3002"
         }
       ]
     },
@@ -1126,6 +2243,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "1644",
+          "source_url": "https://www.sofascore.com/football/team/paris-saint-germain/1644",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "1644"
         }
       ]
     },
@@ -1149,6 +2273,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2952",
+          "source_url": "https://www.sofascore.com/football/team/psv-eindhoven/2952",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2952"
         }
       ]
     },
@@ -1173,6 +2304,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2835",
+          "source_url": "https://www.sofascore.com/football/team/racing-de-santander/2835",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2835"
         }
       ]
     },
@@ -1196,6 +2334,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=11",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2818",
+          "source_url": "https://www.sofascore.com/football/team/rayo-vallecano/2818",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2818"
         }
       ]
     },
@@ -1219,6 +2364,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2829",
+          "source_url": "https://www.sofascore.com/football/team/real-madrid/2829",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2829"
         }
       ]
     },
@@ -1242,6 +2394,13 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=11",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2824",
+          "source_url": "https://www.sofascore.com/football/team/real-sociedad/2824",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2824"
         }
       ]
     },
@@ -1265,6 +2424,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2702",
+          "source_url": "https://www.sofascore.com/football/team/roma/2702",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2702"
         }
       ]
     },
@@ -1289,6 +2455,97 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "267828",
+          "source_url": "https://www.sofascore.com/football/team/sabah-fk/267828",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "267828"
+        }
+      ]
+    },
+    {
+      "canonical_id": "sassuolo",
+      "name": "Sassuolo",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "3997",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "3997"
+        },
+        {
+          "source": "scores365",
+          "source_id": "266",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "266"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2793",
+          "source_url": "https://www.sofascore.com/football/team/sassuolo/2793",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2793"
+        }
+      ]
+    },
+    {
+      "canonical_id": "schalke",
+      "name": "Schalke 04",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "133",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "133"
+        },
+        {
+          "source": "scores365",
+          "source_id": "335",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "335"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2530",
+          "source_url": "https://www.sofascore.com/football/team/fc-schalke-04/2530",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2530"
+        }
+      ]
+    },
+    {
+      "canonical_id": "sevilla",
+      "name": "Sevilla",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "243",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "243"
+        },
+        {
+          "source": "scores365",
+          "source_id": "135",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=11",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "135"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2833",
+          "source_url": "https://www.sofascore.com/football/team/sevilla/2833",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2833"
         }
       ]
     },
@@ -1312,6 +2569,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "3313",
+          "source_url": "https://www.sofascore.com/football/team/shakhtar-donetsk/3313",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "3313"
         }
       ]
     },
@@ -1336,6 +2600,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2216",
+          "source_url": "https://www.sofascore.com/football/team/slavia-praha/2216",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2216"
         }
       ]
     },
@@ -1359,6 +2630,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2404",
+          "source_url": "https://www.sofascore.com/football/team/sk-slovan-bratislava/2404",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2404"
         }
       ]
     },
@@ -1382,6 +2660,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "3001",
+          "source_url": "https://www.sofascore.com/football/team/sporting/3001",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "3001"
         }
       ]
     },
@@ -1406,6 +2691,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2677",
+          "source_url": "https://www.sofascore.com/football/team/vfb-stuttgart/2677",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2677"
         }
       ]
     },
@@ -1429,6 +2721,41 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=08/11/2026&endDate=08/11/2026&competitions=7",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "41",
+          "source_url": "https://www.sofascore.com/football/team/sunderland/41",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "41"
+        }
+      ]
+    },
+    {
+      "canonical_id": "torino",
+      "name": "Torino",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "239",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "239"
+        },
+        {
+          "source": "scores365",
+          "source_id": "235",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "235"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2696",
+          "source_url": "https://www.sofascore.com/football/team/torino/2696",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2696"
         }
       ]
     },
@@ -1453,6 +2780,69 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=7",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "33",
+          "source_url": "https://www.sofascore.com/football/team/tottenham-hotspur/33",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "33"
+        }
+      ]
+    },
+    {
+      "canonical_id": "udinese",
+      "name": "Udinese",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "118",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "118"
+        },
+        {
+          "source": "scores365",
+          "source_id": "229",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "229"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2695",
+          "source_url": "https://www.sofascore.com/football/team/udinese/2695",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2695"
+        }
+      ]
+    },
+    {
+      "canonical_id": "union-berlin",
+      "name": "1. FC Union Berlin",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "598",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "598"
+        },
+        {
+          "source": "scores365",
+          "source_id": "392",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "392"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2547",
+          "source_url": "https://www.sofascore.com/football/team/1-fc-union-berlin/2547",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2547"
         }
       ]
     },
@@ -1477,6 +2867,41 @@
           "source_url": "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&sports=1&startDate=07/11/2026&endDate=07/11/2026&competitions=11",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2828",
+          "source_url": "https://www.sofascore.com/football/team/valencia/2828",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2828"
+        }
+      ]
+    },
+    {
+      "canonical_id": "venezia",
+      "name": "Venezia",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "17530",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "17530"
+        },
+        {
+          "source": "scores365",
+          "source_id": "308",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=17",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "308"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2688",
+          "source_url": "https://www.sofascore.com/football/team/venezia/2688",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2688"
         }
       ]
     },
@@ -1501,6 +2926,13 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "1164",
+          "source_url": "https://www.sofascore.com/football/team/viking-fk/1164",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "1164"
         }
       ]
     },
@@ -1525,6 +2957,41 @@
           "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=572",
           "verified_at": "2026-11-07T22:47:01.072439+00:00",
           "native_id": null
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2819",
+          "source_url": "https://www.sofascore.com/football/team/villarreal/2819",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2819"
+        }
+      ]
+    },
+    {
+      "canonical_id": "werder-bremen",
+      "name": "Werder Bremen",
+      "aliases": [],
+      "references": [
+        {
+          "source": "espn",
+          "source_id": "137",
+          "source_url": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=100",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "137"
+        },
+        {
+          "source": "scores365",
+          "source_id": "332",
+          "source_url": "https://webws.365scores.com/web/standings/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&competitions=25",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "332"
+        },
+        {
+          "source": "sofascore",
+          "source_id": "2534",
+          "source_url": "https://www.sofascore.com/football/team/sv-werder-bremen/2534",
+          "verified_at": "2026-11-08T16:16:50.397793+00:00",
+          "native_id": "2534"
         }
       ]
     }

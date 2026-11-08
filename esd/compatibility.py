@@ -5,18 +5,54 @@ from __future__ import annotations
 import math
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from urllib.parse import urlsplit
 
 from .normalized import SCHEMA_VERSION
 
 
 @dataclass(frozen=True)
 class EntityAlias:
-    """One native competition/team/player ID linked to a caller-defined identity."""
+    """Explicit identity, optionally scoped to a player's native team and UTC time.
+
+    valid_from is inclusive and valid_until exclusive. Scoped player aliases
+    require the corresponding context to resolve; absent context is not a match.
+    Evidence is optional caller provenance, never an inferred confidence score.
+    """
 
     kind: str
     canonical_id: str
     source: str
     source_id: str
+    team_id: str | None = None
+    valid_from: datetime | None = None
+    valid_until: datetime | None = None
+    source_url: str | None = None
+    verified_at: datetime | None = None
+
+
+def _alias_time(value):
+    if value is not None:
+        if not isinstance(value, datetime) or value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("Identity timestamps require aware datetimes")
+        return value.astimezone(timezone.utc)
+    return None
+
+
+def _overlap(first, second):
+    if first.team_id is not None and second.team_id is not None and first.team_id != second.team_id:
+        return False
+    return not (first.valid_until is not None and second.valid_from is not None and first.valid_until <= second.valid_from
+                or second.valid_until is not None and first.valid_from is not None and second.valid_until <= first.valid_from)
+
+
+@dataclass(frozen=True)
+class IdentityResolution:
+    """Identity decision with applicable evidence or an explicit context failure."""
+
+    canonical_id: str | None
+    status: str
+    aliases: tuple[EntityAlias, ...] = ()
 
 
 class IdentityMap:
@@ -28,7 +64,8 @@ class IdentityMap:
     """
 
     def __init__(self, aliases=()):
-        self._aliases = {}
+        self._aliases = defaultdict(list)
+        entries = []
         for alias in aliases:
             if not isinstance(alias, EntityAlias) or alias.kind not in ("competition", "team", "player"):
                 raise ValueError("IdentityMap requires competition/team/player EntityAlias entries")
@@ -37,20 +74,95 @@ class IdentityMap:
                 for value in (alias.canonical_id, alias.source, alias.source_id)
             ):
                 raise ValueError("Alias IDs and source must be nonempty strings")
+            if alias.kind != "player" and any(value is not None for value in (alias.team_id, alias.valid_from, alias.valid_until)):
+                raise ValueError("Only player aliases support team/date scope")
+            if alias.team_id is not None and (not isinstance(alias.team_id, str) or not alias.team_id.strip() or alias.team_id != alias.team_id.strip()):
+                raise ValueError("Scoped team_id must be a nonblank native string")
+            for value in (alias.valid_from, alias.valid_until, alias.verified_at):
+                _alias_time(value)
+            if alias.valid_from is not None and alias.valid_until is not None and alias.valid_from >= alias.valid_until:
+                raise ValueError("Player identity validity must have positive duration")
+            if alias.source_url is not None:
+                if not isinstance(alias.source_url, str):
+                    raise ValueError("Identity evidence requires an HTTP(S) URL")
+                url = urlsplit(alias.source_url)
+                if url.scheme not in ("http", "https") or not url.hostname or url.username or url.password:
+                    raise ValueError("Identity evidence requires an HTTP(S) URL without credentials")
             key = (alias.kind, alias.source, alias.source_id)
-            if key in self._aliases and self._aliases[key] != alias.canonical_id:
+            if any(other.canonical_id != alias.canonical_id and _overlap(other, alias) for other in self._aliases[key]):
                 raise ValueError(f"Conflicting identity for {key}")
-            self._aliases[key] = alias.canonical_id
+            if alias not in self._aliases[key]:
+                self._aliases[key].append(alias)
+                entries.append(alias)
+        self._entries = tuple(entries)
 
-    def resolve(self, kind, source, source_id):
-        """Return the caller's canonical entity ID, or None if unmapped."""
-        return self._aliases.get((kind, source, str(source_id))) if source_id is not None else None
+    def resolve(self, kind, source, source_id, *, team_id=None, at=None):
+        """Resolve an explicit alias with sufficient team/time context, or None."""
+        return self.lookup(kind, source, source_id, team_id=team_id, at=at).canonical_id
+
+    def lookup(self, kind, source, source_id, *, team_id=None, at=None) -> IdentityResolution:
+        """Explain resolved, unmapped, context_required, out_of_scope or ambiguous."""
+        at = _alias_time(at)
+        candidates = self._aliases.get((kind, source, str(source_id)), ()) if source_id is not None else ()
+        matching, missing = [], False
+        for alias in candidates:
+            if alias.team_id is not None and team_id is not None and alias.team_id != str(team_id):
+                continue
+            if at is not None and (alias.valid_from is not None and at < alias.valid_from
+                                   or alias.valid_until is not None and at >= alias.valid_until):
+                continue
+            if (alias.team_id is not None and team_id is None
+                    or at is None and (alias.valid_from is not None or alias.valid_until is not None)):
+                missing = True
+                continue
+            matching.append(alias)
+        identities = {alias.canonical_id for alias in matching}
+        if len(identities) == 1:
+            return IdentityResolution(next(iter(identities)), "resolved", tuple(matching))
+        status = "ambiguous" if identities else "context_required" if missing else "out_of_scope" if candidates else "unmapped"
+        return IdentityResolution(None, status, tuple(matching) if matching else tuple(candidates))
 
     @property
     def aliases(self) -> tuple[EntityAlias, ...]:
         """Immutable entries suitable for saving or extending this map."""
-        return tuple(EntityAlias(kind, canonical, source, native)
-                     for (kind, source, native), canonical in self._aliases.items())
+        return self._entries
+
+    def to_dict(self) -> dict:
+        """Versioned JSON-compatible aliases, preserving scope and review evidence."""
+        from dataclasses import asdict
+
+        entries = []
+        for alias in self.aliases:
+            row = asdict(alias)
+            for field in ("valid_from", "valid_until", "verified_at"):
+                row[field] = row[field].isoformat() if row[field] is not None else None
+            entries.append(row)
+        return {"format": "easysoccerdata-identities", "format_version": 1, "aliases": entries}
+
+    @classmethod
+    def from_dict(cls, data) -> IdentityMap:
+        """Read versioned identities or an older JSON list of EntityAlias entries."""
+        if isinstance(data, dict):
+            if (set(data) != {"format", "format_version", "aliases"} or data["format"] != "easysoccerdata-identities"
+                    or type(data["format_version"]) is not int or data["format_version"] != 1):
+                raise ValueError("Invalid identity format/version")
+            data = data["aliases"]
+        if not isinstance(data, list) or any(not isinstance(row, dict) for row in data):
+            raise ValueError("Identity aliases require a JSON list")
+        entries = []
+        try:
+            for item in data:
+                row = dict(item)
+                for field in ("valid_from", "valid_until", "verified_at"):
+                    value = row.get(field)
+                    if value is not None:
+                        if not isinstance(value, str):
+                            raise ValueError("Identity dates require ISO timestamps")
+                        row[field] = datetime.fromisoformat(value[:-1] + "+00:00" if value.endswith("Z") else value)
+                entries.append(EntityAlias(**row))
+        except (ValueError, TypeError) as exc:
+            raise ValueError(f"Invalid identity entry: {exc}") from exc
+        return cls(entries)
 
     def with_aliases(self, aliases) -> IdentityMap:
         """Return an independent extended map, rejecting conflicting native IDs."""
@@ -85,12 +197,12 @@ class DatasetCompatibility:
         )
 
 
-def _resolve(identities, kind, source, source_id, same_source):
+def _resolve(identities, kind, source, source_id, same_source, *, team_id=None, at=None):
     if source_id is None:
         return None
     if same_source:
         return (source, str(source_id))
-    return identities.resolve(kind, source, source_id) if identities is not None else None
+    return identities.resolve(kind, source, source_id, team_id=team_id, at=at) if identities is not None else None
 
 
 def _record_key(row, dataset, identities, same_source):

@@ -124,7 +124,7 @@ def test_v1_match_statistics_migrate_without_filling_absent_metrics(dataset, tmp
     manifest["tables"]["match_stats"]["sha256"] = hashlib.sha256(filename.read_bytes()).hexdigest()
     write_manifest(target, manifest)
     restored = open_dataset(target)
-    assert restored == dataset and restored.metadata.schema_version == "5"
+    assert restored == dataset and restored.metadata.schema_version == "6"
     assert restored.match_stat_records[0].home_xg == 0.0
     assert restored.match_stat_records[0].home_shots is None
     assert restored.match_stat_records[0].source_period is None

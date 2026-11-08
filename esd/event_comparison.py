@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from ._dataset_storage import _metadata, _metadata_json
-from .compatibility import IdentityMap, MatchLinkResult, _resolve, link_dataset_matches
+from .compatibility import EntityAlias, IdentityMap, MatchLinkResult, _resolve, link_dataset_matches
 from .dataset_validation import DatasetValidationReport, validate_dataset
 from .datasets import DatasetIssue, DatasetMetadata, SoccerDataset
 from .normalized import NormalizedMatchEvent
@@ -86,6 +86,7 @@ class MatchEventsReport:
     event_types: tuple[str, ...]
     notes: tuple[str, ...] = ()
     allow_unknown_period: bool = False
+    identity_aliases: tuple[EntityAlias, ...] = ()
 
     @property
     def differences(self) -> tuple[MatchEventComparison, ...]:
@@ -162,15 +163,21 @@ def _period(row, periods, same_source):
     return periods.get((row.source, row.source_period), (row.source, row.source_period) if same_source else None)
 
 
-def _identity(row, kind, field, identities, same_source):
-    return _resolve(identities, kind, row.source, getattr(row, field), same_source)
+def _identity(row, kind, field, identities, same_source, context):
+    team, at = context(row, field)
+    return _resolve(identities, kind, row.source, getattr(row, field), same_source, team_id=team, at=at)
 
 
-def _signature(row, identities, periods, same_source, allow_unknown_period):
-    player = _identity(row, "player", "player_id", identities, same_source)
+def _signature(row, identities, periods, same_source, allow_unknown_period, context):
+    player = _identity(row, "player", "player_id", identities, same_source, context)
     if player is None:
+        if identities is not None and not same_source:
+            team, at = context(row, "player_id")
+            decision = identities.lookup("player", row.source, row.player_id, team_id=team, at=at)
+            if decision.status in ("context_required", "out_of_scope"):
+                return None, f"player_identity_{decision.status}"
         return None, "player_identity_unknown"
-    if _identity(row, "team", "team_id", identities, same_source) is None:
+    if _identity(row, "team", "team_id", identities, same_source, context) is None:
         return None, "team_identity_unknown"
     if row.is_shootout is None:
         return None, "shootout_unknown"
@@ -181,8 +188,13 @@ def _signature(row, identities, periods, same_source, allow_unknown_period):
     if row.event_type == "substitution":
         if (row.player_role, row.related_player_role) != ("incoming", "outgoing"):
             return None, "substitution_roles_unknown"
-        outgoing = _identity(row, "player", "related_player_id", identities, same_source)
+        outgoing = _identity(row, "player", "related_player_id", identities, same_source, context)
         if outgoing is None:
+            if identities is not None and not same_source:
+                team, at = context(row, "related_player_id")
+                decision = identities.lookup("player", row.source, row.related_player_id, team_id=team, at=at)
+                if decision.status in ("context_required", "out_of_scope"):
+                    return None, f"related_player_identity_{decision.status}"
             return None, "related_player_identity_unknown"
     if not row.is_shootout and row.minute is None:
         return None, "minute_unknown"
@@ -206,21 +218,21 @@ def _near(first, second, limit):
     return True
 
 
-def _compare(first, second, identities, periods, same_source):
+def _compare(first, second, identities, periods, same_source, context):
     different, unknown = [], []
     values = [(name, getattr(first, name), getattr(second, name)) for name in
               ("event_type", "is_shootout", "rescinded")]
     values += [("source_period", _period(first, periods, same_source), _period(second, periods, same_source))]
     for name, kind in (("team_id", "team"), ("player_id", "player")):
-        values.append((name, _identity(first, kind, name, identities, same_source),
-                       _identity(second, kind, name, identities, same_source)))
+        values.append((name, _identity(first, kind, name, identities, same_source, context),
+                       _identity(second, kind, name, identities, same_source, context)))
     if not first.is_shootout and not second.is_shootout:
         values.extend((name, getattr(first, name), getattr(second, name)) for name in ("minute", "added_minute"))
     if first.event_type == "substitution" or second.event_type == "substitution":
         for name in ("player_role", "related_player_role"):
             values.append((name, getattr(first, name), getattr(second, name)))
-        values.append(("related_player_id", _identity(first, "player", "related_player_id", identities, same_source),
-                       _identity(second, "player", "related_player_id", identities, same_source)))
+        values.append(("related_player_id", _identity(first, "player", "related_player_id", identities, same_source, context),
+                       _identity(second, "player", "related_player_id", identities, same_source, context)))
     for name, left, right in values:
         if left is None or right is None:
             unknown.append(name)
@@ -308,9 +320,18 @@ def compare_match_events(
             grouped[side][row.match_id].append(row)
     rows = []
     same_source = metadata[0].source == metadata[1].source
+    kickoffs = {(row.source, row.match_id): row.kickoff for dataset in (left, right) for row in dataset.match_records}
+    memberships = {(row.source, row.match_id, row.player_id): row.team_id
+                   for dataset in (left, right) for row in dataset.lineup_records}
+
+    def context(row, field):
+        team = memberships.get((row.source, row.match_id, getattr(row, field)))
+        if team is None and row.event_type != "own_goal":
+            team = row.team_id
+        return team, kickoffs.get((row.source, row.match_id))
 
     def append(first, second, left_id, right_id, status, reason=None, candidates=()):
-        different, unknown = _compare(first, second, identities, periods, same_source) if first is not None and second is not None else ((), ())
+        different, unknown = _compare(first, second, identities, periods, same_source, context) if first is not None and second is not None else ((), ())
         if first is not None and second is not None:
             status = "different" if different else "equal"
         rows.append(MatchEventComparison(metadata[0].source, left_id, metadata[1].source, right_id,
@@ -328,7 +349,7 @@ def compare_match_events(
                     append(row, seconds[other], link.left_match_id, link.right_match_id, "equal", "native_event_id")
                     used_first.add(index)
                     used_second.add(other)
-        signatures = [{i: _signature(row, identities, periods, same_source, allow_unknown_period) for i, row in enumerate(side) if i not in used}
+        signatures = [{i: _signature(row, identities, periods, same_source, allow_unknown_period, context) for i, row in enumerate(side) if i not in used}
                       for side, used in ((firsts, used_first), (seconds, used_second))]
         candidates, reverse = defaultdict(list), defaultdict(list)
         right_by_signature = defaultdict(list)
@@ -384,4 +405,5 @@ def compare_match_events(
             "Unknown periods admit candidates only with allow_unknown_period=True and remain unverified in paired rows.",
         ),
         allow_unknown_period=allow_unknown_period,
+        identity_aliases=identities.aliases if identities is not None else (),
     )

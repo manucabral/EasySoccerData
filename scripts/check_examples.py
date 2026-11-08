@@ -6,6 +6,9 @@ import sys
 from pathlib import Path
 
 BASE = (
+    ("examples/datasets/scoped_players_offline.py",),
+    ("examples/datasets/match_shots.py", "--help"),
+    ("examples/datasets/match_shots_offline.py",),
     ("examples/datasets/champions_workflow.py", "--help"),
     ("examples/datasets/champions_workflow.py", "--demo", "--allow-unknown-period"),
     ("examples/datasets/champions_player_comparison.py", "--help"),
@@ -36,6 +39,7 @@ BASE = (
     ("examples/datasets/cache_resume_offline.py",),
 )
 PANDAS = (
+    ("examples/datasets/match_shots_offline.py", "--pandas"),
     ("examples/datasets/champions_workflow.py", "--demo", "--allow-unknown-period", "--pandas"),
     ("examples/datasets/compare_players_offline.py", "--pandas"),
     ("examples/datasets/compare_events_offline.py", "--pandas"),
@@ -48,7 +52,8 @@ PANDAS = (
     ("examples/pandas/normalized_tables.py",),
     ("examples/pandas/dataset_analysis.py",),
 )
-PARQUET = (("examples/datasets/parquet_roundtrip.py",),
+PARQUET = (("examples/datasets/match_shots_offline.py", "--parquet"),
+           ("examples/datasets/parquet_roundtrip.py",),
            ("examples/datasets/champions_workflow.py", "--demo", "--allow-unknown-period", "--parquet"),
            ("examples/datasets/compare_players_offline.py", "--parquet"),
            ("examples/datasets/compare_events_offline.py", "--parquet"),

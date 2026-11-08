@@ -61,13 +61,7 @@ def nonnegative(value):
 
 
 def read_identities(path):
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(raw, list) or any(not isinstance(item, dict) for item in raw):
-        raise ValueError("Identities must be a JSON list of EntityAlias objects")
-    try:
-        return esd.IdentityMap(esd.EntityAlias(**item) for item in raw)
-    except TypeError as exc:
-        raise ValueError(f"Invalid identity entry: {exc}") from exc
+    return esd.IdentityMap.from_dict(json.loads(path.read_text(encoding="utf-8")))
 
 
 def default_settings(sources, *, allow_unknown_period=False, minute_tolerance=1, tolerance_seconds=300):
@@ -168,7 +162,7 @@ def save_bundle(destination, datasets, identities, settings, reports):
             target = dataset.save(staging / dataset.metadata.source)
             if esd.open_dataset(target) != dataset:
                 raise esd.DatasetFormatError("Reopened workflow snapshot differs from the download")
-        for name, value in (("identities", [asdict(alias) for alias in identities.aliases]),
+        for name, value in (("identities", identities.to_dict()),
                             ("options", saved_settings(settings, reports)), ("comparison", reports)):
             (staging / f"{name}.json").write_text(json.dumps(value, default=json_value, indent=2, allow_nan=False) + "\n", encoding="utf-8")
         if destination.exists() or destination.is_symlink():

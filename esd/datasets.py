@@ -187,7 +187,7 @@ class SoccerDataset:
 
     @property
     def shots(self):
-        """Understat shots with native coordinates, without pitch conversion."""
+        """Source attempts with native coordinates/models where observed."""
         return self._dataframe(self.shot_records, "shots")
 
     @property
@@ -303,6 +303,11 @@ def load_dataset(
     Sofascore require native season_id. max_match_requests bounds endpoint reads
     before transport retries, according to the source and selected detail tables.
     ESPN/365Scores match_events uses the same summary/game detail as lineups.
+    ESPN shots shares the summary and contains only recognized descriptive
+    attempts with native field positions where reported, without inferred xG. Sofascore shots uses event
+    context plus shotmap, sharing context with other selected details. Native
+    coordinates and xG/xGOT retain the source convention/model. Missing values
+    stay null. Understat shots keeps its existing explicit season selection.
     Sofascore shares its event context and adds an incidents read. All three
     require explicit IDs. Shootouts retain separate flags and counters.
     Duplicate IDs are fetched once. Detail responses use CachePolicy.live_ttl.
@@ -340,7 +345,8 @@ def load_dataset(
         raise ValueError("tables must be a nonempty sequence of supported table names")
     players = bool(set(tables) & {"lineups", "player_match_stats"})
     events = "match_events" in tables
-    details = source in ("espn", "scores365", "sofascore") and bool(set(tables) & {"match_stats", "lineups", "player_match_stats", "match_events"})
+    shots = "shots" in tables
+    details = source in ("espn", "scores365", "sofascore") and bool(set(tables) & {"match_stats", "lineups", "player_match_stats", "match_events", "shots"})
     if type(max_match_requests) is not int or max_match_requests < 1:
         raise ValueError("max_match_requests must be a positive integer")
     if not details and max_match_requests != 20:
@@ -365,7 +371,7 @@ def load_dataset(
         from ._match_players import load_match_players
         from ._match_statistics import load_match_statistics
 
-        return (load_match_players if players or events else load_match_statistics)(
+        return (load_match_players if players or events or shots else load_match_statistics)(
             source=source, league=league, season=year, tables=selected, proxies=proxies,
             cache_dir=cache_dir, cache_policy=cache_policy, refresh=refresh,
             request_delay=request_delay, on_error=on_error, progress=progress,

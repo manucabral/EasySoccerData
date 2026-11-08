@@ -268,6 +268,10 @@ for filtering columns, sorting standings and joining on team IDs.
 
 ESPN, 365Scores and Sofascore have opt-in adapters for matches, teams and standings.
 Understat provides matches, teams, match xG/forecasts, player statistics and shots.
+Sofascore adds native-coordinate shots with source xG/xGOT where available.
+ESPN recognized attempts retain native field positions where reported, without inferred xG. See the
+[shot guide](guides/datasets.md#match-shots) and
+[offline example](examples/datasets/match_shots_offline.py).
 Existing clients still return their provider models. Adapters work without
 pandas; only DataFrame export requires the pandas extra.
 
@@ -297,9 +301,9 @@ The `season` argument labels the records using the caller's query context.
 | `standings` | `NormalizedStanding`, `normalize_standings(table)` | Source, competition/season, table/stage/group, team, rank, played/won/drawn/lost, goals, points and deductions |
 | `match_stats` | `NormalizedMatchStats`, `normalize_match_stats()` for Understat | Source, match ID, nullable team counts, possession, xG and forecasts; native-ID detail loaders for ESPN, 365Scores and Sofascore |
 | `player_stats` | `NormalizedPlayerStats`, `normalize_player_stats()` | Source, competition/season, player ID, native team names, counts, xG and xA |
-| `shots` | `NormalizedShot`, `normalize_shot()` | Source, shot/match/player IDs, minute, outcome, native X/Y and xG |
+| `shots` | `NormalizedShot`, `normalize_shot()` (Understat) or `normalize_match_shots()` (ESPN/Sofascore) | Source IDs, native coordinates where observed, source xG/xGOT, raw details and shootout flags |
 
-`normalized_to_dataframe(records, table=...)` exports schema version `2`:
+`normalized_to_dataframe(records, table=...)` exports schema version `6`:
 identifiers and names use nullable `string`, counts use `Int64`, metrics use `Float64`, and `kickoff`
 uses `datetime64[ns, UTC]`. The schema version and table name are also available
 in `DataFrame.attrs`. Unknown table names or mismatched record models raise.
@@ -349,7 +353,7 @@ the chosen matches, teams and available metrics without a season-wide download.
 365Scores and Sofascore require native `season_id`. See
 [match statistics by ID](guides/datasets.md#match-statistics-by-native-id) and the
 [CLI example](examples/datasets/match_statistics.py). pandas remains optional.
-Version `1` Parquet snapshots open as schema `2`, with new metrics left null.
+Version `1`–`5` Parquet snapshots open as schema `6`, leaving unobserved columns null.
 
 Download an in-memory ESPN season snapshot with normalized matches and teams.
 Add `standings` to fetch the source's standings snapshot for the same season:
@@ -413,9 +417,9 @@ clients. All nine have a dataset loader, with different selection scopes and tab
 
 | `source` | Selection | Dataset tables |
 | :--- | :--- | :--- |
-| `espn` | League code and season year | Matches, teams, optional standings |
-| `scores365` | Native competition ID and explicit UTC date range | Matches, teams, optional standings |
-| `sofascore` | Unique tournament ID and native `season_id` | Matches, teams, optional standings |
+| `espn` | League code and season year; explicit IDs for details | Matches, teams, standings; match metrics, lineups, player metrics, events and recognized attempts by ID |
+| `scores365` | Native competition ID and explicit UTC dates; native season for details | Matches, teams, standings; match metrics, lineups, player metrics and events by ID |
+| `sofascore` | Unique tournament ID and native `season_id` | Matches, teams, standings; match metrics, lineups, player metrics, events and shots by ID |
 | `understat` | League code and season year | Matches, teams, optional match statistics, player statistics and shots |
 | `fbref` | Numeric competition ID and explicit dates | Matches, teams, optional match xG |
 | `goaloo` | Numeric league ID and explicit native `source_season` | Matches, teams, optional standings |
@@ -591,8 +595,10 @@ network requests. Saving/opening requires only the parquet extra; DataFrame
 properties still require pandas separately.
 
 See the [offline Parquet example](examples/datasets/parquet_roundtrip.py).
-This release supports Parquet snapshots; overwriting and schema migrations are
-not implemented yet. Persistent response caching is separate from snapshots.
+This release reads schema 1–5 snapshots into schema 6 after validating their
+original schemas/checksums. New fields without observations remain null, and
+the original files stay unchanged. Saving requires a new directory.
+Persistent response caching is separate from snapshots.
 
 ## Resume and update downloads
 

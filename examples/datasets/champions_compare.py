@@ -22,14 +22,8 @@ DEFAULT_IDENTITIES = Path(__file__).with_name("champions_identities.json")
 
 def read_identities(path):
     """Read the caller's aliases without matching names or native IDs across sources."""
-    entries = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(entries, list) or any(not isinstance(entry, dict) for entry in entries):
-        raise ValueError("Identities must be a JSON list of EntityAlias objects")
-    try:
-        identities = esd.IdentityMap(esd.EntityAlias(**entry) for entry in entries)
-    except TypeError as exc:
-        raise ValueError(f"Invalid identity entry: {exc}") from exc
-    return entries, identities
+    identities = esd.IdentityMap.from_dict(json.loads(path.read_text(encoding="utf-8")))
+    return identities.to_dict(), identities
 
 
 def download_espn(start, end, season, cache_dir=None, refresh=False):

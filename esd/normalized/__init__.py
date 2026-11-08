@@ -5,6 +5,7 @@ from .additional import normalize_match_stats, normalize_player_stats, normalize
 from .dataframe import normalized_to_dataframe
 from .match_events import normalize_match_events
 from .match_players import MatchPlayerRecords, normalize_match_players
+from .match_shots import normalize_match_shots
 from .models import (
     SCHEMA_VERSION,
     NormalizedLineup,
@@ -22,6 +23,7 @@ from .models import (
 )
 
 __all__ = [
+    "normalize_match_shots",
     "NormalizedMatchEvent", "normalize_match_events",
     "MatchPlayerRecords", "normalize_match_players",
     "NormalizedLineup", "NormalizedPlayerMatchStats",

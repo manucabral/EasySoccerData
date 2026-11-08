@@ -27,7 +27,7 @@ def fetch(monkeypatch):
 
 def test_bundled_lookup_is_explicit_and_does_not_request_sources(fetch):
     catalog = esd.get_catalog()
-    assert len(catalog.competitions) == 3 and len(catalog.teams) == 62
+    assert len(catalog.competitions) == 5 and len(catalog.teams) == 96
     champions = catalog.competition("  UEFA   CHAMPIONS League ")
     assert champions == catalog.competition("champions-league") == catalog.competition("Champions League")
     assert champions.for_source("espn").source_id == "uefa.champions"
@@ -37,6 +37,13 @@ def test_bundled_lookup_is_explicit_and_does_not_request_sources(fetch):
     assert catalog.competition("La Liga").for_source("espn").source_id == "esp.1"
     assert catalog.team("FC Barcelona").for_source("espn").source_id == "83"
     assert catalog.team("barcelona").for_source("scores365").source_id == "132"
+    assert champions.for_source("sofascore").source_id == "7"
+    assert catalog.competition("Bundesliga").for_source("espn").source_id == "ger.1"
+    assert catalog.competition("Serie A").for_source("scores365").source_id == "17"
+    assert catalog.team("Juventus").for_source("sofascore").source_id == "2687"
+    assert catalog.team("bayern").for_source("sofascore").source_id == "2672"
+    assert all({ref.source for ref in entity.references} == {"espn", "scores365", "sofascore"}
+               for entity in (*catalog.competitions, *catalog.teams))
     assert all(ref.verified_at.utcoffset() == timedelta(0) and ref.source_url.startswith("https://")
                for entity in (*catalog.competitions, *catalog.teams) for ref in entity.references)
     fetch.assert_not_called()
@@ -66,17 +73,17 @@ def test_source_namespaces_are_distinct_and_identity_maps_are_independent():
 def test_catalog_extensions_add_sources_and_aliases_without_mutating_defaults():
     original = esd.get_catalog()
     champions = original.competition("Champions League")
-    added = replace(champions, references=(reference("sofascore", "7"),), aliases=("My cup",))
+    added = replace(champions, references=(reference("goaloo", "7"),), aliases=("My cup",))
     club = esd.CatalogTeam("my-club", "My club", (reference("espn", "new-team"),))
     extended = original.with_entries(competitions=[added], teams=[club], version="my-project-1")
-    assert extended.competition("My cup").for_source("sofascore").source_id == "7"
+    assert extended.competition("My cup").for_source("goaloo").source_id == "7"
     assert extended.team("My club").for_source("espn").source_id == "new-team"
     assert extended.competition("Champions League").for_source("espn") == champions.for_source("espn")
-    assert extended.version == "my-project-1" and len(original.teams) == 62
+    assert extended.version == "my-project-1" and len(original.teams) == 96
     with pytest.raises(ValueError):
         original.competition("My cup")
     with pytest.raises(ValueError):
-        champions.for_source("sofascore")
+        champions.for_source("goaloo")
 
 
 @pytest.mark.parametrize("change", ["alias", "native", "name", "replacement", "duplicate", "kind"])
@@ -170,7 +177,7 @@ def test_custom_source_selectors_preserve_native_semantics(source, native, year,
 
 def test_unsupported_or_unreviewed_sources_fail_before_io(fetch):
     with pytest.raises(ValueError):
-        esd.get_catalog().list_seasons("Champions League", "sofascore")
+        esd.get_catalog().list_seasons("Champions League", "goaloo")
     entry = esd.CatalogCompetition("history", "History", (reference("transfermarkt", "CL"),))
     with pytest.raises(ValueError, match="no historical season selection"):
         esd.FootballCatalog(competitions=(entry,)).dataset_options(

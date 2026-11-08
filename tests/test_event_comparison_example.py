@@ -68,7 +68,8 @@ def test_snapshot_pair_recomputes_even_if_saved_report_is_replaced(example, tmp_
     target = tmp_path / "pair"
     assert module["main"](options + ["--output-dir", str(target), "--minute-tolerance", "0"]) == 1
     before = json.loads((target / "comparison.json").read_text(encoding="utf-8"))
-    assert before["minute_tolerance"] == 0 and any(alias["kind"] == "player" for alias in json.loads((target / "identities.json").read_text(encoding="utf-8")))
+    saved = esd.IdentityMap.from_dict(json.loads((target / "identities.json").read_text(encoding="utf-8")))
+    assert before["minute_tolerance"] == 0 and any(alias.kind == "player" for alias in saved.aliases)
     (target / "comparison.json").write_text('{"invented_report": true}', encoding="utf-8")
     loader.side_effect = AssertionError("Offline pair attempted source access")
     assert module["main"](["--open-dir", str(target)]) == 1

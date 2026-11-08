@@ -21,10 +21,11 @@ class DatasetCapabilities:
 
 
 _CAPABILITIES = {
-    "espn": DatasetCapabilities("espn", ("matches", "teams", "standings", "match_stats", "lineups", "player_match_stats", "match_events"), "season_year", (
+    "espn": DatasetCapabilities("espn", ("matches", "teams", "standings", "match_stats", "lineups", "player_match_stats", "match_events", "shots"), "season_year", (
         "Optional match_stats requires explicit match_ids and max_match_requests; it skips calendar discovery.",
         "lineups/player_match_stats share one summary response per explicit ID, including selected match_stats.",
         "match_events shares that summary: keyEvents plus recognized commentary plays, deduplicated by native ID; not a full event feed.",
+        "shots shares the summary: recognized attempts with native field positions when reported, no inferred xG and no completeness claim.",
     )),
     "scores365": DatasetCapabilities("scores365", ("matches", "teams", "standings", "match_stats", "lineups", "player_match_stats", "match_events"), "date_range", (
         "Explicit start_date/end_date for matches; season is a caller label.",
@@ -33,12 +34,13 @@ _CAPABILITIES = {
         "lineups/player_match_stats use one game detail per ID; selected match_stats adds one endpoint read.",
         "match_events shares game detail with players; native order is response-local, stage 11 identifies shootouts.",
     )),
-    "sofascore": DatasetCapabilities("sofascore", ("matches", "teams", "standings", "match_stats", "lineups", "player_match_stats", "match_events"), "native_season_id", (
+    "sofascore": DatasetCapabilities("sofascore", ("matches", "teams", "standings", "match_stats", "lineups", "player_match_stats", "match_events", "shots"), "native_season_id", (
         "Explicit native season_id; past and upcoming pages must reach an explicit end.",
         "Source can block requests; dataset loader does not launch a browser.",
         "match_stats requires explicit match_ids: event context plus ALL-period statistics, two endpoint reads per ID.",
         "lineups/player_match_stats use event context plus lineups; selected match_stats adds one endpoint read.",
         "match_events uses event context plus incidents; selected players and team statistics each add one endpoint read, sharing context.",
+        "shots uses event context plus shotmap, preserving native player coordinates and source xG/xGOT; each selected detail endpoint adds one read.",
     )),
     "understat": DatasetCapabilities("understat", ("matches", "teams", "match_stats", "player_stats", "shots"), "season_year", (
         "Naive kickoff times require caller-supplied source_timezone.",

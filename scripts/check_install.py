@@ -28,6 +28,8 @@ def main():
     catalog = esd.get_catalog()
     assert catalog.competition("Premier League").for_source("espn").source_id == "eng.1"
     assert catalog.team("barcelona").for_source("scores365").source_id == "132"
+    assert len(catalog.teams) == 96 and len(catalog.competitions) == 5
+    assert catalog.competition("Bundesliga").for_source("sofascore").source_id == "35"
     assert catalog.identities().resolve("competition", "scores365", "572") == "champions-league"
     assert len(esd.get_discovery_capabilities()) == 9
     assert esd.get_discovery_capabilities("goaloo").seasons == "index"
@@ -50,7 +52,7 @@ def main():
     with patch("esd._provider_datasets.get_api_json", return_value=detail_payload):
         details = esd.load_dataset(source="espn", league="example.cup", season=2026,
                                    tables=["match_stats"], match_ids=[1], max_match_requests=1)
-    assert details.complete and details.metadata.schema_version == "5"
+    assert details.complete and details.metadata.schema_version == "6"
     assert details.match_stat_records[0].home_shots == 0 and details.match_stat_records[0].away_shots is None
     assert esd.validate_dataset(details).valid
     comparison = esd.compare_match_statistics(details, details, metrics=["home_shots", "away_shots"])
@@ -87,6 +89,19 @@ def main():
     extended = catalog.identities().with_aliases([esd.EntityAlias("player", "sample-player", "espn", "101")])
     assert extended.resolve("player", "espn", "101") == "sample-player"
     assert esd.IdentityMap(extended.aliases).resolve("player", "espn", "101") == "sample-player"
+    import json
+
+    scoped = esd.IdentityMap([esd.EntityAlias("player", "sample-player", "espn", "101",
+                                             team_id="10", valid_from=datetime(2026, 1, 1, tzinfo=timezone.utc))])
+    assert scoped.lookup("player", "espn", "101").status == "context_required"
+    assert scoped.resolve("player", "espn", "101", team_id="10", at=datetime(2026, 11, 3, tzinfo=timezone.utc)) == "sample-player"
+    assert esd.IdentityMap.from_dict(json.loads(json.dumps(scoped.to_dict()))).aliases == scoped.aliases
+    with patch("esd._provider_datasets.get_api_json", return_value=detail_payload) as fetch:
+        shots = esd.load_dataset(source="espn", league="example.cup", season=2026,
+                                 tables=["shots", "match_events"], match_ids=[1], max_match_requests=1)
+    assert fetch.call_count == 1 and shots.complete and esd.validate_dataset(shots).valid
+    assert shots.shot_records[0].is_shootout is True and shots.shot_records[0].minute is None
+    assert shots.shot_records[0].coordinate_system is None and shots.shot_records[0].xg is None
     sofa_context = {"event": {"id": 1, "season": {"id": 228}, "tournament": {"uniqueTournament": {"id": 7}},
                               "startTimestamp": 1793736000, "homeTeam": {"id": 10}, "awayTeam": {"id": 20}}}
     sofa_incidents = {"incidents": [{"id": 2, "incidentType": "goal", "incidentClass": "regular", "time": 45,
@@ -141,6 +156,7 @@ def main():
             assert esd.open_dataset(dataset.save(Path(directory) / "snapshot")) == dataset
             assert esd.open_dataset(details.save(Path(directory) / "statistics")) == details
             assert esd.open_dataset(players.save(Path(directory) / "players")) == players
+            assert esd.open_dataset(shots.save(Path(directory) / "shots")) == shots
         else:
             try:
                 dataset.save(Path(directory) / "snapshot")
@@ -160,6 +176,7 @@ def main():
         assert str(players.lineups.starter.dtype) == "boolean"
         assert players.lineups.starter.isna().sum() == 1
         assert str(players.player_match_stats.goals.dtype) == "Int64"
+        assert str(shots.shots.xgot.dtype) == "Float64" and str(shots.shots.is_shootout.dtype) == "boolean"
         assert str(player_comparison.to_dataframe().left_starter.dtype) == "boolean"
         assert str(player_comparison.to_dataframe("statistics").left_value.dtype) == "Float64"
     else:

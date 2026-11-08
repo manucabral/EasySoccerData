@@ -45,6 +45,6 @@ FLOAT_COLUMNS = {
     "home_xg", "away_xg", "forecast_win", "forecast_draw", "forecast_loss",
     "x", "y", "xg", "xa", "npxg", "xg_chain", "xg_buildup",
     "home_possession_pct", "away_possession_pct",
-    "source_rating",
+    "source_rating", "xgot",
     "clock_seconds", "source_game_time",
 }

@@ -184,8 +184,8 @@ The normalized DataFrame tables are `matches`, `teams`, `standings`,
 `lineups`, `player_match_stats` and `match_events`. They
 have fixed columns and types even when empty: nullable strings for identifiers
 and names, `Int64` for counts, `Float64` for metrics and UTC nanosecond datetimes for `kickoff`.
-`DataFrame.attrs` reports `schema_version="5"` and the table name.
-Version `1`–`4` Parquet snapshots remain readable. Absent statistic/event columns are
+`DataFrame.attrs` reports `schema_version="6"` and the table name.
+Version `1`–`5` Parquet snapshots remain readable. Absent statistic/event/shot columns are
 null and tables introduced later stay unselected.
 
 Join entities using both `source` and their source-local ID. Adapters preserve
@@ -213,6 +213,20 @@ for uniquely linked matches without downloads or optional dependencies. Results
 retain missing values, source periods, original fetch times, partial errors and
 unmatched/ambiguous IDs. Cross-source xG/forecast models remain separate.
 `report.to_dataframe()` requires the pandas extra.
+
+The reviewed catalog covers five competitions and 96 teams across ESPN,
+365Scores and Sofascore, including Bundesliga and Serie A. References retain
+source URLs and review dates. Player aliases remain caller-reviewed and can
+use native-team and half-open date scopes. `IdentityMap.lookup()` explains
+missing context or excluded scopes, and versioned identity JSON preserves the
+scope/evidence used in comparisons.
+
+`tables=["shots"]` also supports explicit ESPN/Sofascore match IDs. Sofascore
+retains native player coordinates and source xG/xGOT. ESPN recognizes attempts
+in its summary, retaining native field positions where reported and leaving xG null. Row counts do not imply
+a complete attempt feed. Both share selected detail responses/context and
+respect the caller's request budget and cache directory. See the
+[shot guide](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/guides/datasets.md#match-shots).
 
 `esd.compare_match_players(left, right, identities=...)` compares ESPN/365Scores/Sofascore
 lineups and player-match statistics with explicit player identities. It retains

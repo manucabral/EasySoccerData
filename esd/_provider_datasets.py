@@ -24,6 +24,7 @@ from .normalized import (
     normalize_shot,
     normalize_standings,
 )
+from .normalized.match_shots import _shot_key
 from .normalized.schema import TABLE_MODELS
 from .scores365.endpoints import Scores365Endpoints
 from .scores365.types import parse_games
@@ -368,7 +369,7 @@ def _understat(download):
                     return shots
 
                 download.run("shots", match_id, endpoints.match_data(match_id), parse,
-                             lambda rows: download.add("shots", rows, "shot_id"), download.policy.historical_ttl)
+                             lambda rows: download.add("shots", rows, _shot_key), download.policy.historical_ttl)
     if "player_stats" in opt["tables"]:
         def parse(data):
             if not isinstance(data, dict) or not isinstance(data.get("players"), list):

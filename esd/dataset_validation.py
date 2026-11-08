@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from ._dataset_storage import _RECORDS, _metadata, _metadata_json, _validate_records
 from .datasets import DatasetIssue, DatasetMetadata, SoccerDataset
 from .normalized.match_events import EVENT_TYPES, _event_key
+from .normalized.match_shots import _shot_key
 from .normalized.schema import MATCH_COUNT_METRICS, PLAYER_MATCH_COUNT_METRICS
 
 
@@ -54,7 +55,7 @@ _KEYS = {
     "match_events": ("match_id", "event_id", "source_order"),
     "lineups": ("match_id", "team_id", "player_id"), "player_match_stats": ("match_id", "team_id", "player_id"),
     "matches": ("match_id",), "teams": ("team_id",), "match_stats": ("match_id",),
-    "shots": ("shot_id",), "players": ("player_id",), "transfers": ("transfer_id",),
+    "shots": ("match_id", "shot_id", "source_order"), "players": ("player_id",), "transfers": ("transfer_id",),
     "player_stats": ("competition_id", "season", "player_id"),
     "standings": ("competition_id", "season", "source_season_id", "table_id", "table_name",
                   "stage_id", "group_id", "team_id"),
@@ -63,7 +64,7 @@ _KEYS = {
 _PRIMARY_IDS = {
     "match_events": "match_id",
     "lineups": "player_id", "player_match_stats": "player_id",
-    "matches": "match_id", "teams": "team_id", "match_stats": "match_id", "shots": "shot_id",
+    "matches": "match_id", "teams": "team_id", "match_stats": "match_id", "shots": "match_id",
     "players": "player_id", "transfers": "transfer_id", "player_stats": "player_id",
     "standings": "team_id", "market_values": "player_id",
 }
@@ -195,6 +196,8 @@ def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
                 key = (row.source, *(getattr(row, name) for name in _KEYS[table]))
                 if table == "match_events":
                     key = (row.source, *_event_key(row))
+                if table == "shots":
+                    key = (row.source, *_shot_key(row))
                 if table != "market_values" or row.source_date is not None:
                     if key in seen:
                         add("error", "duplicate_key", f"Record key repeats row {seen[key]}", table, index, primary)
@@ -203,7 +206,7 @@ def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
                 add("error", "competition_mismatch", "Record competition differs from dataset league", table, index, "competition_id")
             if hasattr(row, "season") and row.season is not None and row.season != str(meta.season):
                 add("error", "season_label_mismatch", "Record caller season label differs from metadata", table, index, "season")
-            if (meta.coverage_scope == "match_ids" and table in ("matches", "match_stats", "lineups", "player_match_stats", "match_events")
+            if (meta.coverage_scope == "match_ids" and table in ("matches", "match_stats", "lineups", "player_match_stats", "match_events", "shots")
                     and row.match_id not in meta.requested_match_ids):
                 add("error", "unrequested_match", "Record match ID is outside the explicit selection", table, index, "match_id")
             if table == "matches":
@@ -237,6 +240,16 @@ def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
                         add("error", "invalid_player_metric", f"{accurate} exceeds {total}", table, index, accurate)
             if table == "lineups" and row.home_away not in (None, "home", "away"):
                 add("error", "invalid_lineup_side", "home_away must be home, away or None", table, index, "home_away")
+            if table == "shots":
+                if row.shot_id is None and row.source_order is None:
+                    add("error", "missing_shot_key", "Shot needs a native ID or response-local order", table, index)
+                for field in ("minute", "added_minute", "source_order", "clock_seconds", "xg", "xgot"):
+                    if getattr(row, field) is not None and getattr(row, field) < 0:
+                        add("error", "invalid_shot_value", "Shot clocks, orders and xG must be nonnegative", table, index, field)
+                if row.home_away not in (None, "home", "away"):
+                    add("error", "invalid_shot_side", "home_away must be home, away or None", table, index, "home_away")
+                if row.is_shootout is True and (row.minute is not None or row.added_minute is not None):
+                    add("error", "shootout_match_minute", "Shootout counters cannot become match minutes", table, index)
             if table == "match_events":
                 if row.event_type not in EVENT_TYPES:
                     add("error", "invalid_event_type", "Unknown normalized event type", table, index, "event_type")
@@ -293,6 +306,13 @@ def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
                     add("error", "player_team_conflict", "Player statistics conflict with the lineup team", table, index, "team_id")
     for table in ("matches", "standings", "match_stats", "shots"):
         for index, row in rows[table]:
+            if table == "shots":
+                match = matches.get((row.source, row.match_id))
+                if match is not None and row.team_id is not None:
+                    if row.team_id not in (match.home_team_id, match.away_team_id):
+                        add("error", "shot_team_mismatch", "Shot team is outside its match", table, index, "team_id")
+                    elif row.home_away in ("home", "away") and row.team_id != getattr(match, f"{row.home_away}_team_id"):
+                        add("error", "shot_team_mismatch", "Shot side conflicts with its native team", table, index, "home_away")
             references = (("home_team_id", "away_team_id") if table == "matches" else
                           ("team_id",) if table == "standings" else ("match_id",))
             target = "teams" if table in ("matches", "standings") else "matches"

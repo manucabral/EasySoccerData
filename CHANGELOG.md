@@ -4,7 +4,12 @@
 
 ### Added
 
-- Sofascore event/lineup/player-statistics comparisons, exact per-table provenance and an explicit opt-in policy for unknown event periods. The integrated Champions workflow combines all detail tables, compares selected source pairs and reopens saved sources/identities/rules without HTTP; its artificial three-source demo verifies cache reuse.
+- Reviewed catalog `2026-11-08.1` adds Bundesliga, Serie A and Sofascore references, covering five competitions and 96 team identities across ESPN/365Scores/Sofascore.
+- Player aliases can use native-team and half-open date scopes, retain review evidence and round-trip through versioned JSON. Event/player comparisons resolve against original match context, with explicit missing-context/out-of-scope diagnostics.
+- Normalized Sofascore shots retain native player coordinates, body part, xG/xGOT and raw details. ESPN recognized attempts share the summary and retain native field positions without inferred xG. Explicit match budgets, cached provenance and live/offline examples cover both providers.
+- Schema 6 reads schema 1–5 snapshots against their original schemas, preserving existing shot values and leaving new, unobserved shot fields null.
+
+- Sofascore event/lineup/player-statistics comparisons, exact per-table provenance and an explicit opt-in policy for unknown event periods. The integrated Champions workflow combines lineups, events and team/player statistics, compares selected source pairs and reopens saved sources/identities/rules without HTTP; its artificial three-source demo verifies cache reuse.
 - Read-only ESPN/365Scores lineup and player-match metric comparisons with explicit player/position aliases, ambiguous-identity diagnostics, source-specific models and exact task coverage. Champions and offline examples retain reviewed aliases and settings beside source snapshots.
 - Read-only ESPN/365Scores event comparisons with explicit player aliases, mutual candidate uniqueness, clock/period scope, unknown annulments, task coverage and original fetch dates. New examples cover artificial ambiguity and a reviewed three-player Champions sample with saved/offline comparison pairs.
 - Sofascore match-event datasets with shared match context, bounded incident/lineup/statistic reads, nullable annulment flags and native incident details. Schema 5 reads schema 1–4 snapshots, leaving unobserved event flags null. Examples cover all three event providers and explicit Champions League selections.

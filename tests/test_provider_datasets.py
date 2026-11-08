@@ -233,6 +233,20 @@ def test_understat_shots_are_opt_in(monkeypatch, understat_payload):
     assert result.complete and len(calls) == 1 and not result.shot_records
 
 
+def test_understat_shot_keys_follow_the_shared_match_scope(monkeypatch):
+    def fetch(url, **kwargs):
+        if "/getMatchData/" in url:
+            identifier = url.rstrip("/").rsplit("/", 1)[1]
+            return {"shots": {"h": [{"id": "584101", "match_id": identifier, "xG": "0.25"}], "a": []}}
+        return {"dates": [understat_match("26602"), understat_match("26603")]}
+
+    monkeypatch.setattr(providers, "get_api_json", fetch)
+    result = load("understat", tables=["shots"])
+    assert result.complete and len(result.shot_records) == 2 and esd.validate_dataset(result).valid
+    assert {row.match_id for row in result.shot_records} == {"26602", "26603"}
+    assert all(row.xg_model == "understat" and row.shot_id == "584101" for row in result.shot_records)
+
+
 @pytest.mark.parametrize("options", [
     {"source_timezone": None}, {"tables": ["shots"], "match_ids": [999]},
     {"tables": ["shots"], "match_ids": [26603]},

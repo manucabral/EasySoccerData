@@ -40,7 +40,7 @@ def test_explicit_season_selection_preserves_native_id_and_caller_year(example, 
 @pytest.mark.parametrize("options", [["--seasons"], ["--list", "--seasons"],
                                       ["--competition", "Premier League", "--source", "espn", "--refresh"],
                                       ["--competition", "Premier League", "--source", "espn", "--year", "2026"],
-                                      ["--competition", "Premier League", "--source", "sofascore", "--seasons"]])
+                                      ["--competition", "Premier League", "--source", "goaloo", "--seasons"]])
 def test_invalid_or_unreviewed_selection_fails_before_requests(example, options):
     module, fetch = example
     with pytest.raises(SystemExit) as exc:
