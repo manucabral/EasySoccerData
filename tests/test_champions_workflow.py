@@ -256,3 +256,43 @@ def test_owned_directory_cleanup_retries_only_bounded_transient_errors(tmp_path,
         with module["workflow_directory"]("demo") as directory:
             assert directory == tmp_path
     assert temporary.cleanup.call_count == calls and pause.call_count == calls - 1
+
+
+def test_full_champions_discovery_coverage_selection_and_derived_metrics(workflow, monkeypatch, tmp_path):
+    pytest.importorskip("pyarrow")
+    pd = pytest.importorskip("pandas")
+    module, selections, identities, datasets, settings, _ = workflow
+    _, _, responses = module["demo_inputs"]()
+    monkeypatch.setattr("esd.discovery.get_api_json", lambda url, **_: deepcopy(responses[url]))
+    discovered = module["discover_seasons"](selections, tmp_path / "responses", False)
+    assert discovered["espn"] == {"source": "espn", "league": "uefa.champions", "season": 2026}
+    assert discovered["scores365"] == {"source": "scores365", "league": "572", "season": 2026, "season_id": "228"}
+    assert discovered["sofascore"] == {"source": "sofascore", "league": "7", "season": 2026, "season_id": "228"}
+    target = tmp_path / "bundle"
+    reports = module["compare_sources"](datasets, identities, settings)
+    module["save_bundle"](target, datasets, identities, settings, reports)
+    expected_minutes = {"espn": ("unavailable", 0), "scores365": ("mapped", 1), "sofascore": ("mapped", 1)}
+    for dataset in datasets:
+        source = dataset.metadata.source
+        coverage = esd.inspect_dataset_coverage(dataset)
+        minutes = next(row for row in coverage.fields if row.table == "player_match_stats" and row.field == "minutes")
+        assert (minutes.capability.support, minutes.present_count) == expected_minutes[source]
+        match_id = dataset.match_records[0].match_id
+        selected = esd.open_dataset(target / source, tables=("player_match_stats", "match_stats"), match_ids=(match_id,))
+        assert selected.metadata.tables == ("player_match_stats", "match_stats")
+        assert selected.metadata.original_tables == dataset.metadata.tables
+        assert selected.metadata.snapshot_match_ids == (match_id,)
+        player_metrics = {metric.name: metric for metric in esd.derive_statistics(selected.player_match_stat_records[0]).metrics}
+        if source == "espn":
+            assert player_metrics["goals_per90"].status == "missing_denominator"
+            assert player_metrics["shot_accuracy_pct"].status == "calculated"
+        elif source == "scores365":
+            assert player_metrics["goals_per90"].value == 1.0
+            assert player_metrics["shot_accuracy_pct"].value == 50.0
+            assert player_metrics["xg_per90"].model == "scores365"
+        else:
+            assert player_metrics["goals_per90"].value == 1.0
+            assert player_metrics["shot_accuracy_pct"].status == "missing_denominator"
+            assert player_metrics["xg_per90"].model == "sofascore"
+        frame = esd.derived_statistics_to_dataframe([esd.derive_statistics(selected.player_match_stat_records[0])])
+        assert str(frame.value.dtype) == "Float64" and not pd.isna(frame.loc[frame.name == "goals_per90", "value"].iloc[0]) == (source != "espn")

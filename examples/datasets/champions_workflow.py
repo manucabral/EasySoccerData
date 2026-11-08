@@ -199,10 +199,20 @@ def demo_inputs():
                       "homeScore": {"current": 1}, "awayScore": {"current": 0}}}
     scores, sofas = Scores365Endpoints(timezone_name="UTC"), SofascoreEndpoints()
     responses = {
+        ESPNEndpoints().seasons("uefa.champions"): {
+            "pageCount": 1, "count": 1,
+            "items": [{"$ref": "https://sports.core.api.espn.com/v2/sports/soccer/leagues/uefa.champions/seasons/2026"}],
+        },
         ESPNEndpoints().summary("1", "uefa.champions"): espn,
+        Scores365Endpoints().competition_seasons(572): {
+            "competitions": [{"id": 572, "sportId": 1, "seasons": [{"num": 228, "name": "2026/2027"}]}],
+        },
         scores.game_detail(2): {"game": game},
         scores.game_stats(2): {"games": [game], "actualGameStatistics": {"filterId": -1},
                                "statistics": [{"id": 3, "competitorId": 30, "value": "13"}]},
+        sofas.tournament_seasons_endpoint(7): {
+            "seasons": [{"id": 228, "name": "UEFA Champions League 26/27", "year": "26/27"}],
+        },
         sofas.event_endpoint(3): sofa,
         sofas.match_lineups_endpoint(3): {"confirmed": True, "home": {"players": [{"player": {"id": 301, "position": "F"},
             "substitute": False, "statistics": {"minutesPlayed": 90, "goals": 1, "onTargetScoringAttempt": 2,
@@ -223,6 +233,20 @@ def demo_inputs():
     return selections, esd.IdentityMap(entries), responses
 
 
+def discover_seasons(selections, cache_dir, refresh):
+    catalog = esd.get_catalog()
+    discovered = {}
+    for source, selection in selections.items():
+        result = catalog.list_seasons("Champions League", source, cache_dir=cache_dir, refresh=refresh)
+        target = str(selection["year"]) if source == "espn" else selection["season_id"]
+        season = next((row for row in result.seasons if row.season_id == target), None)
+        if season is None:
+            raise ValueError(f"{source} season {target} was not returned by discovery")
+        discovered[source] = catalog.dataset_options("Champions League", season,
+                                                     year=None if source == "espn" else selection["year"])
+    return discovered
+
+
 def download(selections, cache_dir, refresh, *, request_delay=None):
     timing = {"request_delay": request_delay} if request_delay is not None else {}
     return [esd.load_dataset(source=source, league=LEAGUES[source], season=selection["year"], season_id=selection["season_id"],
@@ -233,10 +257,18 @@ def download(selections, cache_dir, refresh, *, request_delay=None):
 def display(datasets, reports, limit, pandas):
     for dataset in datasets:
         validation = esd.validate_dataset(dataset)
+        coverage = esd.inspect_dataset_coverage(dataset)
+        minutes = next(row for row in coverage.fields if row.table == "player_match_stats" and row.field == "minutes")
+        derived = tuple(esd.derive_statistics(row) for row in (*dataset.player_match_stat_records, *dataset.match_stat_records))
         print(dataset.metadata.source, "| Complete:", dataset.complete, "| Valid:", validation.valid,
               "| Matches/lineups/player stats/events:", len(dataset.match_records), len(dataset.lineup_records),
               len(dataset.player_match_stat_records), len(dataset.match_event_records))
+        print("Coverage tasks:", tuple((row.table, row.task_status) for row in coverage.tables),
+              "| Minutes:", minutes.capability.support, f"{minutes.present_count}/{minutes.row_count}",
+              "| Derived calculated:", sum(metric.status == "calculated" for item in derived for metric in item.metrics))
         print("Original fetches:", dataset.metadata.response_fetched_at, "| Cached:", dataset.metadata.cached_tasks)
+        if pandas:
+            print(esd.derived_statistics_to_dataframe(derived).head(limit))
         for issue in dataset.errors:
             print(f"{dataset.metadata.source} {issue.step} {issue.target}: {issue.error_type}: {issue.message}", file=sys.stderr)
     for name, group in reports.items():
@@ -304,6 +336,16 @@ def main(argv=None):
             comparison_options(settings)
             identities = read_identities(directory / "identities.json")
             datasets = [esd.open_dataset(directory / source) for source in settings["sources"]]
+            for dataset in datasets:
+                if dataset.match_records:
+                    match_id = dataset.match_records[0].match_id
+                    selected = esd.open_dataset(
+                        directory / dataset.metadata.source,
+                        tables=("player_match_stats", "match_stats"),
+                        match_ids=(match_id,),
+                    )
+                    assert selected.metadata.tables == ("player_match_stats", "match_stats")
+                    assert selected.metadata.snapshot_match_ids == (match_id,)
         else:
             if args.demo:
                 selections, identities, responses = demo_inputs()
@@ -328,12 +370,17 @@ def main(argv=None):
                 with workflow_directory("esd-champions-demo-") as temporary:
                     directory = args.cache_dir / "artificial-workflow" if args.cache_dir else temporary / "responses"
 
-                    def artificial(url, **kwargs):
+                    def artificial(url, **_kwargs):
                         if url not in responses:
                             raise AssertionError(f"Unexpected artificial URL: {url}")
                         return deepcopy(responses[url])
 
-                    with patch("esd._provider_datasets.get_api_json", side_effect=artificial) as fetch:
+                    with patch("esd.discovery.get_api_json", side_effect=artificial) as discover_fetch, patch(
+                        "esd._provider_datasets.get_api_json", side_effect=artificial,
+                    ) as fetch:
+                        discovered = discover_seasons(selections, directory, args.refresh)
+                        assert discover_seasons(selections, directory, False) == discovered
+                        assert discover_fetch.call_count == len(selections)
                         datasets = download(selections, directory, args.refresh, request_delay=0)
                         first_count = fetch.call_count
                         cached = download(selections, directory, False, request_delay=0)
@@ -348,6 +395,19 @@ def main(argv=None):
                 directory = temporary / "workflow"
                 save_bundle(directory, datasets, identities, settings, reports)
                 restored = [esd.open_dataset(directory / source) for source in settings["sources"]]
+                for dataset in datasets:
+                    match_id = dataset.match_records[0].match_id
+                    selected = esd.open_dataset(
+                        directory / dataset.metadata.source,
+                        tables=("player_match_stats", "match_stats"),
+                        match_ids=(match_id,),
+                    )
+                    assert selected.metadata.tables == ("player_match_stats", "match_stats")
+                    assert selected.metadata.original_tables == dataset.metadata.tables
+                    assert selected.metadata.snapshot_match_ids == (match_id,)
+                    assert [esd.derive_statistics(row) for row in selected.player_match_stat_records] == [
+                        esd.derive_statistics(row) for row in dataset.player_match_stat_records
+                    ]
                 rules = json.loads((directory / "options.json").read_text(encoding="utf-8"))
                 assert compare_sources(restored, read_identities(directory / "identities.json"), rules) == reports
                 print("Temporary source snapshots and saved rules reproduce all comparisons")
@@ -361,6 +421,7 @@ def main(argv=None):
         return 0 if complete and linked else 1
     except (ValueError, OSError, ImportError) as exc:
         parser.error(str(exc))
+        return 2
     except esd.ESDException as exc:
         print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
         return 1
