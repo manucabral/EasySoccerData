@@ -75,6 +75,15 @@ def _utc(value):
 
 def _metadata(data, *, allow_legacy=False):
     meta = dict(data)
+    meta.setdefault("original_tables", [])
+    meta.setdefault("snapshot_match_ids", None)
+    selection = meta["snapshot_match_ids"]
+    if selection is not None:
+        if not isinstance(selection, list) or any(not isinstance(item, str) or not item.strip() for item in selection):
+            raise ValueError("Invalid snapshot_match_ids")
+        if len(set(selection)) != len(selection):
+            raise ValueError("Duplicate snapshot_match_ids")
+        meta["snapshot_match_ids"] = tuple(selection)
     meta.setdefault("cached_tasks", [])
     meta.setdefault("response_fetched_at", [])
     for key in ("expected_tasks", "successful_tasks", "requested_match_ids", "requested_club_ids", "requested_player_ids"):
@@ -82,7 +91,7 @@ def _metadata(data, *, allow_legacy=False):
     for key in ("started_at", "finished_at"):
         meta[key] = _utc(meta[key])
     for key in ("tables", "calendar_dates", "successful_dates", "cached_tasks",
-                "expected_tasks", "successful_tasks", "requested_match_ids", "requested_club_ids", "requested_player_ids"):
+                "expected_tasks", "successful_tasks", "requested_match_ids", "requested_club_ids", "requested_player_ids", "original_tables"):
         if not isinstance(meta[key], list) or any(not isinstance(item, str) for item in meta[key]):
             raise ValueError(f"Invalid {key}")
         if len(set(meta[key])) != len(meta[key]):
@@ -108,6 +117,11 @@ def _metadata(data, *, allow_legacy=False):
         raise ValueError("Lineups and player_match_stats require schema version 3")
     if result.schema_version in ("1", "2", "3") and "match_events" in result.tables:
         raise ValueError("match_events require schema version 4")
+    if result.original_tables and (
+        any(table not in TABLE_MODELS for table in result.original_tables)
+        or not set(result.tables) <= set(result.original_tables)
+    ):
+        raise ValueError("Invalid original table selection")
     if not result.tables or any(table not in TABLE_MODELS for table in result.tables):
         raise ValueError("Invalid table selection")
     if any(not isinstance(value, str) or not value for value in (result.source, result.league)):
@@ -221,7 +235,26 @@ def save_dataset(dataset, path, *, format="parquet"):
     return target
 
 
-def read_dataset(path):
+def _selection(values, allowed, name, *, empty=False):
+    from collections.abc import Sequence
+
+    if values is None:
+        return None
+    if isinstance(values, (str, bytes)) or not isinstance(values, Sequence):
+        raise ValueError(f"{name} must be a sequence of strings")
+    if any(not isinstance(value, str) or not value.strip() for value in values):
+        raise ValueError(f"{name} must contain nonblank strings")
+    result = tuple(dict.fromkeys(values))
+    if not empty and not result:
+        raise ValueError(f"{name} cannot be empty")
+    if allowed is not None and not set(result) <= set(allowed):
+        raise ValueError(f"{name} contains tables absent from the snapshot")
+    return result
+
+
+def read_dataset(path, *, tables=None, match_ids=None):
+    tables = _selection(tables, None, "tables")
+    match_ids = _selection(match_ids, None, "match_ids", empty=True)
     root = Path(path)
     if not root.is_dir():
         raise FileNotFoundError(f"Dataset directory not found: {root}")
@@ -240,6 +273,10 @@ def read_dataset(path):
         errors = tuple(DatasetIssue(**issue) for issue in manifest["errors"])
         if any(not isinstance(value, str) for issue in errors for value in asdict(issue).values()):
             raise ValueError("Invalid dataset issue")
+        selected = _selection(tables, metadata.tables, "tables") or metadata.tables
+        if match_ids is not None and metadata.snapshot_match_ids is not None:
+            match_ids = tuple(value for value in match_ids if value in metadata.snapshot_match_ids)
+        effective_ids = metadata.snapshot_match_ids if match_ids is None else match_ids
         records = {}
         for table in metadata.tables:
             entry = manifest["tables"][table]
@@ -249,11 +286,25 @@ def read_dataset(path):
             if filename.is_symlink() or _checksum(filename) != entry["sha256"]:
                 raise ValueError(f"Checksum mismatch or invalid file for {table}")
             with pq.ParquetFile(filename) as reader:
-                arrow_table = reader.read()
-            if not arrow_table.schema.equals(_schema(pa, table, metadata.schema_version), check_metadata=False):
-                raise ValueError(f"Invalid Parquet schema for {table}")
-            if type(entry["rows"]) is not int or arrow_table.num_rows != entry["rows"]:
-                raise ValueError(f"Row count mismatch for {table}")
+                schema = reader.schema_arrow
+                if not schema.equals(_schema(pa, table, metadata.schema_version), check_metadata=False):
+                    raise ValueError(f"Invalid Parquet schema for {table}")
+                if type(entry["rows"]) is not int or reader.metadata.num_rows != entry["rows"]:
+                    raise ValueError(f"Row count mismatch for {table}")
+                if table not in selected:
+                    continue
+                if effective_ids is None or "match_id" not in schema.names:
+                    arrow_table = reader.read()
+                else:
+                    import pyarrow.compute as pc
+
+                    wanted = pa.array(effective_ids, type=pa.string())
+                    batches = []
+                    for batch in reader.iter_batches(batch_size=65536):
+                        filtered = batch.filter(pc.is_in(batch.column(schema.get_field_index("match_id")), value_set=wanted))
+                        if filtered.num_rows:
+                            batches.append(filtered)
+                    arrow_table = pa.Table.from_batches(batches, schema=schema)
             if table == "matches":
                 # Schema validation already established UTC. Materialize naive UTC
                 # values to avoid Arrow consulting optional timezone databases.
@@ -269,6 +320,11 @@ def read_dataset(path):
             rows = tuple(TABLE_MODELS[table](**row) for row in values)
             _validate_records(rows, table)
             records[_RECORDS[table]] = rows
-        return SoccerDataset(metadata=replace(metadata, schema_version=SCHEMA_VERSION), errors=errors, **records)
+        return SoccerDataset(metadata=replace(
+            metadata, schema_version=SCHEMA_VERSION, tables=selected,
+            original_tables=(metadata.original_tables or metadata.tables)
+            if tables is not None or match_ids is not None else metadata.original_tables,
+            snapshot_match_ids=effective_ids,
+        ), errors=errors, **records)
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise DatasetFormatError(f"Invalid dataset at {root}: {exc}") from exc

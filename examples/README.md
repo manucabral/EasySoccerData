@@ -918,3 +918,14 @@ queries. On systems without IANA timezone data, install `tzdata` before running
 them. pandas is not required. Base checks require no PyArrow; snapshot checks
 need `python -m pip install -e ".[parquet]"` or `".[full]"`. A JSON report is
 written only with `--output`. The checks do not run as part of ordinary CI.
+
+### Select snapshot rows
+
+```console
+python examples/datasets/select_snapshot.py --demo
+python examples/datasets/select_snapshot.py --open-dir ./my-data/champions --table matches --table shots --match-id 401915310
+```
+
+Requires `[parquet]`. Reads saved files without HTTP or pandas. Tables without a
+match ID remain unchanged. The printed completion flag and failures describe the
+original download, including failures outside the loaded selection.

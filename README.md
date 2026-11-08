@@ -741,3 +741,18 @@ downloadable preview artifact; only pushes to main deploy GitHub Pages.
 `scripts/check_install.py --extra base` verifies an installed distribution,
 including optional dependency boundaries; it should run in the clean environment
 being checked. Browser binaries and live provider access are not required.
+
+### Read part of a saved dataset
+
+```python
+from esd import open_dataset
+
+selected = open_dataset(
+    "./my-data/champions", tables=("matches", "shots"), match_ids=("401915310",),
+)
+```
+
+Requires `[parquet]`; pandas remains optional. Match IDs are exact native strings.
+Tables without `match_id` retain all rows. Original download coverage and errors
+remain available, and `complete` still describes that download. See the dataset
+guide for local selection metadata and integrity checks.

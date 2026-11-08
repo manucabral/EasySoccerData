@@ -55,7 +55,7 @@ PANDAS = (
     ("examples/pandas/normalized_tables.py",),
     ("examples/pandas/dataset_analysis.py",),
 )
-PARQUET = (("examples/datasets/coverage_offline.py", "--parquet"),
+PARQUET = (("examples/datasets/select_snapshot.py", "--demo"), ("examples/datasets/coverage_offline.py", "--parquet"),
            ("examples/datasets/match_shots_offline.py", "--parquet"),
            ("examples/datasets/parquet_roundtrip.py",),
            ("examples/datasets/champions_workflow.py", "--demo", "--allow-unknown-period", "--parquet"),

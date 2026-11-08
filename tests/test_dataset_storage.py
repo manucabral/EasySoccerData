@@ -264,3 +264,85 @@ assert "pytz" not in sys.modules and "tzdata" not in sys.modules
     result = subprocess.run([sys.executable, "-c", code, str(tmp_path / "without-pandas")],
                             capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 0, result.stderr
+
+
+def test_selective_snapshot_preserves_download_and_local_scope(dataset, tmp_path):
+    source = dataset.save(tmp_path / "source")
+    original = {file.name: file.read_bytes() for file in source.iterdir()}
+    selected = open_dataset(source, tables=("matches", "standings"), match_ids=("001", "001"))
+    assert selected.metadata.tables == ("matches", "standings")
+    assert selected.metadata.original_tables == dataset.metadata.tables
+    assert selected.metadata.snapshot_match_ids == ("001",)
+    assert selected.metadata.requested_match_ids == dataset.metadata.requested_match_ids
+    assert selected.metadata.response_fetched_at == dataset.metadata.response_fetched_at
+    assert selected.match_records == dataset.match_records[:1]
+    assert selected.standing_records == dataset.standing_records
+    assert selected.team_records == ()
+    assert selected.errors == dataset.errors
+    assert not selected.complete
+    assert open_dataset(selected.save(tmp_path / "selection")) == selected
+    narrowed = open_dataset(tmp_path / "selection", match_ids=("002",))
+    assert narrowed.match_records == ()
+    assert narrowed.metadata.snapshot_match_ids == ()
+    assert {file.name: file.read_bytes() for file in source.iterdir()} == original
+
+
+def test_table_selection_does_not_hide_legacy_incomplete_calendar(dataset, tmp_path):
+    original = replace(dataset, errors=())
+    selected = open_dataset(original.save(tmp_path / "source"), tables=("standings",))
+    assert not original.complete and not selected.complete
+    assert selected.metadata.tables == ("standings",)
+    assert selected.match_records == ()
+
+
+@pytest.mark.parametrize("ids", [(), ("missing",), ("1",)])
+def test_exact_native_ids_and_empty_selection(dataset, tmp_path, ids):
+    selected = open_dataset(dataset.save(tmp_path / "source"), match_ids=ids)
+    assert selected.match_records == ()
+    assert selected.standing_records == dataset.standing_records
+    assert selected.team_records == dataset.team_records
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"tables": ()}, {"tables": "matches"}, {"tables": ("absent",)},
+    {"match_ids": "001"}, {"match_ids": (1,)}, {"match_ids": (" ",)},
+])
+def test_invalid_snapshot_selection(dataset, tmp_path, kwargs):
+    with pytest.raises((ValueError, DatasetFormatError)):
+        open_dataset(dataset.save(tmp_path / "source"), **kwargs)
+
+
+def test_omitted_tables_are_checked_but_not_decoded(dataset, tmp_path, monkeypatch):
+    source = dataset.save(tmp_path / "source")
+    original = pq.ParquetFile
+    decoded = []
+
+    class Reader:
+        def __init__(self, path):
+            self.reader = original(path)
+            self.name = path.name
+            self.schema_arrow = self.reader.schema_arrow
+            self.metadata = self.reader.metadata
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            self.reader.close()
+
+        def read(self):
+            decoded.append(self.name)
+            return self.reader.read()
+
+        def iter_batches(self, **kwargs):
+            decoded.append(self.name)
+            return self.reader.iter_batches(**kwargs)
+
+    monkeypatch.setattr(pq, "ParquetFile", Reader)
+    selected = open_dataset(source, tables=("matches",), match_ids=("001",))
+    assert len(selected.match_records) == 1
+    assert decoded == ["matches.parquet"]
+    with (source / "standings.parquet").open("ab") as stream:
+        stream.write(b"damaged")
+    with pytest.raises(DatasetFormatError, match="Checksum"):
+        open_dataset(source, tables=("matches",))

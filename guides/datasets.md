@@ -1454,3 +1454,43 @@ establish permanent availability or equivalent collection rules.
 
 Use a small date range or a few entity IDs to reproduce download errors. Run
 `scripts/check_examples.py` to check offline examples without querying providers.
+
+## Read selected tables and matches
+
+```python
+from esd import open_dataset
+
+selected = open_dataset(
+    "./my-data/champions", tables=("matches", "shots"), match_ids=("401915310",),
+)
+print(selected.metadata.original_tables)
+print(selected.metadata.snapshot_match_ids)
+```
+
+`tables` must be a nonempty subset of the saved tables. Omit it to open every
+saved table. `match_ids` accepts native string IDs, preserving leading zeros.
+An empty sequence or an unknown ID produces no matching rows. Tables containing
+`match_id` are filtered, including events, lineups and player-match statistics.
+Other selected tables retain all rows. Season statistics, standings and entity
+histories are not attributed to individual fixtures.
+
+The reader checks every file's checksum, schema and footer row count, including
+omitted tables. Selected match tables are decoded in batches of up to 65,536
+rows, retaining only matches that pass the filter. All file bytes are still read
+for checksum verification. Omitted tables are not decoded. The resulting records
+remain in memory, so a selection containing many rows still requires memory for
+those rows. Opening requires `[parquet]` and does not import pandas.
+
+`metadata.tables` describes the available tables. `original_tables` retains the
+original download selection, while `snapshot_match_ids` records the local filter
+(`None` means no filter, an empty tuple means no selected matches). Requested IDs,
+tasks, errors, cache flags and response timestamps keep their original meanings.
+`complete` refers to the original download. Field coverage counts the rows loaded
+locally, while task coverage describes the original requests.
+
+Saving to a new directory preserves these selection fields. Reopening a selection
+cannot recover omitted rows. A further match filter intersects the saved filter.
+Older snapshots without selection metadata remain supported, including their
+schema migrations. Reading does not modify the source directory.
+
+Run `python examples/datasets/select_snapshot.py --help` for an offline reader.

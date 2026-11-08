@@ -4,6 +4,8 @@
 
 ### Added
 
+- Read snapshots by table and native match ID with batched filtering, full file integrity checks and preserved download provenance.
+
 - Read-only field contracts for all nine dataset providers, with nullable types, unavailable columns and source-specific model/coordinate labels. Coverage inspection separates normalized non-null/missing/zero/False counts from per-table task outcomes, retaining errors, cache dates and query scope without optional dependencies. New CLI/offline examples cover contract lookup, snapshots, JSON reports and optional pandas frames.
 
 - Reviewed catalog `2026-11-08.1` adds Bundesliga, Serie A and Sofascore references, covering five competitions and 96 team identities across ESPN/365Scores/Sofascore.

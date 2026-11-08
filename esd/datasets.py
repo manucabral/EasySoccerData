@@ -102,6 +102,8 @@ class DatasetMetadata:
     source_season: str | None = None
     requested_club_ids: tuple[str, ...] = ()
     requested_player_ids: tuple[str, ...] = ()
+    original_tables: tuple[str, ...] = ()
+    snapshot_match_ids: tuple[str, ...] | None = None
 
 
 @dataclass(frozen=True)
@@ -134,10 +136,11 @@ class SoccerDataset:
         meta = self.metadata
         if meta.expected_tasks:
             return not self.errors and set(meta.expected_tasks) == set(meta.successful_tasks)
-        matches_ok = "matches" not in meta.tables or (
+        coverage_tables = meta.original_tables or meta.tables
+        matches_ok = "matches" not in coverage_tables or (
             meta.calendar_loaded and set(meta.calendar_dates) == set(meta.successful_dates)
         )
-        standings_ok = "standings" not in meta.tables or meta.standings_loaded
+        standings_ok = "standings" not in coverage_tables or meta.standings_loaded
         return not self.errors and matches_ok and standings_ok
 
     def _dataframe(self, records, table):
@@ -222,15 +225,26 @@ class DatasetFormatError(ESDException):
     """A saved dataset is invalid, damaged or uses an unsupported schema."""
 
 
-def open_dataset(path: str | PathLike) -> SoccerDataset:
+def open_dataset(
+    path: str | PathLike, *, tables: Sequence[str] | None = None,
+    match_ids: Sequence[str] | None = None,
+) -> SoccerDataset:
     """Read a saved Parquet snapshot without network access.
 
     Requires EasySoccerData[parquet]. Validates the manifest, versions, table
-    schemas, row counts and checksums. Partial coverage and errors are preserved.
+    schemas, row counts and checksums for every file, including omitted tables.
+    tables selects a nonempty subset. match_ids filters tables containing match_id
+    using exact native strings. Other tables remain unchanged. An empty ID list
+    returns no match rows. Unknown IDs produce no rows.
+
+    Selected rows are decoded in batches without pandas. Original task coverage,
+    errors and response dates remain intact. metadata.original_tables records the
+    original table selection, and snapshot_match_ids records a local match filter.
+    complete still describes the original download. Saving preserves these filters.
     """
     from ._dataset_storage import read_dataset
 
-    return read_dataset(path)
+    return read_dataset(path, tables=tables, match_ids=match_ids)
 
 
 class DatasetLoadError(ESDException):

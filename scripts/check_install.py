@@ -160,6 +160,12 @@ def main():
         assert cache.get("query", ttl=60).data == {"events": []}
         if wants_arrow:
             assert esd.open_dataset(dataset.save(Path(directory) / "snapshot")) == dataset
+            selected = esd.open_dataset(Path(directory) / "snapshot", tables=("matches",), match_ids=())
+            assert selected.match_records == ()
+            assert selected.metadata.original_tables == dataset.metadata.tables
+            assert selected.metadata.snapshot_match_ids == ()
+            assert selected.complete == dataset.complete
+            assert esd.open_dataset(selected.save(Path(directory) / "selected")) == selected
             assert esd.open_dataset(details.save(Path(directory) / "statistics")) == details
             assert esd.open_dataset(players.save(Path(directory) / "players")) == players
             assert esd.inspect_dataset_coverage(esd.open_dataset(Path(directory) / "players")) == field_coverage

@@ -298,3 +298,18 @@ and save/open caller-owned JSON without optional dependencies.
 For bug reports, include the provider, method, arguments and traceback. Remove
 proxy credentials and tokens from logs. Add a response fixture and an offline
 regression test when submitting a parser fix.
+
+### Read part of a saved dataset
+
+```python
+from esd import open_dataset
+
+selected = open_dataset(
+    "./my-data/champions", tables=("matches", "shots"), match_ids=("401915310",),
+)
+```
+
+Requires `[parquet]`; pandas remains optional. Match IDs are exact native strings.
+Tables without `match_id` retain all rows. Original download coverage and errors
+remain available, and `complete` still describes that download. See the dataset
+guide for local selection metadata and integrity checks.
