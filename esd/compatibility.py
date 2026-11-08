@@ -234,7 +234,7 @@ def check_dataset_compatibility(
     if not isinstance(left, SoccerDataset) or not isinstance(right, SoccerDataset):
         raise TypeError("Expected two SoccerDataset objects")
     if identities is not None and not isinstance(identities, IdentityMap):
-        raise TypeError("identities must be an IdentityMap")
+        raise ValueError("identities must be an IdentityMap")
     shared = tuple(
         table
         for table in TABLE_MODELS
@@ -339,7 +339,7 @@ def link_dataset_matches(
     source IDs remain unchanged. Partial mappings may yield partial links.
     """
     if (
-        isinstance(tolerance_seconds, bool)
+        type(tolerance_seconds) not in (int, float)
         or not math.isfinite(tolerance_seconds)
         or tolerance_seconds < 0
     ):

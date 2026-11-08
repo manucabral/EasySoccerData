@@ -114,6 +114,10 @@ def test_public_adapter_preserves_input_and_can_skip_unselected_statistics(fetch
     assert esd.normalize_match_players(raw, match=match, include_statistics=False).lineups == records.lineups
     with pytest.raises(esd.SourceError):
         esd.normalize_match_players(raw, match=match)
+    with pytest.raises(ValueError):
+        esd.normalize_match_players(raw, match=esd.NormalizedMatch("understat"))
+    with pytest.raises(ValueError):
+        esd.normalize_match_players(raw, match=match, include_statistics="no")
 
 
 @pytest.mark.parametrize("source,cost", [("espn", 1), ("scores365", 2), ("sofascore", 3)])
@@ -230,6 +234,7 @@ def test_legacy_manifest_cannot_claim_new_player_tables(fetch, tmp_path, version
 
 def test_lineups_only_skips_unselected_365_statistics_and_timeline(fetch):
     data = scores_payload()
+    data["game"]["members"].append({"competitorId": 10, "name": "Disallowed goal"})
     data["game"]["homeCompetitor"]["lineups"]["members"][0]["stats"] = "unselected malformed statistics"
     data["game"]["events"] = "unselected malformed timeline"
     original = deepcopy(data)

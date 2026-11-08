@@ -234,9 +234,13 @@ def _seasons(data, source, competition):
 
 
 def _read(source, url, parse, cache_dir, cache_policy, refresh, proxies):
+    if type(refresh) is not bool:
+        raise ValueError("refresh must be a boolean")
+    if cache_policy is not None and not isinstance(cache_policy, CachePolicy):
+        raise ValueError("cache_policy must be a CachePolicy")
+    if cache_policy is not None and cache_dir is None:
+        raise ValueError("cache_policy requires cache_dir")
     policy = cache_policy if cache_policy is not None else CachePolicy()
-    if not isinstance(policy, CachePolicy):
-        raise TypeError("cache_policy must be a CachePolicy")
     cache = ResponseCache(cache_dir) if cache_dir is not None else None
     headers = _PROMIEDOS_HEADERS if source == "promiedos" else None
 

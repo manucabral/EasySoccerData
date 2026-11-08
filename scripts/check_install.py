@@ -24,6 +24,7 @@ def main():
     assert "site-packages" in Path(esd.__file__).parts, esd.__file__
     assert metadata("EasySoccerData")["License-Expression"] == "MIT"
     assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
+    assert esd.SCHEMA_VERSION == "6"
     derived = esd.derive_statistics(esd.NormalizedPlayerMatchStats("scores365", minutes=45, goals=1))
     assert derived.metrics[0].value == 2
     assert derived.to_dict()["record"]["minutes"] == 45
@@ -75,6 +76,7 @@ def main():
     assert any(row.field == "goals" and row.zero_count == 1 for row in field_coverage.fields)
     assert field_coverage.to_dict()["metadata"]["schema_version"] == "6"
     assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
+    assert esd.SCHEMA_VERSION == "6"
     assert players.lineup_records[0].starter is False and players.lineup_records[1].starter is None
     assert players.player_match_stat_records[0].goals == 0 and players.player_match_stat_records[0].minutes is None
     player_comparison = esd.compare_match_players(players, players, metrics=["goals", "minutes"])
@@ -126,6 +128,7 @@ def main():
     assert sofa_events_report.left_coverage[0].successful
     assert "source_period" in sofa_events_report.rows[0].unknown_fields
     assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
+    assert esd.SCHEMA_VERSION == "6"
     assert all(contract.tables for contract in esd.get_dataset_capabilities().values())
     now = datetime(2024, 8, 16, 19, tzinfo=timezone.utc)
     dataset = esd.SoccerDataset(
@@ -156,6 +159,7 @@ def main():
     validation = esd.validate_dataset(dataset)
     assert validation.valid and not validation.errors
     assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
+    assert esd.SCHEMA_VERSION == "6"
     with TemporaryDirectory(prefix="esd-install-") as directory:
         assert esd.open_catalog(catalog.save_json(Path(directory) / "catalog.json")) == catalog
         cache = esd.ResponseCache(Path(directory) / "cache")

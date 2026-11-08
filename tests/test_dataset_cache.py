@@ -157,3 +157,6 @@ def test_rate_limit_delay_applies_to_misses_only(tmp_path, source, monkeypatch):
     sleep.assert_not_called()
     service.get_scoreboard("eng.1", "2024-08-17", expected_season=2024)
     sleep.assert_called_once_with(0.25)
+    for bad in ({"calendar_ttl": True}, {"calendar_ttl": "1"}, {"recent_days": True}):
+        with pytest.raises(ValueError):
+            CachePolicy(**bad)

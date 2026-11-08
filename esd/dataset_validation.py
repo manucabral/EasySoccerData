@@ -209,6 +209,9 @@ def validate_dataset(dataset: SoccerDataset) -> DatasetValidationReport:
             if (meta.coverage_scope == "match_ids" and table in ("matches", "match_stats", "lineups", "player_match_stats", "match_events", "shots")
                     and row.match_id not in meta.requested_match_ids):
                 add("error", "unrequested_match", "Record match ID is outside the explicit selection", table, index, "match_id")
+            if (meta.snapshot_match_ids is not None and table in ("matches", "match_stats", "lineups", "player_match_stats", "match_events", "shots")
+                    and row.match_id not in meta.snapshot_match_ids):
+                add("error", "unrequested_match", "Record match ID is outside the local snapshot selection", table, index, "match_id")
             if table == "matches":
                 for field in ("home_score", "away_score"):
                     if getattr(row, field) is not None and getattr(row, field) < 0:

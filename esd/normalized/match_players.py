@@ -159,6 +159,8 @@ def _scores(payload, match):
         raise SourceError("365Scores player response differs from the supplied match")
     members = {}
     for member in _list(game.get("members", []), "365Scores members"):
+        if member.get("id") is None:
+            continue
         identifier = _id(member.get("id"))
         if identifier in members:
             raise SourceError("Repeated 365Scores member ID")
@@ -274,9 +276,9 @@ def normalize_match_players(payload: dict, *, match: NormalizedMatch, include_st
     include_statistics=False validates lineup structure without parsing metrics.
     """
     if not isinstance(match, NormalizedMatch) or match.source not in ("espn", "scores365", "sofascore"):
-        raise TypeError("Expected an ESPN, 365Scores or Sofascore NormalizedMatch")
+        raise ValueError("match must be an ESPN, 365Scores or Sofascore NormalizedMatch")
     if type(include_statistics) is not bool:
-        raise TypeError("include_statistics must be boolean")
+        raise ValueError("include_statistics must be boolean")
     if (any(not isinstance(value, str) or not value.strip() for value in
             (match.match_id, match.competition_id, match.home_team_id, match.away_team_id))
             or match.home_team_id == match.away_team_id):

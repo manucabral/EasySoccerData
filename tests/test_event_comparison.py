@@ -244,7 +244,7 @@ def test_original_event_fetches_are_exact_and_never_context_or_loader_times(pair
                                     {"period_aliases": []}, {"period_aliases": {"invalid": "period"}},
                                     {"period_aliases": {("unknown", "1"): "period"}}, {"identities": []}])
 def test_bad_options_fail_explicitly(pair, options):
-    with pytest.raises((TypeError, ValueError)):
+    with pytest.raises(ValueError):
         esd.compare_match_events(*pair, **options)
 
 

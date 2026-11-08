@@ -371,7 +371,7 @@ def load_dataset(
                                    *(["matches", "teams"] if details else ["teams"] if "matches" in tables else [])]))
     if on_error not in ("raise", "collect"):
         raise ValueError("on_error must be 'raise' or 'collect'")
-    if not math.isfinite(request_delay) or request_delay < 0:
+    if type(request_delay) not in (int, float) or not math.isfinite(request_delay) or request_delay < 0:
         raise ValueError("request_delay must be a finite nonnegative number")
     if cache_policy is not None and not isinstance(cache_policy, CachePolicy):
         raise ValueError("cache_policy must be a CachePolicy")

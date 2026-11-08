@@ -39,7 +39,7 @@ class CachePolicy:
     def __post_init__(self):
         for field in fields(self):
             value = getattr(self, field.name)
-            if not math.isfinite(value) or value < 0:
+            if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
                 raise ValueError(f"{field.name} must be finite and nonnegative")
         if type(self.recent_days) is not int:
             raise ValueError("recent_days must be an integer")

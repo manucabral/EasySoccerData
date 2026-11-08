@@ -171,7 +171,7 @@ def test_dataset_dataframe_tables_have_stable_types(client, populated):
     {"source": "other"}, {"league": "all"}, {"league": ""}, {"season": "2024-25"},
     {"season": True}, {"tables": []}, {"tables": "matches"}, {"tables": ["unknown"]},
     {"tables": ["teams"]}, {"on_error": "ignore"}, {"request_delay": -1},
-    {"request_delay": float("nan")},
+    {"request_delay": float("nan")}, {"request_delay": True}, {"request_delay": "0.25"},
     {"cache_policy": "invalid"}, {"cache_policy": datasets.CachePolicy()}, {"refresh": "yes"},
 ])
 def test_invalid_options_do_not_start_requests(client, kwargs):

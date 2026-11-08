@@ -178,6 +178,8 @@ def compare_match_statistics(
     """
     if not isinstance(left, SoccerDataset) or not isinstance(right, SoccerDataset):
         raise TypeError("Expected two SoccerDataset objects")
+    if type(tolerance_seconds) not in (int, float) or not math.isfinite(tolerance_seconds) or tolerance_seconds < 0:
+        raise ValueError("tolerance_seconds must be finite and nonnegative")
     selected = _METRICS if metrics is None else metrics
     if (not isinstance(selected, Sequence) or isinstance(selected, (str, bytes)) or not selected
             or any(not isinstance(name, str) or name not in _METRICS for name in selected)):

@@ -89,6 +89,7 @@ from .goaloo import GoalooClient
 from .goaloo import types as GoalooTypes
 from .logger import disable_logging, enable_logging
 from .normalized import (
+    SCHEMA_VERSION,
     MatchPlayerRecords,
     NormalizedLineup,
     NormalizedMarketValue,
@@ -160,7 +161,7 @@ __all__ = [
     "DatasetCompatibility", "EntityAlias", "IdentityMap", "MatchLink", "MatchLinkResult",
     "IdentityResolution",
     "check_dataset_compatibility", "link_dataset_matches",
-    "NormalizedPlayer", "NormalizedMarketValue", "NormalizedTransfer",
+    "NormalizedPlayer", "NormalizedMarketValue", "NormalizedTransfer", "SCHEMA_VERSION",
     "SofascoreClient",
     "SofascoreTypes",
     "PromiedosClient",

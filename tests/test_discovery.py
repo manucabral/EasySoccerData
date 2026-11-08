@@ -139,6 +139,9 @@ def test_malformed_or_conflicting_source_data_is_not_cached(fetch, tmp_path, ope
     (esd.list_seasons, ("espn", 775), {}),
     (esd.list_seasons, ("scores365", True), {}),
     (esd.list_seasons, ("goaloo", -1), {}),
+    (esd.list_seasons, ("goaloo", 36), {"refresh": "yes"}),
+    (esd.list_seasons, ("goaloo", 36), {"cache_policy": "invalid"}),
+    (esd.list_seasons, ("goaloo", 36), {"cache_policy": esd.CachePolicy()}),
 ])
 def test_invalid_selection_is_rejected_before_network(fetch, operation, arguments, options):
     with pytest.raises(ValueError):

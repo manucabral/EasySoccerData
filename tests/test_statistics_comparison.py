@@ -146,9 +146,10 @@ def test_unmatched_and_ambiguous_matches_are_not_guessed(pair, identities):
     {"tolerances": {"home_shots": True}}, {"tolerances": {"home_shots": float("nan")}},
     {"tolerances": {"home_shots": float("inf")}}, {"tolerances": {"unknown": 1}},
     {"metrics": ["home_shots"], "tolerances": {"away_shots": 1}}, {"tolerance_seconds": -1},
+    {"tolerance_seconds": True}, {"tolerance_seconds": "300"}, {"identities": []},
 ])
 def test_invalid_options_fail_explicitly(pair, options):
-    with pytest.raises((ValueError, TypeError)):
+    with pytest.raises(ValueError):
         esd.compare_match_statistics(*pair, **options)
 
 

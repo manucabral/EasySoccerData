@@ -232,6 +232,8 @@ def test_old_cached_timestamps_are_valid_but_failed_cached_tasks_are_not(dataset
 def test_malformed_containers_return_diagnostics(dataset, change, expected):
     report = esd.validate_dataset(replace(dataset, **change))
     assert not report.valid and expected in codes(report)
+    narrowed = replace(dataset, metadata=replace(dataset.metadata, snapshot_match_ids=("other",)))
+    assert "unrequested_match" in codes(esd.validate_dataset(narrowed))
 
 
 def test_wrong_input_type_raises_type_error():

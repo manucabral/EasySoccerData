@@ -190,7 +190,9 @@ def test_team_tables_require_their_own_identity_mappings(pair):
     assert any("team/standings" in issue for issue in report.issues)
 
 
-@pytest.mark.parametrize("tolerance", [-1, float("nan"), float("inf"), True])
+@pytest.mark.parametrize("tolerance", [-1, float("nan"), float("inf"), True, "300"])
 def test_invalid_tolerance_rejected(pair, tolerance):
     with pytest.raises(ValueError):
         esd.link_dataset_matches(*pair, tolerance_seconds=tolerance)
+    with pytest.raises(ValueError):
+        esd.check_dataset_compatibility(*pair, identities=[])
