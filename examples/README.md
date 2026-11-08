@@ -18,6 +18,8 @@ snapshot. Temporary-file examples clean up after themselves.
 
 | Script | Extra | Behavior shown |
 | :--- | :--- | :--- |
+| [Player comparison](datasets/compare_players_offline.py) | Base | Starter/shot differences, missing minutes, source models and ambiguous player aliases |
+| [Player comparison](datasets/compare_players_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable lineup/metric frames or source snapshots reproducing the comparison |
 | [Event comparison](datasets/compare_events_offline.py) | Base | Artificial minute/penalty differences, ambiguous cards, unknown players and native phase exclusions |
 | [Event comparison](datasets/compare_events_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable report frames or comparisons recomputed from snapshots |
 | [Match events](datasets/match_events_offline.py) | Base | Artificial goals/stoppage time, shootout counters, player/context reuse and caching for ESPN/365Scores/Sofascore |
@@ -230,6 +232,78 @@ coverage. Existing discovery blocks remain source failures.
 shows immutable extensions, identity maps and saving a catalog beside snapshots.
 The offline workflow uses artificial source seasons/fixtures for all three
 competitions and two seasons. `--pandas` and `--parquet` remain independent.
+
+### Compare lineups and player statistics
+
+[champions_player_comparison.py](datasets/champions_player_comparison.py)
+compares explicit ESPN/365Scores Champions IDs. It requests lineups and player
+statistics from one detail response per source, before transport retries:
+
+```sh
+python examples/datasets/champions_player_comparison.py --espn-match-id 401915310 --scores365-match-id 4828447 --espn-season 2026 --year 2026 --season-id 74
+```
+
+The fixture is Shakhtar–Sporting on November 3, 2026. The
+[sample identities](datasets/champions_player_identities.json) extend the event
+example's three players to twelve, reviewed against the native roster IDs,
+names, team context and shirts on November 8. The source responses are the
+[ESPN summary](https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/summary?event=401915310)
+and [365Scores game](https://webws.365scores.com/web/game/?appTypeId=5&langId=14&timezoneName=UTC&userCountryId=31&gameId=4828447).
+This manually reviewed fixture sample does not supply a general player registry
+or an automatic name/jersey matching rule. The 365Scores column is the native
+member ID, separate from its athlete ID.
+
+| Player | ESPN ID | 365Scores member ID | Shirt |
+| :--- | :--- | :--- | :--- |
+| Dmytro Riznyk | 276081 | 16515075 | 31 |
+| Valeriy Bondar | 276070 | 13285265 | 5 |
+| Alisson Santana | 359420 | 70282985 | 30 |
+| Rui Silva | 177898 | 416870 | 1 |
+| Gonçalo Inácio | 304106 | 50072970 | 25 |
+| Eduardo Quaresma | 290590 | 49491937 | 72 |
+| Sergi Altimira | 331426 | 70860145 | 5 |
+| Silas Andersen | 355408 | 70939626 | 4 |
+| Fotis Ioannidis | 266318 | 51611636 | 7 |
+| Issa Doumbia | 386592 | 75430996 | 77 |
+| Maximiliano Araújo | 287025 | 7244055 | 20 |
+| Isaque | 382970 | 76831892 | 14 |
+
+The November 8 live check fetched 46 lineup rows per source, with 46 ESPN and
+31 365Scores player-statistics records. It paired twelve players and retained
+68 unresolved lineup observations because the sample does not map the remaining
+players. Known comparable lineup fields for those twelve players agreed; native
+positions without mappings and absent flags remained unknown. The checked
+comparable numeric observations had no differences. Many individual values
+remained missing or source-specific, including ESPN minutes. These results
+describe that query and partial map, without establishing full agreement.
+
+Pass a reviewed `--identities PATH` for another fixture or more players. Select
+metrics with repeated `--metric`, optionally `--minutes-tolerance` when minutes
+are selected. `--kickoff-tolerance` defaults to 300 seconds. Native positions
+are shown but need explicit mappings through the Python API to be compared.
+
+```sh
+python examples/datasets/champions_player_comparison.py --espn-match-id 401915310 --scores365-match-id 4828447 --espn-season 2026 --year 2026 --season-id 74 --metric goals --metric minutes --minutes-tolerance 1 --cache-dir ./my-data/player-responses --output-dir ./my-data/player-comparison-1
+python examples/datasets/champions_player_comparison.py --open-dir ./my-data/player-comparison-1
+python examples/datasets/compare_players_offline.py
+```
+
+Base comparison/cache needs no extras. `--pandas` displays the two report frames.
+Snapshot save/open needs `[parquet]`, independently of pandas. The new destination
+contains `espn/`, `scores365/`, `identities.json`, `options.json` and `comparison.json`.
+Offline opening reads the source snapshots, aliases and saved comparison settings
+and recomputes the report. It does not trust saved report rows. Download/settings
+overrides cannot be combined with `--open-dir`. Missing extras, invalid selectors
+or comparison settings and existing output paths fail before source requests.
+
+Exit 0 requires successful downloads, a linked fixture and no unresolved players
+or fixtures. Known differences, missing optional metrics and source-specific
+models remain reported without making that check fail. Partial downloads or
+unresolved player/fixture identities return 1. Invalid input returns 2. The
+bundled partial identity sample therefore returns 1 even when both queries succeed.
+The artificial offline example covers starter/shot differences, missing minutes,
+unused substitutes, source models and ambiguous player aliases. Its independent
+`--pandas` and `--parquet` flags exercise optional exports and snapshot round trips.
 
 ### Compare match events
 

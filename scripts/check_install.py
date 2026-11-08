@@ -66,6 +66,11 @@ def main():
     assert esd.validate_dataset(players).valid and players.complete
     assert players.lineup_records[0].starter is False and players.lineup_records[1].starter is None
     assert players.player_match_stat_records[0].goals == 0 and players.player_match_stat_records[0].minutes is None
+    player_comparison = esd.compare_match_players(players, players, metrics=["goals", "minutes"])
+    assert len(player_comparison.rows) == 2 and not player_comparison.unresolved
+    assert player_comparison.statistics[0].status == "equal" and player_comparison.statistics[0].delta == 0
+    assert player_comparison.statistics[1].status == "missing_both"
+    assert player_comparison.left_coverage[0].successful
     detail_payload["keyEvents"] = [
         {"id": "e1", "type": {"id": "104"}, "period": {"number": 5},
          "clock": {"value": 7200, "displayValue": "120'"}},
@@ -151,8 +156,17 @@ def main():
         assert str(players.lineups.starter.dtype) == "boolean"
         assert players.lineups.starter.isna().sum() == 1
         assert str(players.player_match_stats.goals.dtype) == "Int64"
+        assert str(player_comparison.to_dataframe().left_starter.dtype) == "boolean"
+        assert str(player_comparison.to_dataframe("statistics").left_value.dtype) == "Float64"
     else:
         assert "pandas" not in sys.modules
+        for table in ("lineups", "statistics"):
+            try:
+                player_comparison.to_dataframe(table)
+            except ImportError as exc:
+                assert "EasySoccerData[pandas]" in str(exc)
+            else:
+                raise AssertionError("Player comparison DataFrames without pandas must fail")
         try:
             comparison.to_dataframe()
         except ImportError as exc:

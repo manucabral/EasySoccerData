@@ -97,6 +97,13 @@ from .normalized import (
     normalize_team,
     normalized_to_dataframe,
 )
+from .player_comparison import (
+    MatchPlayerComparison,
+    MatchPlayerCoverage,
+    MatchPlayersReport,
+    PlayerMatchStatisticComparison,
+    compare_match_players,
+)
 from .promiedos import PromiedosClient
 from .promiedos import types as PromiedosTypes
 from .scores365 import Scores365Client
@@ -120,6 +127,8 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 __all__ = [
+    "MatchPlayerComparison", "MatchPlayerCoverage", "MatchPlayersReport",
+    "PlayerMatchStatisticComparison", "compare_match_players",
     "MatchEventComparison", "MatchEventCoverage", "MatchEventsReport", "compare_match_events",
     "NormalizedMatchEvent", "normalize_match_events",
     "CatalogCompetition", "CatalogReference", "CatalogTeam", "FootballCatalog", "get_catalog", "open_catalog",

@@ -214,6 +214,14 @@ retain missing values, source periods, original fetch times, partial errors and
 unmatched/ambiguous IDs. Cross-source xG/forecast models remain separate.
 `report.to_dataframe()` requires the pandas extra.
 
+`esd.compare_match_players(left, right, identities=...)` compares ESPN/365Scores
+lineups and player-match statistics with explicit player identities. It retains
+ambiguous aliases, nullable flags, missing records and original fetch dates.
+Positions need reviewed cross-source aliases. Cross-source xG/xA/ratings have
+no numeric delta. Comparison needs no extras; the two report DataFrames use
+optional pandas. See the
+[player comparison guide](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/guides/datasets.md#compare-lineups-and-player-statistics).
+
 `compare_match_events(left, right, identities=...)` compares ESPN/365Scores
 events after explicit match and player linkage. Known differences, unknown
 observations, ambiguous candidates and failed/empty event tasks remain separate.

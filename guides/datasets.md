@@ -1055,6 +1055,128 @@ downloads two bounded summaries, saves source snapshots/identities/options/repor
 and recomputes offline from the original records. An artificial example exercises
 minute differences, penalty outcomes, ambiguous cards and unknown players.
 
+## Compare lineups and player statistics
+
+`compare_match_players()` compares ESPN/365Scores observations without HTTP,
+file writes, pandas or PyArrow. Both datasets must select `matches` and
+`lineups`, pass validation and identify every lineup's native match. Any
+player-statistics record must reference a selected lineup using the exact native
+match/team/player key. Sofascore downloads remain available; this comparator
+currently accepts ESPN/365Scores, including same-source comparisons.
+
+The existing match linker establishes unique competition, ordered team and UTC
+kickoff links. Within each fixture, player aliases establish a pair only when
+the canonical identity is unique on both sides. Names, jerseys, positions and
+365Scores `source_athlete_id` never establish player links. Use the normalized
+member `player_id` for 365Scores aliases. Same-source comparisons use native
+player IDs without cross-source aliases.
+
+```py
+import esd
+
+identities = esd.get_catalog().identities().with_aliases([
+    esd.EntityAlias("player", "issa-doumbia", "espn", "386592"),
+    esd.EntityAlias("player", "issa-doumbia", "scores365", "75430996"),
+])
+# left/right select lineups and optionally player_match_stats.
+# report = esd.compare_match_players(
+#     left, right, identities=identities,
+#     metrics=["minutes", "goals", "assists", "shots", "xg"],
+#     tolerances={"minutes": 1},
+# )
+```
+
+Every listed player occurs once in `report.rows`, paired or unresolved. Original
+records remain in `left_lineup`/`right_lineup`, with any exact native statistics
+record in `left_statistics`/`right_statistics`. Those records remain attached
+even when a player's identity is unresolved. No source IDs or observations are
+rewritten. A differing team observation can be reported for a uniquely mapped
+player. Unknown event team membership is not inferred from goal events.
+
+### Lineup fields and identities
+
+Known canonical team, home/away side, starter, captain, jersey, formation and
+confirmation observations are compared. Formation and jersey comparisons are
+literal: they do not establish identical tactical or formatting conventions.
+Missing flags remain unknown, including unknown/unknown. A listed substitute
+does not establish participation or zero minutes.
+
+Positions retain native labels and need explicit cross-source aliases, for
+example `position_aliases={(source, native_label): canonical_position}`. This
+mapping is caller-reviewed and saved in the report. Even identical labels are
+unknown across providers without that mapping. ESPN's `SUB` label describes a
+lineup role rather than a field position; do not map it to a tactical position.
+Same-source positions compare their native labels. Source role/status codes
+and source position IDs remain in the records without cross-source comparisons.
+
+| Lineup status | Meaning |
+| :--- | :--- |
+| `equal` | Known comparable fields agree; `unknown_fields` remains unverified |
+| `different` | A unique player pair differs in the fields named by `differences` |
+| `unresolved_left` / `unresolved_right` | Player identity or fixture linkage is unavailable |
+| `ambiguous_left` / `ambiguous_right` | Multiple native players map to one canonical identity on either side |
+| `unmatched_left` / `unmatched_right` | A usable unique identity has no opposite observation |
+
+`reason` distinguishes unknown player identity, no candidate, multiple candidates,
+unlinked fixtures and ambiguous fixtures. `candidate_keys` lists opposite native
+player IDs scoped to the linked fixture. Multiple aliases are never resolved by
+names, jersey numbers or ordering. A repeated alias within one fixture stays
+ambiguous even if the opposite source has no candidate. Fixture decisions also
+remain in `report.linkage`, including matches with empty lineups.
+
+### Individual metrics and unknowns
+
+If either dataset selects `player_match_stats`, `report.statistics` contains one
+row per player-comparison row and selected metric. `metrics` defaults to the
+normalized count fields plus xG, xA and source rating. `tolerances` supplies finite
+nonnegative absolute differences per selected metric, default zero. Minutes use
+minute units; other integer metrics use counts. A comparable `delta` is right
+minus left. Original integer values remain integers in the report.
+
+Statistics are independent of lineup differences. Missing observations are never
+zero, and an unused player's lineup can have no statistics record. Match metrics
+have no period breakdown in these records. Numeric differences describe source
+totals without asserting identical regulation, extra-time, stoppage-time or
+collection conventions. Cross-source xG, xA and ratings retain their source
+models and have no delta even when their numbers agree. Same-source xG/xA/ratings
+can be compared as source observations without certifying model stability.
+
+| Metric status | Meaning |
+| :--- | :--- |
+| `equal` / `different` | Comparable observations within/outside the absolute tolerance |
+| `table_unselected_left` / `table_unselected_right` | A source did not request player statistics |
+| `record_missing_left` / `record_missing_right` / `record_missing_both` | A selected table has no player-statistics record |
+| `missing_left` / `missing_right` / `missing_both` | A record exists but the metric was not observed |
+| `source_specific` | Both values exist, but cross-source xG/xA/rating models remain separate |
+| Any unpaired lineup status | Player/fixture linkage must be resolved before comparing its metrics |
+
+An unpaired player's status takes precedence over metric diagnostics. When
+neither dataset selects statistics, `statistics` is empty. `.differences` and
+`.unresolved` select lineup rows; `.statistic_differences` and
+`.unresolved_statistics` select metric rows. Equal lineup fields do not imply
+that all individual metrics were observed or agreed.
+
+### Coverage, timestamps and export
+
+`left_coverage`/`right_coverage` retain exact player-task success, lineup and
+statistics counts, whether statistics were selected and the original fetch date
+for each native match. A successful empty response differs from a failed task.
+Only ESPN `match_details:{id}` and 365Scores `lineups:{id}` establish these
+dates. Calendar, event-only, context and loader timestamps are not substitutes.
+Metadata, download errors, validation warnings, complete flags and comparison
+settings remain in the report.
+
+`report.to_dataframe()` exports lineup rows; `report.to_dataframe("statistics")`
+exports metrics. Both import pandas lazily, keep fixed columns when empty and
+use nullable strings/booleans/numbers with UTC nanosecond dates. Lineup diagnostic
+tuples become JSON strings in frames. Statistics use nullable Float64 columns;
+raw records retain integer counts. Frame report version 1 is independent of
+normalized schema 5, which remains unchanged.
+
+The [Champions/offline examples](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/examples/README.md#compare-lineups-and-player-statistics)
+cover bounded downloads, partial player identities and saved source pairs with
+aliases/settings. Reopening recomputes observations from source snapshots.
+
 ## Troubleshooting
 
 | Symptom | What to check |

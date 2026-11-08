@@ -50,6 +50,13 @@ ESPN, 365Scores and Sofascore also provide normalized `lineups` and
 can include team match totals in the same dataset, with a request budget and
 optional cache, DataFrames or Parquet snapshots.
 
+`esd.compare_match_players(left, right, identities=...)` compares ESPN/365Scores
+lineups and individual metrics using reviewed player aliases. It preserves
+unknown flags, missing statistics and ambiguous identities. Positions need
+explicit cross-source mappings; xG/xA/ratings keep their source models. See the
+[player comparison guide](guides/datasets.md#compare-lineups-and-player-statistics)
+and [Champions/offline examples](examples/README.md#compare-lineups-and-player-statistics).
+
 ESPN, 365Scores and Sofascore expose normalized `match_events` for explicit IDs.
 ESPN/365Scores share detail responses with player tables; Sofascore shares match
 context and reads incidents separately. Events retain native periods,
