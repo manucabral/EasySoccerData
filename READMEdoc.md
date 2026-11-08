@@ -202,6 +202,14 @@ pandas and make no network requests; DataFrame export uses the optional extra.
 records, references and task coverage. Validation works without pandas or PyArrow
 and does not change or fetch data.
 
+`esd.get_dataset_field_capabilities(source, table)` describes every adapter
+column, including unavailable fields, nullable export types and source-specific
+model/coordinate labels. `esd.inspect_dataset_coverage(dataset)` separately
+counts non-null values, missing values, numeric zeros and boolean flags while
+retaining relevant task failures, original cache dates and query scope. It
+requires no extras or requests. Only `report.to_dataframe()` needs pandas.
+See [field coverage](https://github.com/manucabral/EasySoccerData/blob/release/0.2.0/guides/datasets.md#field-contracts-and-observed-coverage).
+
 ESPN, 365Scores and Sofascore accept `tables=["match_stats"]` with explicit
 `match_ids` and a `max_match_requests` budget. These detail queries return the
 selected matches and teams, nullable counts and possession without downloading

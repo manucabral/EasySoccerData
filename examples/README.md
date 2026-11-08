@@ -27,6 +27,9 @@ snapshot. Temporary-file examples clean up after themselves.
 | [Match events](datasets/match_events_offline.py) | Base | Artificial goals/stoppage time, shootout counters, player/context reuse and caching for ESPN/365Scores/Sofascore |
 | [Match events](datasets/match_events_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable event frames or snapshots reopened without HTTP |
 | [Reviewed catalog](datasets/catalog.py) with `--list` | Base | Local competition selectors, review metadata and team identity count |
+| [Field contracts](datasets/coverage.py) with `--source espn --table shots` | Base | Column mappings, unavailable fields, types and source conventions without HTTP |
+| [Field coverage](datasets/coverage_offline.py) | Base | Artificial non-null/missing counts, numeric zeros, boolean False and partial tasks |
+| [Field coverage](datasets/coverage_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable report frames or coverage reproduced from source snapshots |
 | [Scoped players](datasets/scoped_players_offline.py) | Base | Artificial transfer boundary, explicit missing-context diagnostics and identity JSON |
 | [Match shots](datasets/match_shots_offline.py) | Base | Artificial ESPN/Sofascore attempts, native coordinates/models and cache reuse |
 | [Match shots](datasets/match_shots_offline.py) with `--pandas` or `--parquet` | Corresponding extra | Nullable shot frames or verified snapshot round trips |
@@ -210,6 +213,28 @@ applicable. Import and `--help` make no requests. The
 records and supports independent `--pandas` and `--parquet` flags.
 
 ## Live dataset queries
+
+### Inspect fields and existing snapshots
+
+These queries make no source requests. Contracts work with the base install;
+opening a snapshot requires `[parquet]`. `--pandas` display independently needs
+`[pandas]`.
+
+```sh
+python examples/datasets/coverage.py --source espn --table shots
+python examples/datasets/coverage.py --source sofascore --table player_match_stats
+python examples/datasets/coverage.py --open-dir ./my-data/champions-shots --table shots --output-json ./my-data/shot-coverage.json
+python examples/datasets/coverage_offline.py
+python examples/datasets/coverage_offline.py --pandas --parquet
+```
+
+`--output-json` requires a new caller-selected path. Snapshot inspection returns
+`1` for a partial download, retaining all recorded failures even when the table
+filter chooses a successful table. Empty successful tables remain distinct from
+failed/pending tasks. Numeric zeros and boolean False stay separate from nulls;
+parser defaults already in normalized rows cannot establish raw presence.
+Read the [field coverage contract](../guides/datasets.md#field-contracts-and-observed-coverage)
+for counters, source-specific mappings and task attribution.
 
 ### Inspect source attempts
 

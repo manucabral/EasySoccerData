@@ -48,3 +48,13 @@ FLOAT_COLUMNS = {
     "source_rating", "xgot",
     "clock_seconds", "source_game_time",
 }
+
+
+def _column_dtype(name):
+    if name == "kickoff":
+        return "datetime64[ns, UTC]"
+    if name in INTEGER_COLUMNS:
+        return "Int64"
+    if name in FLOAT_COLUMNS:
+        return "Float64"
+    return "boolean" if name in BOOLEAN_COLUMNS else "string"

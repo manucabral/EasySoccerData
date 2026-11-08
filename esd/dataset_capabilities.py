@@ -13,6 +13,7 @@ class DatasetCapabilities:
     the provider's query scope (season_year, native_season_id, source_season,
     date_range or entities). notes describes required inputs and limitations.
     This contract does not assert current network availability.
+    get_dataset_field_capabilities() describes individual adapter columns.
     """
     source: str
     tables: tuple[str, ...]

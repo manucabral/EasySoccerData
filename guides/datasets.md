@@ -143,6 +143,100 @@ verifies twelve dataset snapshots using a saved catalog; `--pandas` independentl
 checks report DataFrames. Its source seasons and match observations are fixtures,
 not claims about live historical coverage.
 
+## Field contracts and observed coverage
+
+Table support does not mean that every column is populated. Query the current
+dataset adapter without downloading anything or importing optional packages:
+
+```py
+fields = esd.get_dataset_field_capabilities("espn", "shots")
+assert fields["x"].support == "mapped"
+assert fields["x"].coordinate_system == "espn-native-field"
+assert fields["xg"].support == "unavailable"
+
+players = esd.get_dataset_field_capabilities("sofascore", "player_match_stats")
+assert players["minutes"].support == "mapped"
+assert players["shots"].support == "unavailable"
+```
+
+The returned dictionary contains every normalized column for that supported
+source/table. Its entries are immutable. Changing the dictionary does not
+change later lookups. Unsupported pairs and unknown selections raise `ValueError`.
+The contracts cover the implemented dataset tables of all nine providers.
+
+| `support` | Meaning |
+| :--- | :--- |
+| `mapped` | The current adapter has a mapping for this column; individual responses can omit it |
+| `context` | The value uses query/verified match context or a provider/convention label |
+| `derived` | An explicit normalization rule produces it, such as a side flag or response position |
+| `unavailable` | The current dataset adapter leaves this column null |
+
+`dtype` describes nullable DataFrame export without importing pandas. Units
+identify minutes, seconds and percentage-point possession where relevant.
+`model` labels provider-specific metrics without asserting a shared definition
+or model version. `coordinate_system` retains native conventions. These
+contracts describe `load_dataset()`, not every individual client method or
+every league/season. For example, ESPN season team rows may carry short names,
+while its explicit detail loader derives teams from matches without that field.
+
+Inspect the actual normalized rows separately:
+
+```py
+# dataset is a dataset you downloaded or opened; no new source query occurs.
+report = esd.inspect_dataset_coverage(dataset)
+for row in report.fields:
+    print(row.table, row.field, row.capability.support,
+          row.present_count, row.missing_count, row.zero_count)
+for table in report.tables:
+    print(table.table, table.row_count, table.task_status, table.task_keys)
+document = report.to_dict()        # JSON-compatible, no optional packages
+# frame = report.to_dataframe()    # optional [pandas]
+```
+
+`present_count` counts non-null values in existing rows. `missing_count` counts
+`None`; a numeric zero is present and also increments `zero_count`. Boolean
+`False` increments `false_count`, never numeric zero. `true_count` is separate.
+`blank_count` identifies blank/whitespace-only strings that are still non-null.
+Counters for unrelated types are null. `present_ratio` is a fraction from zero
+to one and remains null when the table has no rows. Field `status` is `empty`,
+`missing`, `partial` or `populated`, independently of download outcomes.
+
+Counts do not prove raw source observations. Existing parser defaults can
+already have filled missing source fields with zeros or empty strings, and
+normalization cannot recover their absence. `unmapped_values=True` identifies
+non-null values in a column the current adapter does not populate; caller
+enrichment or an older adapter may account for them. These values are retained.
+The inspector does not infer omitted players, matches or attempts.
+
+Each selected table lists its relevant task keys and `task_status`: `complete`,
+`partial`, `failed`, `pending` or `unknown`. A successful empty table has zero
+rows and complete tasks; a failed table is not treated as an empty success.
+Missing task evidence stays unknown. Sofascore context reads are retained as
+prerequisites. If some explicitly requested match IDs have no relevant detail
+task, table coverage remains partial rather than reporting a complete task set.
+Sofascore context reads cannot establish successful lineup, statistics or shot reads.
+Understat shot coverage also includes its required season discovery. ESPN
+season calendars use their saved flags/dates when no explicit task list exists.
+
+The report retains all dataset tasks, original response dates, cached flags,
+download errors, query metadata and validation warnings. Table filtering only
+limits the inspected rows; it does not turn an incomplete overall download
+into a complete one or discard errors from other tables. Invalid datasets raise
+`ValueError` rather than producing misleading counts.
+
+Coverage JSON format `1` is a derived report, independent of normalized schema
+`6`. It changes no dataset rows, selected tables, source timestamps or files.
+Recompute it after `open_dataset()` to inspect a saved snapshot. Saving/opening
+the source still needs `[parquet]`; inspection itself needs no extras, and the
+optional report DataFrame uses nullable counts, flags and ratios.
+
+Run `python examples/datasets/coverage.py --source espn --table shots` for a
+local contract query. `--open-dir PATH --table shots` inspects a source
+snapshot without HTTP. `--output-json PATH` saves a new report file without
+overwriting existing files. `coverage_offline.py` demonstrates artificial
+missing values, zero/False counters, cache dates and a partial download; its
+`--pandas` and `--parquet` flags exercise the independent extras.
+
 ## Player identity scope
 
 Player aliases can restrict an equivalence to a native team and a time window.

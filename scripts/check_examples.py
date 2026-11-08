@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 
 BASE = (
+    ("examples/datasets/coverage.py", "--source", "espn", "--table", "shots"),
+    ("examples/datasets/coverage_offline.py",),
     ("examples/datasets/scoped_players_offline.py",),
     ("examples/datasets/match_shots.py", "--help"),
     ("examples/datasets/match_shots_offline.py",),
@@ -39,6 +41,7 @@ BASE = (
     ("examples/datasets/cache_resume_offline.py",),
 )
 PANDAS = (
+    ("examples/datasets/coverage_offline.py", "--pandas"),
     ("examples/datasets/match_shots_offline.py", "--pandas"),
     ("examples/datasets/champions_workflow.py", "--demo", "--allow-unknown-period", "--pandas"),
     ("examples/datasets/compare_players_offline.py", "--pandas"),
@@ -52,7 +55,8 @@ PANDAS = (
     ("examples/pandas/normalized_tables.py",),
     ("examples/pandas/dataset_analysis.py",),
 )
-PARQUET = (("examples/datasets/match_shots_offline.py", "--parquet"),
+PARQUET = (("examples/datasets/coverage_offline.py", "--parquet"),
+           ("examples/datasets/match_shots_offline.py", "--parquet"),
            ("examples/datasets/parquet_roundtrip.py",),
            ("examples/datasets/champions_workflow.py", "--demo", "--allow-unknown-period", "--parquet"),
            ("examples/datasets/compare_players_offline.py", "--parquet"),

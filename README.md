@@ -412,6 +412,13 @@ for progress reporting and inspection of partial results.
 
 ## Dataset providers
 
+`esd.get_dataset_field_capabilities("espn", "shots")` describes individual
+columns, including mapped coordinates and unavailable xG. For an existing
+dataset, `esd.inspect_dataset_coverage(dataset)` reports non-null/missing values,
+numeric zeros, boolean flags and relevant task outcomes. Neither call downloads
+data or requires pandas. See [field coverage](guides/datasets.md#field-contracts-and-observed-coverage)
+and the [offline example](examples/datasets/coverage_offline.py).
+
 `esd.get_dataset_capabilities()` returns the implemented contracts for all nine
 clients. All nine have a dataset loader, with different selection scopes and tables.
 

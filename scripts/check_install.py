@@ -66,6 +66,12 @@ def main():
         players = esd.load_dataset(source="espn", league="example.cup", season=2026,
                                    tables=["player_match_stats"], match_ids=[1], max_match_requests=1)
     assert esd.validate_dataset(players).valid and players.complete
+    assert esd.get_dataset_field_capabilities("espn", "player_match_stats")["minutes"].support == "unavailable"
+    field_coverage = esd.inspect_dataset_coverage(players)
+    assert field_coverage.complete and all(row.task_status == "complete" for row in field_coverage.tables)
+    assert any(row.field == "goals" and row.zero_count == 1 for row in field_coverage.fields)
+    assert field_coverage.to_dict()["metadata"]["schema_version"] == "6"
+    assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
     assert players.lineup_records[0].starter is False and players.lineup_records[1].starter is None
     assert players.player_match_stat_records[0].goals == 0 and players.player_match_stat_records[0].minutes is None
     player_comparison = esd.compare_match_players(players, players, metrics=["goals", "minutes"])
@@ -156,6 +162,7 @@ def main():
             assert esd.open_dataset(dataset.save(Path(directory) / "snapshot")) == dataset
             assert esd.open_dataset(details.save(Path(directory) / "statistics")) == details
             assert esd.open_dataset(players.save(Path(directory) / "players")) == players
+            assert esd.inspect_dataset_coverage(esd.open_dataset(Path(directory) / "players")) == field_coverage
             assert esd.open_dataset(shots.save(Path(directory) / "shots")) == shots
         else:
             try:
@@ -165,6 +172,7 @@ def main():
             else:
                 raise AssertionError("Saving without PyArrow must fail")
     if wants_pandas:
+        assert str(field_coverage.to_dataframe().present_count.dtype) == "Int64"
         frame = dataset.matches
         assert str(frame.home_score.dtype) == "Int64"
         assert str(frame.kickoff.dtype) == "datetime64[ns, UTC]"
@@ -181,6 +189,12 @@ def main():
         assert str(player_comparison.to_dataframe("statistics").left_value.dtype) == "Float64"
     else:
         assert "pandas" not in sys.modules
+        try:
+            field_coverage.to_dataframe()
+        except ImportError as exc:
+            assert "EasySoccerData[pandas]" in str(exc)
+        else:
+            raise AssertionError("Coverage DataFrames without pandas must fail")
         for table in ("lineups", "statistics"):
             try:
                 player_comparison.to_dataframe(table)

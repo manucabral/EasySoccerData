@@ -51,6 +51,17 @@ other = esd.load_dataset(source="sofascore", league=17, season=2024,
     season_id=61627, request_delay=0)
 assert other.complete
 assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
+assert esd.get_dataset_field_capabilities("espn", "shots")["xg"].support == "unavailable"
+coverage = esd.inspect_dataset_coverage(dataset)
+assert coverage.tables[0].task_status == "complete"
+assert coverage.to_dict()["format"] == "easysoccerdata-coverage"
+try:
+    coverage.to_dataframe()
+except ImportError as exc:
+    assert "EasySoccerData[pandas]" in str(exc)
+else:
+    raise AssertionError("Coverage frames require pandas")
+assert "pandas" not in sys.modules and "pyarrow" not in sys.modules
 import esd._remaining_datasets as remaining
 providers.get_api_json = lambda *args, **kwargs: {
     "LeagueInfo": [36, "League", "2024-2025"], "TeamInfo": [], "ScheduleList": {}}

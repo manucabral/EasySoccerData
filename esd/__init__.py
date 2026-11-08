@@ -35,6 +35,14 @@ from .compatibility import (
     link_dataset_matches,
 )
 from .dataset_capabilities import DatasetCapabilities, get_dataset_capabilities
+from .dataset_coverage import (
+    DatasetCoverageReport,
+    DatasetFieldCoverage,
+    DatasetTableCoverage,
+    DatasetTaskCoverage,
+    inspect_dataset_coverage,
+)
+from .dataset_fields import DatasetFieldCapability, get_dataset_field_capabilities
 from .dataset_validation import (
     DatasetValidationIssue,
     DatasetValidationReport,
@@ -129,6 +137,8 @@ except PackageNotFoundError:
     __version__ = "0.0.0"
 
 __all__ = [
+    "DatasetFieldCapability", "get_dataset_field_capabilities", "DatasetCoverageReport",
+    "DatasetFieldCoverage", "DatasetTableCoverage", "DatasetTaskCoverage", "inspect_dataset_coverage",
     "MatchPlayerComparison", "MatchPlayerCoverage", "MatchPlayersReport",
     "PlayerMatchStatisticComparison", "compare_match_players",
     "MatchEventComparison", "MatchEventCoverage", "MatchEventsReport", "compare_match_events",

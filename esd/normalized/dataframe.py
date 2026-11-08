@@ -6,7 +6,7 @@ from dataclasses import fields
 
 from ..utils import to_dataframe
 from .models import SCHEMA_VERSION
-from .schema import BOOLEAN_COLUMNS, FLOAT_COLUMNS, INTEGER_COLUMNS, TABLE_MODELS
+from .schema import TABLE_MODELS, _column_dtype
 
 
 def normalized_to_dataframe(objects: list, *, table: str):
@@ -27,11 +27,7 @@ def normalized_to_dataframe(objects: list, *, table: str):
     dtypes = {}
     for field in fields(model):
         if field.name != "kickoff":
-            dtypes[field.name] = (
-                "Int64" if field.name in INTEGER_COLUMNS else
-                "Float64" if field.name in FLOAT_COLUMNS else
-                "boolean" if field.name in BOOLEAN_COLUMNS else "string"
-            )
+            dtypes[field.name] = _column_dtype(field.name)
     frame = to_dataframe(
         objects,
         dtypes=dtypes,
